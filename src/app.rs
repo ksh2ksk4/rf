@@ -57,7 +57,7 @@ pub fn app() -> Html {
 
     html! {
         <main class="container">
-            <table>
+            <table class="file-list">
                 <thead>
                     <tr>
                         <th>{"name"}</th>
@@ -91,7 +91,7 @@ pub fn app() -> Html {
 
                         html! {
                             <tr class={if is_dir {"dir"} else {"file"}}>
-                                <td>
+                                <td class="name">
                                     {if is_dir {
                                         html! {
                                             <span class="icon">
@@ -107,10 +107,10 @@ pub fn app() -> Html {
                                     }}
                                     {name}
                                 </td>
-                                <td>{size_string}</td>
-                                <td>{created}</td>
-                                <td>{modified}</td>
-                                <td>{accessed}</td>
+                                <td class="size">{size_string}</td>
+                                <td class="datetime">{created}</td>
+                                <td class="datetime">{modified}</td>
+                                <td class="datetime">{accessed}</td>
                             </tr>
                         }
                     })}

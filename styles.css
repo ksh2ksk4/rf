@@ -124,3 +124,25 @@ button {
 .icon {
   font-family: 'NerdFont';
 }
+
+table.file-list {
+  background: #411;
+  border-spacing: 18px 6px;
+}
+
+table.file-list td.name {
+  max-width: 500px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+table.file-list td.size {
+  max-width: 80px;
+  white-space: normal;
+}
+
+table.file-list td.datetime {
+  max-width: 150px;
+  white-space: normal;
+}
