@@ -2,6 +2,7 @@ use gloo_utils::format::JsValueSerdeExt;
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::spawn_local;
+use web_sys::console;
 use yew::prelude::*;
 
 const INIT_DIR: &str = "/Users/ksh2ksk4/Downloads";
@@ -56,6 +57,24 @@ pub fn app() -> Html {
 
             || {}
         });
+    }
+
+    // state の値が変化したときに実行されるフック
+    {
+        let previous_dir = previous_dir.clone();
+        let current_dir = current_dir.clone();
+        let files = files.clone();
+        #[allow(unused_variables)]
+        use_effect_with(
+            (previous_dir, current_dir, files),
+            move |(previous_dir, current_dir, files)| {
+                console::info_1(&format!("previous_dir: {previous_dir:?}").into());
+                console::info_1(&format!("current_dir: {current_dir:?}").into());
+                //console::info_1(&format!("files: {files:?}").into());
+
+                || {}
+            },
+        );
     }
 
     // back ボタンクリックのイベントハンドラ
