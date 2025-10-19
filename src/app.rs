@@ -18,7 +18,23 @@ struct FileInfo {
     name: String,
     path: String,
     is_dir: bool,
+    is_file: bool,
+    is_symlink: bool,
+    // Unix only
+    is_block_device: bool,
+    // Unix only
+    is_char_device: bool,
+    // Unix only
+    is_fifo: bool,
+    // Unix only
+    is_socket: bool,
     size: u64,
+    readonly: bool,
+    // Unix only
+    mode: u32,
+    accessed: String,
+    created: String,
+    modified: String,
 }
 
 #[function_component(App)]
@@ -46,6 +62,9 @@ pub fn app() -> Html {
                     <tr>
                         <th>{"name"}</th>
                         <th>{"size"}</th>
+                        <th>{"created at"}</th>
+                        <th>{"modified at"}</th>
+                        <th>{"accessed at"}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -53,6 +72,9 @@ pub fn app() -> Html {
                         let is_dir = f.is_dir;
 
                         let name = f.name.clone();
+                        let created = f.created.clone();
+                        let modified = f.modified.clone();
+                        let accessed = f.accessed.clone();
 
                         let mut size = f.size as f64;
                         let mut i: usize = 0;
@@ -86,6 +108,9 @@ pub fn app() -> Html {
                                     {name}
                                 </td>
                                 <td>{size_string}</td>
+                                <td>{created}</td>
+                                <td>{modified}</td>
+                                <td>{accessed}</td>
                             </tr>
                         }
                     })}
