@@ -97,10 +97,27 @@ pub fn app() -> Html {
         })
     };
 
+    // "Select Dir" ボタンクリックのイベントハンドラ
+    let handle_select_dir_click = {
+        let files = files.clone();
+        Callback::from(move |_| {
+            let files = files.clone();
+            spawn_local(async move {
+                let folder = invoke("select_dir", JsValue::NULL)
+                    .await
+                    .as_string()
+                    .unwrap();
+                let args = JsValue::from_serde(&serde_json::json!({"path": folder})).unwrap();
+                files.set(invoke("read_dir", args).await.into_serde().unwrap());
+            });
+        })
+    };
+
     html! {
         <main class="container">
             <div>
                 <button onclick={handle_back_click}>{"Back"}</button>
+                <button onclick={handle_select_dir_click}>{"Select Dir"}</button>
             </div>
             <table class="file-list">
                 <thead>

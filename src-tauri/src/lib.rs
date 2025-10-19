@@ -73,11 +73,19 @@ fn read_dir(path: String) -> Result<Vec<FileInfo>, String> {
     Ok(entries)
 }
 
+#[tauri::command]
+fn select_dir() -> Result<String, String> {
+    let path = rfd::FileDialog::new()
+        .pick_folder()
+        .ok_or("No dir selected")?;
+    Ok(path.to_string_lossy().to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![read_dir])
+        .invoke_handler(tauri::generate_handler![read_dir, select_dir])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
