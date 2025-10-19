@@ -5,6 +5,7 @@ use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 
 const INIT_DIR: &str = "/Users/ksh2ksk4/Downloads";
+const UNITS: [&str; 5] = ["B", "KiB", "MiB", "GiB", "TiB"];
 
 #[wasm_bindgen]
 extern "C" {
@@ -50,10 +51,23 @@ pub fn app() -> Html {
                     {for files.iter().map(|f| {
                         let name = f.name.clone();
 
+                        let mut size = f.size as f64;
+                        let mut i: usize = 0;
+                        let (size, i) = loop {
+                            if size < 1024.0 {
+                                break (size, i);
+                            }
+
+                            size /= 1024.0;
+                            i += 1;
+                        };
+                        let unit = UNITS[i];
+                        let size_string = format!("{size:.2} {unit}");
+
                         html! {
                             <tr>
                                 <td>{name}</td>
-                                <td>{f.size}</td>
+                                <td>{size_string}</td>
                             </tr>
                         }
                     })}
