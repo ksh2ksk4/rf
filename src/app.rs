@@ -39,14 +39,17 @@ struct FileInfo {
 
 #[function_component(App)]
 pub fn app() -> Html {
+    let previous_dir = use_state(|| INIT_DIR.to_string());
+    let current_dir = use_state(|| INIT_DIR.to_string());
     let files = use_state(|| Vec::<FileInfo>::new());
 
     // 初回マウント時に実行されるフック
     {
+        let current_dir = current_dir.clone();
         let files = files.clone();
         use_effect_with((), move |_| {
             spawn_local(async move {
-                let path = INIT_DIR;
+                let path = (*current_dir).clone();
                 let args = JsValue::from_serde(&serde_json::json!({"path": path})).unwrap();
                 files.set(invoke("read_dir", args).await.into_serde().unwrap());
             });
@@ -70,6 +73,30 @@ pub fn app() -> Html {
                 <tbody>
                     {for files.iter().map(|f| {
                         let is_dir = f.is_dir;
+
+                        let handle_dir_click = {
+                            let previous_dir = previous_dir.clone();
+                            let current_dir = current_dir.clone();
+                            let files = files.clone();
+                            let path = f.path.clone();
+                            Callback::from(move |e: MouseEvent| {
+                                e.prevent_default();
+
+                                if !is_dir {
+                                    return;
+                                }
+
+                                previous_dir.set((*current_dir).clone());
+                                current_dir.set(path.clone());
+
+                                let files = files.clone();
+                                let path = path.clone();
+                                spawn_local(async move {
+                                    let args = JsValue::from_serde(&serde_json::json!({"path": path})).unwrap();
+                                    files.set(invoke("read_dir", args).await.into_serde().unwrap());
+                                });
+                            })
+                        };
 
                         let name = f.name.clone();
                         let created = f.created.clone();
@@ -105,7 +132,12 @@ pub fn app() -> Html {
                                             </span>
                                         }
                                     }}
-                                    {name}
+                                    <a
+                                        href="#"
+                                        onclick={handle_dir_click}
+                                    >
+                                        {name}
+                                    </a>
                                 </td>
                                 <td class="size">{size_string}</td>
                                 <td class="datetime">{created}</td>
