@@ -173,7 +173,14 @@ pub fn app() -> Html {
                             i += 1;
                         };
                         let unit = UNITS[i];
-                        let size_string = format!("{size:.2} {unit}");
+                        // 小数点第二位で丸める
+                        let size_rounded = (size * 100.0).round() / 100.0;
+                        // 小数部がほぼ 0 かどうかチェック
+                        let size_string = if size_rounded.fract() < f64::EPSILON {
+                            format!("{size:.0} {unit}")
+                        } else {
+                            format!("{size:.2} {unit}")
+                        };
 
                         html! {
                             <tr class={if is_dir {"dir"} else {"file"}}>
