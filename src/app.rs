@@ -38,19 +38,73 @@ struct FileInfo {
     modified: String,
 }
 
+#[derive(Clone, Debug, PartialEq)]
+struct NavigationHistory {
+    index: usize,
+    paths: Vec<String>,
+}
+
+impl NavigationHistory {
+    pub fn new() -> Self {
+        Self {
+            index: 0,
+            paths: vec![INIT_DIR.to_string()],
+        }
+    }
+
+    pub fn can_back(&self) -> bool {
+        self.index > 0
+    }
+
+    pub fn can_forward(&self) -> bool {
+        self.index + 1 < self.paths.len()
+    }
+
+    pub fn current(&self) -> &str {
+        &self.paths[self.index]
+    }
+
+    pub fn back(&mut self) -> Option<String> {
+        if !self.can_back() {
+            None
+        } else {
+            self.index -= 1;
+            Some(self.current().to_string())
+        }
+    }
+
+    pub fn forward(&mut self) -> Option<String> {
+        if !self.can_forward() {
+            None
+        } else {
+            self.index += 1;
+            Some(self.current().to_string())
+        }
+    }
+
+    pub fn push(&mut self, path: &str) {
+        if self.index + 1 < self.paths.len() {
+            // 最新の移動履歴ではない場合
+            self.paths.truncate(self.index + 1);
+        }
+
+        self.paths.push(path.to_string());
+        self.index = self.paths.len() - 1;
+    }
+}
+
 #[function_component(App)]
 pub fn app() -> Html {
-    let previous_dir = use_state(|| INIT_DIR.to_string());
-    let current_dir = use_state(|| INIT_DIR.to_string());
+    let navigation_history = use_state(|| NavigationHistory::new());
     let files = use_state(|| Vec::<FileInfo>::new());
 
     // 初回マウント時に実行されるフック
     {
-        let current_dir = current_dir.clone();
+        let navigation_history = navigation_history.clone();
         let files = files.clone();
         use_effect_with((), move |_| {
             spawn_local(async move {
-                let path = (*current_dir).clone();
+                let path = navigation_history.paths[0].clone();
                 let args = JsValue::from_serde(&serde_json::json!({"path": path})).unwrap();
                 files.set(invoke("read_dir", args).await.into_serde().unwrap());
             });
@@ -61,15 +115,13 @@ pub fn app() -> Html {
 
     // state の値が変化したときに実行されるフック
     {
-        let previous_dir = previous_dir.clone();
-        let current_dir = current_dir.clone();
+        let navigation_history = navigation_history.clone();
         let files = files.clone();
         #[allow(unused_variables)]
         use_effect_with(
-            (previous_dir, current_dir, files),
-            move |(previous_dir, current_dir, files)| {
-                console::info_1(&format!("previous_dir: {previous_dir:?}").into());
-                console::info_1(&format!("current_dir: {current_dir:?}").into());
+            (navigation_history, files),
+            move |(navigation_history, files)| {
+                console::info_1(&format!("navigation_history: {navigation_history:?}").into());
                 //console::info_1(&format!("files: {files:?}").into());
 
                 || {}
@@ -77,19 +129,31 @@ pub fn app() -> Html {
         );
     }
 
-    // back ボタンクリックのイベントハンドラ
+    // Back ボタンクリックのイベントハンドラ
     let handle_back_click = {
-        let previous_dir = previous_dir.clone();
-        let current_dir = current_dir.clone();
+        let navigation_history = navigation_history.clone();
         let files = files.clone();
         Callback::from(move |_| {
-            let previous_dir = previous_dir.clone();
+            let mut nh = (*navigation_history).clone();
+            let path = nh.back().unwrap_or(INIT_DIR.to_string());
+            navigation_history.set(nh);
             let files = files.clone();
+            spawn_local(async move {
+                let args = JsValue::from_serde(&serde_json::json!({"path": path})).unwrap();
+                files.set(invoke("read_dir", args).await.into_serde().unwrap());
+            });
+        })
+    };
 
-            let path = (*previous_dir).clone();
-            previous_dir.set((*current_dir).clone());
-            current_dir.set(path.clone());
-
+    // Forward ボタンクリックのイベントハンドラ
+    let handle_forward_click = {
+        let navigation_history = navigation_history.clone();
+        let files = files.clone();
+        Callback::from(move |_| {
+            let mut nh = (*navigation_history).clone();
+            let path = nh.forward().unwrap_or(nh.current().to_string());
+            navigation_history.set(nh);
+            let files = files.clone();
             spawn_local(async move {
                 let args = JsValue::from_serde(&serde_json::json!({"path": path})).unwrap();
                 files.set(invoke("read_dir", args).await.into_serde().unwrap());
@@ -116,7 +180,18 @@ pub fn app() -> Html {
     html! {
         <main class="container">
             <div>
-                <button onclick={handle_back_click}>{"Back"}</button>
+                <button
+                    onclick={handle_back_click}
+                    disabled={!navigation_history.can_back()}
+                >
+                    {"Back"}
+                </button>
+                <button
+                    onclick={handle_forward_click}
+                    disabled={!navigation_history.can_forward()}
+                >
+                    {"Forward"}
+                </button>
                 <button onclick={handle_select_dir_click}>{"Select Dir"}</button>
             </div>
             <table class="file-list">
@@ -134,8 +209,7 @@ pub fn app() -> Html {
                         let is_dir = f.is_dir;
 
                         let handle_dir_click = {
-                            let previous_dir = previous_dir.clone();
-                            let current_dir = current_dir.clone();
+                            let navigation_history = navigation_history.clone();
                             let files = files.clone();
                             let path = f.path.clone();
                             Callback::from(move |e: MouseEvent| {
@@ -145,8 +219,9 @@ pub fn app() -> Html {
                                     return;
                                 }
 
-                                previous_dir.set((*current_dir).clone());
-                                current_dir.set(path.clone());
+                                let mut nh = (*navigation_history).clone();
+                                nh.push(&path);
+                                navigation_history.set(nh);
 
                                 let files = files.clone();
                                 let path = path.clone();
