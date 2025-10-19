@@ -58,8 +58,31 @@ pub fn app() -> Html {
         });
     }
 
+    // back ボタンクリックのイベントハンドラ
+    let handle_back_click = {
+        let previous_dir = previous_dir.clone();
+        let current_dir = current_dir.clone();
+        let files = files.clone();
+        Callback::from(move |_| {
+            let previous_dir = previous_dir.clone();
+            let files = files.clone();
+
+            let path = (*previous_dir).clone();
+            previous_dir.set((*current_dir).clone());
+            current_dir.set(path.clone());
+
+            spawn_local(async move {
+                let args = JsValue::from_serde(&serde_json::json!({"path": path})).unwrap();
+                files.set(invoke("read_dir", args).await.into_serde().unwrap());
+            });
+        })
+    };
+
     html! {
         <main class="container">
+            <div>
+                <button onclick={handle_back_click}>{"Back"}</button>
+            </div>
             <table class="file-list">
                 <thead>
                     <tr>
