@@ -121,8 +121,19 @@ button {
   src: url('fonts/TerminessNerdFontMono-Regular.ttf') format('truetype');
 }
 
+html {
+  font-size: 1.5rem;
+}
+
+body {
+  font-size: 1.5rem;
+  line-height: 1.5;
+}
+
 .icon {
   font-family: 'NerdFont';
+  font-size: 1.5rem;
+  margin-right: 0.5rem;
 }
 
 table.file-list {
@@ -132,8 +143,8 @@ table.file-list {
 
 table.file-list td.name {
   max-width: 500px;
-  white-space: normal;
   overflow-wrap: anywhere;
+  white-space: normal;
   word-break: break-word;
 }
 
