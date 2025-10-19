@@ -5,6 +5,7 @@ use std::fs;
 struct FileInfo {
     name: String,
     path: String,
+    is_dir: bool,
     size: u64,
 }
 
@@ -18,6 +19,7 @@ fn read_dir(path: String) -> Result<Vec<FileInfo>, String> {
         entries.push(FileInfo {
             name: de.file_name().to_string_lossy().to_string(),
             path: de.path().to_string_lossy().to_string(),
+            is_dir: metadata.is_dir(),
             size: metadata.len(),
         });
     }

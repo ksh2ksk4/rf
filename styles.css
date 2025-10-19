@@ -1,3 +1,5 @@
+@import "https://www.nerdfonts.com/assets/css/webfont.css";
+
 .logo.yew:hover {
   filter: drop-shadow(0 0 2em #20a88a);
 }
@@ -109,4 +111,16 @@ button {
   button:active {
     background-color: #0f0f0f69;
   }
+}
+
+
+/* 追加分 */
+@font-face {
+  font-display: swap;
+  font-family: 'NerdFont';
+  src: url('fonts/TerminessNerdFontMono-Regular.ttf') format('truetype');
+}
+
+.icon {
+  font-family: 'NerdFont';
 }

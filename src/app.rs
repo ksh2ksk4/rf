@@ -17,6 +17,7 @@ extern "C" {
 struct FileInfo {
     name: String,
     path: String,
+    is_dir: bool,
     size: u64,
 }
 
@@ -49,6 +50,8 @@ pub fn app() -> Html {
                 </thead>
                 <tbody>
                     {for files.iter().map(|f| {
+                        let is_dir = f.is_dir;
+
                         let name = f.name.clone();
 
                         let mut size = f.size as f64;
@@ -65,8 +68,23 @@ pub fn app() -> Html {
                         let size_string = format!("{size:.2} {unit}");
 
                         html! {
-                            <tr>
-                                <td>{name}</td>
+                            <tr class={if is_dir {"dir"} else {"file"}}>
+                                <td>
+                                    {if is_dir {
+                                        html! {
+                                            <span class="icon">
+                                                <i class="nf nf-cod-folder" />
+                                            </span>
+                                        }
+                                    } else {
+                                        html! {
+                                            <span class="icon">
+                                                <i class="nf nf-cod-file" />
+                                            </span>
+                                        }
+                                    }}
+                                    {name}
+                                </td>
                                 <td>{size_string}</td>
                             </tr>
                         }
