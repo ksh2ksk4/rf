@@ -1,4 +1,5 @@
 @import "https://www.nerdfonts.com/assets/css/webfont.css";
+@import "tailwindcss";
 
 .logo.yew:hover {
   filter: drop-shadow(0 0 2em #20a88a);
