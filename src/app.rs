@@ -5,7 +5,7 @@ use wasm_bindgen_futures::spawn_local;
 use web_sys::console;
 use yew::prelude::*;
 
-const INIT_DIR: &str = "/Users/ksh2ksk4/Downloads";
+const INIT_PATH: &str = "/Users/ksh2ksk4/Downloads";
 const UNITS: [&str; 5] = ["B", "KiB", "MiB", "GiB", "TiB"];
 
 #[wasm_bindgen]
@@ -48,7 +48,7 @@ impl NavigationHistory {
     pub fn new() -> Self {
         Self {
             index: 0,
-            paths: vec![INIT_DIR.to_string()],
+            paths: vec![INIT_PATH.to_string()],
         }
     }
 
@@ -135,7 +135,7 @@ pub fn app() -> Html {
         let files = files.clone();
         Callback::from(move |_| {
             let mut nh = (*navigation_history).clone();
-            let path = nh.back().unwrap_or(INIT_DIR.to_string());
+            let path = nh.back().unwrap_or(INIT_PATH.to_string());
             navigation_history.set(nh);
             let files = files.clone();
             spawn_local(async move {
