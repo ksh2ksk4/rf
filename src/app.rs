@@ -179,7 +179,7 @@ pub fn app() -> Html {
 
     html! {
         <main class="container">
-            <div>
+            <div class="flex gap-2">
                 <button
                     onclick={handle_back_click}
                     disabled={!navigation_history.can_back()}
@@ -194,101 +194,103 @@ pub fn app() -> Html {
                 </button>
                 <button onclick={handle_select_dir_click}>{"Select Dir"}</button>
             </div>
-            <table class="file-list">
-                <thead>
-                    <tr>
-                        <th>{"name"}</th>
-                        <th>{"size"}</th>
-                        <th>{"created at"}</th>
-                        <th>{"modified at"}</th>
-                        <th>{"accessed at"}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {for files.iter().map(|f| {
-                        let is_dir = f.is_dir;
+            <div>
+                <table class="file-list">
+                    <thead>
+                        <tr>
+                            <th>{"name"}</th>
+                            <th>{"size"}</th>
+                            <th>{"created at"}</th>
+                            <th>{"modified at"}</th>
+                            <th>{"accessed at"}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {for files.iter().map(|f| {
+                            let is_dir = f.is_dir;
 
-                        let handle_dir_click = {
-                            let navigation_history = navigation_history.clone();
-                            let files = files.clone();
-                            let path = f.path.clone();
-                            Callback::from(move |e: MouseEvent| {
-                                e.prevent_default();
+                            let handle_dir_click = {
+                                let navigation_history = navigation_history.clone();
+                                let files = files.clone();
+                                let path = f.path.clone();
+                                Callback::from(move |e: MouseEvent| {
+                                    e.prevent_default();
 
-                                if !is_dir {
-                                    return;
+                                    if !is_dir {
+                                        return;
+                                    }
+
+                                    let mut nh = (*navigation_history).clone();
+                                    nh.push(&path);
+                                    navigation_history.set(nh);
+
+                                    let files = files.clone();
+                                    let path = path.clone();
+                                    spawn_local(async move {
+                                        let args = JsValue::from_serde(&serde_json::json!({"path": path})).unwrap();
+                                        files.set(invoke("read_dir", args).await.into_serde().unwrap());
+                                    });
+                                })
+                            };
+
+                            let name = f.name.clone();
+                            let created = f.created.clone();
+                            let modified = f.modified.clone();
+                            let accessed = f.accessed.clone();
+
+                            let mut size = f.size as f64;
+                            let mut i: usize = 0;
+                            let (size, i) = loop {
+                                if size < 1024.0 {
+                                    break (size, i);
                                 }
 
-                                let mut nh = (*navigation_history).clone();
-                                nh.push(&path);
-                                navigation_history.set(nh);
+                                size /= 1024.0;
+                                i += 1;
+                            };
+                            let unit = UNITS[i];
+                            // 小数点第二位で丸める
+                            let size_rounded = (size * 100.0).round() / 100.0;
+                            // 小数部がほぼ 0 かどうかチェック
+                            let size_string = if size_rounded.fract() < f64::EPSILON {
+                                format!("{size:.0} {unit}")
+                            } else {
+                                format!("{size:.2} {unit}")
+                            };
 
-                                let files = files.clone();
-                                let path = path.clone();
-                                spawn_local(async move {
-                                    let args = JsValue::from_serde(&serde_json::json!({"path": path})).unwrap();
-                                    files.set(invoke("read_dir", args).await.into_serde().unwrap());
-                                });
-                            })
-                        };
-
-                        let name = f.name.clone();
-                        let created = f.created.clone();
-                        let modified = f.modified.clone();
-                        let accessed = f.accessed.clone();
-
-                        let mut size = f.size as f64;
-                        let mut i: usize = 0;
-                        let (size, i) = loop {
-                            if size < 1024.0 {
-                                break (size, i);
+                            html! {
+                                <tr class={if is_dir {"dir"} else {"file"}}>
+                                    <td class="name">
+                                        {if is_dir {
+                                            html! {
+                                                <span class="icon">
+                                                    <i class="nf nf-cod-folder" />
+                                                </span>
+                                            }
+                                        } else {
+                                            html! {
+                                                <span class="icon">
+                                                    <i class="nf nf-cod-file" />
+                                                </span>
+                                            }
+                                        }}
+                                        <a
+                                            href="#"
+                                            onclick={handle_dir_click}
+                                        >
+                                            {name}
+                                        </a>
+                                    </td>
+                                    <td class="size">{size_string}</td>
+                                    <td class="datetime">{created}</td>
+                                    <td class="datetime">{modified}</td>
+                                    <td class="datetime">{accessed}</td>
+                                </tr>
                             }
-
-                            size /= 1024.0;
-                            i += 1;
-                        };
-                        let unit = UNITS[i];
-                        // 小数点第二位で丸める
-                        let size_rounded = (size * 100.0).round() / 100.0;
-                        // 小数部がほぼ 0 かどうかチェック
-                        let size_string = if size_rounded.fract() < f64::EPSILON {
-                            format!("{size:.0} {unit}")
-                        } else {
-                            format!("{size:.2} {unit}")
-                        };
-
-                        html! {
-                            <tr class={if is_dir {"dir"} else {"file"}}>
-                                <td class="name">
-                                    {if is_dir {
-                                        html! {
-                                            <span class="icon">
-                                                <i class="nf nf-cod-folder" />
-                                            </span>
-                                        }
-                                    } else {
-                                        html! {
-                                            <span class="icon">
-                                                <i class="nf nf-cod-file" />
-                                            </span>
-                                        }
-                                    }}
-                                    <a
-                                        href="#"
-                                        onclick={handle_dir_click}
-                                    >
-                                        {name}
-                                    </a>
-                                </td>
-                                <td class="size">{size_string}</td>
-                                <td class="datetime">{created}</td>
-                                <td class="datetime">{modified}</td>
-                                <td class="datetime">{accessed}</td>
-                            </tr>
-                        }
-                    })}
-                </tbody>
-            </table>
+                        })}
+                    </tbody>
+                </table>
+            </div>
         </main>
     }
 }
