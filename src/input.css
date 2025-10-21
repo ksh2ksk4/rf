@@ -136,6 +136,12 @@ button {
   table.file-list th {
     @apply border border-gray-300;
   }
+  table.file-list tbody tr:nth-child(odd) {
+    @apply bg-(--color-current-line);
+  }
+  table.file-list tbody tr:nth-child(even) {
+    @apply bg-(--color-comment);
+  }
   table.file-list td.name {
     @apply border border-gray-300 max-w-500 wrap-anywhere whitespace-normal break-normal;
   }

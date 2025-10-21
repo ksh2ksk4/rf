@@ -15,6 +15,7 @@
     --default-mono-font-family: var(--font-mono);
     --color-background: #282a36;
     --color-current-line: #44475a;
+    --color-comment: #6272a4;
     --color-green: #50fa7b;
     --color-orange: #ffb86c;
   }
@@ -301,6 +302,12 @@ input, button {
     border-style: var(--tw-border-style);
     border-width: 1px;
     border-color: var(--color-gray-300);
+  }
+  table.file-list tbody tr:nth-child(odd) {
+    background-color: var(--color-current-line);
+  }
+  table.file-list tbody tr:nth-child(even) {
+    background-color: var(--color-comment);
   }
   table.file-list td.name {
     max-width: calc(var(--spacing) * 500);
