@@ -196,6 +196,9 @@ pub fn app() -> Html {
             </div>
             <div>
                 <table class="file-list">
+                    <caption class="caption-top">
+                      {navigation_history.current()}
+                    </caption>
                     <thead>
                         <tr>
                             <th>{"name"}</th>
