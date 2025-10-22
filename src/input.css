@@ -1,6 +1,105 @@
 @import "https://www.nerdfonts.com/assets/css/webfont.css";
 @import "tailwindcss";
 
+@theme {
+  /**
+   * https://www.colordic.org/
+   * https://uicolors.app/generate
+   */
+
+  /**
+   * ライトモード
+   */
+  /* 白練 */
+  --color-light-base: #f3f3f2;
+  /* 赤紅 */
+  --color-light-accent: #c53d43;
+  /* 黒檀 */
+  --color-light-neutral: #250d00;
+
+  --color-light-base-50: #f8f8f7;
+  --color-light-base-100: var(--color-light-base);
+  --color-light-base-200: #ddddda;
+  --color-light-base-300: #bfbfba;
+  --color-light-base-400: #9c9b94;
+  --color-light-base-500: #807f77;
+  --color-light-base-600: #696860;
+  --color-light-base-700: #55554f;
+  --color-light-base-800: #494943;
+  --color-light-base-900: #3f3e3b;
+  --color-light-base-950: #2a2a27;
+
+  --color-light-accent-50: #fdf4f3;
+  --color-light-accent-100: #fbeae8;
+  --color-light-accent-200: #f7d5d4;
+  --color-light-accent-300: #f0b4b1;
+  --color-light-accent-400: #e68986;
+  --color-light-accent-500: #d95a5a;
+  --color-light-accent-600: var(--color-light-accent);
+  --color-light-accent-700: #a42c34;
+  --color-light-accent-800: #8a2731;
+  --color-light-accent-900: #762530;
+  --color-light-accent-950: #411015;
+
+  --color-light-neutral-50: #fffaeb;
+  --color-light-neutral-100: #fff4d0;
+  --color-light-neutral-200: #ffe5a0;
+  --color-light-neutral-300: #ffcf64;
+  --color-light-neutral-400: #ffad26;
+  --color-light-neutral-500: #ff9000;
+  --color-light-neutral-600: #ff7200;
+  --color-light-neutral-700: #d75500;
+  --color-light-neutral-800: #aa4302;
+  --color-light-neutral-900: #883906;
+  --color-light-neutral-950: var(--color-light-neutral);
+
+  /**
+   * ダークモード
+   */
+  /* 黒檀 */
+  --color-dark-base: var(--color-light-neutral);
+  /* 赤紅 */
+  --color-dark-accent: var(--color-light-accent);
+  /* 白練 */
+  --color-dark-neutral: var(--color-light-base);
+
+  --color-dark-base-50: #fffaeb;
+  --color-dark-base-100: #fff4d0;
+  --color-dark-base-200: #ffe5a0;
+  --color-dark-base-300: #ffcf64;
+  --color-dark-base-400: #ffad26;
+  --color-dark-base-500: #ff9000;
+  --color-dark-base-600: #ff7200;
+  --color-dark-base-700: #d75500;
+  --color-dark-base-800: #aa4302;
+  --color-dark-base-900: #883906;
+  --color-dark-base-950: var(--color-dark-base);
+
+  --color-light-accent-50: #fdf4f3;
+  --color-light-accent-100: #fbeae8;
+  --color-light-accent-200: #f7d5d4;
+  --color-light-accent-300: #f0b4b1;
+  --color-light-accent-400: #e68986;
+  --color-light-accent-500: #d95a5a;
+  --color-light-accent-600: var(--color-dark-accent);
+  --color-light-accent-700: #a42c34;
+  --color-light-accent-800: #8a2731;
+  --color-light-accent-900: #762530;
+  --color-light-accent-950: #411015;
+
+  --color-dark-neutral-50: #f8f8f7;
+  --color-dark-neutral-100: var(--color-dark-neutral);
+  --color-dark-neutral-200: #ddddda;
+  --color-dark-neutral-300: #bfbfba;
+  --color-dark-neutral-400: #9c9b94;
+  --color-dark-neutral-500: #807f77;
+  --color-dark-neutral-600: #696860;
+  --color-dark-neutral-700: #55554f;
+  --color-dark-neutral-800: #494943;
+  --color-dark-neutral-900: #3f3e3b;
+  --color-dark-neutral-950: #2a2a27;
+}
+
 :root {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, "Noto Sans JP", "Hiragino Kaku Gothic ProN",
@@ -10,14 +109,21 @@
   line-height: 24px;
   font-weight: 400;
 
-  color: #0f0f0f;
-  background-color: #f6f6f6;
-
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
+
+  background-color: var(--color-light-base);
+  color: var(--color-light-neutral);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    background-color: var(--color-dark-base);
+    color: var(--color-dark-neutral);
+  }
 }
 
 .container {
@@ -27,97 +133,6 @@
   flex-direction: column;
   justify-content: center;
   text-align: center;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-
-a:hover {
-  color: #535bf2;
-}
-
-h1 {
-  text-align: center;
-}
-
-input,
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  color: #0f0f0f;
-  background-color: #ffffff;
-  transition: border-color 0.25s;
-  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
-}
-
-button {
-  cursor: pointer;
-}
-
-button:hover {
-  border-color: #396cd8;
-}
-button:active {
-  border-color: #396cd8;
-  background-color: #e8e8e8;
-}
-
-input,
-button {
-  outline: none;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    color: #f8f8f2;
-    background-color: var(--color-background);
-  }
-
-  a {
-    color: var(--color-green);
-  }
-
-  a:hover {
-    color: #24c8db;
-  }
-
-  input,
-  button {
-    color: #f8f8f2;
-    background-color: var(--color-orange);
-  }
-  button:active {
-    background-color: #8be9fd;
-  }
-}
-
-/* 追加分 */
-@theme {
-  --color-background: #282a36;
-  --color-current-line: #44475a;
-  --color-selection: #44475a;
-  --color-foreground: #f8f8f2;
-  --color-comment: #6272a4;
-  --color-cyan: #8be9fd;
-  --color-green: #50fa7b;
-  --color-orange: #ffb86c;
-  --color-pink: #ff79c6;
-  --color-purple: #bd93f9;
-  --color-red: #ff5555;
-  --color-yellow: #f1fa8c;
-}
-
-@font-face {
-  font-display: swap;
-  font-family: "NerdFont";
-  src: url("fonts/TerminessNerdFontMono-Regular.ttf") format("truetype");
 }
 
 @layer components {
@@ -131,24 +146,24 @@ button {
     @apply leading-5;
   }
   table.file-list {
-    @apply border-collapse border border-gray-400 bg-(--color-current-line);
+    @apply border-collapse border border-dark-base-50;
   }
-  table.file-list th {
-    @apply border border-gray-300;
+  table.file-list thead tr th {
+    @apply border border-dark-base-50 p-1 bg-(--color-dark-base-900);
   }
   table.file-list tbody tr:nth-child(odd) {
-    @apply bg-(--color-current-line);
+    @apply bg-(--color-dark-base-950);
   }
   table.file-list tbody tr:nth-child(even) {
-    @apply bg-(--color-comment);
+    @apply bg-(--color-dark-neutral-950);
   }
   table.file-list td.name {
-    @apply border border-gray-300 max-w-500 wrap-anywhere whitespace-normal break-normal;
+    @apply border border-dark-base-50 max-w-500 wrap-anywhere whitespace-normal break-normal p-1;
   }
   table.file-list td.size {
-    @apply border border-gray-300 max-w-80 whitespace-normal;
+    @apply border border-dark-base-50 max-w-80 whitespace-normal p-1 text-dark-neutral-400;
   }
   table.file-list td.datetime {
-    @apply border border-gray-300 max-w-150 whitespace-normal;
+    @apply border border-dark-base-50 max-w-150 whitespace-normal p-1 text-dark-neutral-400;
   }
 }

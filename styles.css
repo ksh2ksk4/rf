@@ -8,16 +8,20 @@
       "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
       "Courier New", monospace;
-    --color-gray-300: oklch(87.2% 0.01 258.338);
-    --color-gray-400: oklch(70.7% 0.022 261.325);
     --spacing: 0.25rem;
     --default-font-family: var(--font-sans);
     --default-mono-font-family: var(--font-mono);
-    --color-background: #282a36;
-    --color-current-line: #44475a;
-    --color-comment: #6272a4;
-    --color-green: #50fa7b;
-    --color-orange: #ffb86c;
+    --color-light-base: #f3f3f2;
+    --color-light-accent: #c53d43;
+    --color-light-neutral: #250d00;
+    --color-dark-base: var(--color-light-neutral);
+    --color-dark-accent: var(--color-light-accent);
+    --color-dark-neutral: var(--color-light-base);
+    --color-dark-base-50: #fffaeb;
+    --color-dark-base-900: #883906;
+    --color-dark-base-950: var(--color-dark-base);
+    --color-dark-neutral-400: #9c9b94;
+    --color-dark-neutral-950: #2a2a27;
   }
 }
 @layer base {
@@ -204,13 +208,19 @@
   font-size: 24px;
   line-height: 24px;
   font-weight: 400;
-  color: #0f0f0f;
-  background-color: #f6f6f6;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
+  background-color: var(--color-light-base);
+  color: var(--color-light-neutral);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    background-color: var(--color-dark-base);
+    color: var(--color-dark-neutral);
+  }
 }
 .container {
   margin: 0;
@@ -219,66 +229,6 @@
   flex-direction: column;
   justify-content: center;
   text-align: center;
-}
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-h1 {
-  text-align: center;
-}
-input, button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  color: #0f0f0f;
-  background-color: #ffffff;
-  transition: border-color 0.25s;
-  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
-}
-button {
-  cursor: pointer;
-}
-button:hover {
-  border-color: #396cd8;
-}
-button:active {
-  border-color: #396cd8;
-  background-color: #e8e8e8;
-}
-input, button {
-  outline: none;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    color: #f8f8f2;
-    background-color: var(--color-background);
-  }
-  a {
-    color: var(--color-green);
-  }
-  a:hover {
-    color: #24c8db;
-  }
-  input, button {
-    color: #f8f8f2;
-    background-color: var(--color-orange);
-  }
-  button:active {
-    background-color: #8be9fd;
-  }
-}
-@font-face {
-  font-display: swap;
-  font-family: "NerdFont";
-  src: url("fonts/TerminessNerdFontMono-Regular.ttf") format("truetype");
 }
 @layer components {
   .icon {
@@ -295,25 +245,27 @@ input, button {
     border-collapse: collapse;
     border-style: var(--tw-border-style);
     border-width: 1px;
-    border-color: var(--color-gray-400);
-    background-color: var(--color-current-line);
+    border-color: var(--color-dark-base-50);
   }
-  table.file-list th {
+  table.file-list thead tr th {
     border-style: var(--tw-border-style);
     border-width: 1px;
-    border-color: var(--color-gray-300);
+    border-color: var(--color-dark-base-50);
+    background-color: var(--color-dark-base-900);
+    padding: calc(var(--spacing) * 1);
   }
   table.file-list tbody tr:nth-child(odd) {
-    background-color: var(--color-current-line);
+    background-color: var(--color-dark-base-950);
   }
   table.file-list tbody tr:nth-child(even) {
-    background-color: var(--color-comment);
+    background-color: var(--color-dark-neutral-950);
   }
   table.file-list td.name {
     max-width: calc(var(--spacing) * 500);
     border-style: var(--tw-border-style);
     border-width: 1px;
-    border-color: var(--color-gray-300);
+    border-color: var(--color-dark-base-50);
+    padding: calc(var(--spacing) * 1);
     overflow-wrap: normal;
     word-break: normal;
     overflow-wrap: anywhere;
@@ -323,15 +275,19 @@ input, button {
     max-width: calc(var(--spacing) * 80);
     border-style: var(--tw-border-style);
     border-width: 1px;
-    border-color: var(--color-gray-300);
+    border-color: var(--color-dark-base-50);
+    padding: calc(var(--spacing) * 1);
     white-space: normal;
+    color: var(--color-dark-neutral-400);
   }
   table.file-list td.datetime {
     max-width: calc(var(--spacing) * 150);
     border-style: var(--tw-border-style);
     border-width: 1px;
-    border-color: var(--color-gray-300);
+    border-color: var(--color-dark-base-50);
+    padding: calc(var(--spacing) * 1);
     white-space: normal;
+    color: var(--color-dark-neutral-400);
   }
 }
 @property --tw-leading {
