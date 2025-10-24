@@ -181,18 +181,40 @@ pub fn app() -> Html {
         <main class="container">
             <div class="flex gap-2">
                 <button
+                    class="icon"
+                    title="back"
+                    aria-label="back"
                     onclick={handle_back_click}
                     disabled={!navigation_history.can_back()}
                 >
-                    {"Back"}
+                    <i
+                        class="nf nf-fa-circle_left"
+                        aria-hidden="true"
+                    />
                 </button>
                 <button
+                    class="icon"
+                    title="forward"
+                    aria-label="forward"
                     onclick={handle_forward_click}
                     disabled={!navigation_history.can_forward()}
                 >
-                    {"Forward"}
+                    <i
+                        class="nf nf-fa-circle_right"
+                        aria-hidden="true"
+                    />
                 </button>
-                <button onclick={handle_select_dir_click}>{"Select Dir"}</button>
+                <button
+                    class="icon"
+                    title="select dir"
+                    aria-label="select dir"
+                    onclick={handle_select_dir_click}
+                >
+                    <i
+                        class="nf nf-fa-folder_open"
+                        aria-hidden="true"
+                    />
+                </button>
             </div>
             <div>
                 <table class="file-list">
@@ -265,17 +287,9 @@ pub fn app() -> Html {
                                 <tr class={if is_dir {"dir"} else {"file"}}>
                                     <td class="name">
                                         {if is_dir {
-                                            html! {
-                                                <span class="icon">
-                                                    <i class="nf nf-cod-folder" />
-                                                </span>
-                                            }
+                                            html! {<i class="head nf nf-fa-folder" />}
                                         } else {
-                                            html! {
-                                                <span class="icon">
-                                                    <i class="nf nf-cod-file" />
-                                                </span>
-                                            }
+                                            html! {<i class="head nf nf-fa-file" />}
                                         }}
                                         <a
                                             href="#"
