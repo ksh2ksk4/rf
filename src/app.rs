@@ -215,6 +215,28 @@ pub fn app() -> Html {
                         aria-hidden="true"
                     />
                 </button>
+                <button
+                    class="icon"
+                    title="delete files"
+                    aria-label="delete files"
+                    //onclick={handle_delete_files_click}
+                >
+                    <i
+                        class="nf nf-fa-trash"
+                        aria-hidden="true"
+                    />
+                </button>
+                <div class="search">
+                    <i
+                        class="nf nf-fa-search"
+                        aria-hidden="true"
+                    />
+                    <input
+                        class="text-base"
+                        placeholder="search files"
+                        type="search"
+                    />
+                </div>
             </div>
             <div>
                 <table class="file-list">
