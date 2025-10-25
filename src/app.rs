@@ -178,7 +178,8 @@ pub fn app() -> Html {
     };
 
     html! {
-        <main>
+        <>
+        <header>
             <div class="toolbar">
                 <button
                     class="icon"
@@ -238,11 +239,10 @@ pub fn app() -> Html {
                     />
                 </div>
             </div>
+        </header>
+        <main>
             <div>
                 <table class="file-list">
-                    <caption>
-                      {navigation_history.current()}
-                    </caption>
                     <thead>
                         <tr>
                             <th>{"name"}</th>
@@ -331,5 +331,9 @@ pub fn app() -> Html {
                 </table>
             </div>
         </main>
+        <footer>
+            <div>{navigation_history.current()}</div>
+        </footer>
+        </>
     }
 }

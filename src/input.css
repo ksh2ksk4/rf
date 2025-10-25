@@ -133,6 +133,12 @@
   body {
     @apply leading-5;
   }
+  main {
+    @apply mt-4 mb-4;
+  }
+  footer {
+    @apply bg-dark-neutral-950 text-center text-sm;
+  }
   button:not(.icon) {
     @apply bg-dark-base-800 p-1 rounded-md
            disabled:cursor-not-allowed disabled:opacity-50;
@@ -155,9 +161,6 @@
   }
   table.file-list {
     @apply border-collapse border;
-  }
-  table.file-list caption {
-    @apply caption-top;
   }
   table.file-list thead tr th {
     @apply bg-dark-base-700/20
