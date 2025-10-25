@@ -126,15 +126,6 @@
   }
 }
 
-.container {
-  margin: 0;
-  padding-top: 10vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  text-align: center;
-}
-
 @layer components {
   html {
     @apply font-[NerdFont];
@@ -165,6 +156,9 @@
   table.file-list {
     @apply border-collapse border;
   }
+  table.file-list caption {
+    @apply caption-top;
+  }
   table.file-list thead tr th {
     @apply bg-dark-base-700/20
            border border-dark-neutral-900 p-1;
@@ -177,14 +171,14 @@
   }
   table.file-list tbody tr td.name {
     @apply border border-dark-neutral-900 max-w-500
-           wrap-anywhere whitespace-normal p-1 text-left;
+           wrap-anywhere whitespace-normal p-1;
   }
   table.file-list tbody tr td.size {
     @apply border border-dark-neutral-900 max-w-80
-           whitespace-normal p-1 text-dark-neutral-400;
+           whitespace-normal p-1 text-center text-dark-neutral-400;
   }
   table.file-list tbody tr td.datetime {
     @apply border border-dark-neutral-900 max-w-150
-           whitespace-normal p-1 text-dark-neutral-400;
+           whitespace-normal p-1 text-center text-dark-neutral-400;
   }
 }

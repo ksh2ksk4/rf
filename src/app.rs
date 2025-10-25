@@ -178,7 +178,7 @@ pub fn app() -> Html {
     };
 
     html! {
-        <main class="container">
+        <main>
             <div class="toolbar">
                 <button
                     class="icon"
@@ -240,7 +240,7 @@ pub fn app() -> Html {
             </div>
             <div>
                 <table class="file-list">
-                    <caption class="caption-top">
+                    <caption>
                       {navigation_history.current()}
                     </caption>
                     <thead>
