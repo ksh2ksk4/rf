@@ -3,7 +3,7 @@ use serde::Serialize;
 use std::fs;
 use std::os::unix::fs::{FileTypeExt, PermissionsExt};
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Eq, Ord, PartialEq, PartialOrd, Serialize)]
 struct FileInfo {
     name: String,
     path: String,
@@ -69,6 +69,8 @@ fn read_dir(path: String) -> Result<Vec<FileInfo>, String> {
             })?,
         });
     }
+
+    entries.sort_by(|a, b| a.is_file.cmp(&b.is_file).then_with(|| a.name.cmp(&b.name)));
 
     Ok(entries)
 }
