@@ -179,7 +179,7 @@ pub fn app() -> Html {
 
     html! {
         <main class="container">
-            <div class="flex gap-2">
+            <div class="toolbar">
                 <button
                     class="icon"
                     title="back"

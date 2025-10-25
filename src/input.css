@@ -147,8 +147,14 @@
            disabled:cursor-not-allowed disabled:opacity-50;
   }
   button.icon {
-    @apply flex items-center justify-center text-3xl
+    @apply flex items-center justify-center
            disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  div.search {
+    @apply flex items-center ml-auto;
+  }
+  div.toolbar {
+    @apply bg-dark-base-900/15 flex gap-2 text-2xl;
   }
   i:not(.head) {
     @apply m-1 text-sky-500;
@@ -160,14 +166,14 @@
     @apply border-collapse border;
   }
   table.file-list thead tr th {
-    @apply bg-(--color-dark-base-900)/30
+    @apply bg-dark-base-700/20
            border border-dark-neutral-900 p-1;
   }
   table.file-list tbody tr:nth-child(odd) {
-    @apply bg-(--color-dark-base-950);
+    @apply bg-dark-base-950;
   }
   table.file-list tbody tr:nth-child(even) {
-    @apply bg-(--color-dark-neutral-950);
+    @apply bg-dark-neutral-950;
   }
   table.file-list tbody tr td.name {
     @apply border border-dark-neutral-900 max-w-500
