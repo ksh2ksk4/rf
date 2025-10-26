@@ -241,7 +241,7 @@ pub fn app() -> Html {
             </div>
         </header>
         <main>
-            <div>
+            <div class="overflow-auto max-h-[80vh]">
                 <table class="file-list">
                     <thead>
                         <tr>

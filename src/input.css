@@ -168,6 +168,9 @@
   table.file-list {
     @apply border-collapse border;
   }
+  table.file-list thead tr {
+    @apply sticky top-0 backdrop-blur z-10;
+  }
   table.file-list thead tr th {
     @apply bg-dark-base-700/20
            border border-dark-neutral-900 p-1;
