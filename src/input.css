@@ -75,17 +75,17 @@
   --color-dark-base-900: #883906;
   --color-dark-base-950: var(--color-dark-base);
 
-  --color-light-accent-50: #fdf4f3;
-  --color-light-accent-100: #fbeae8;
-  --color-light-accent-200: #f7d5d4;
-  --color-light-accent-300: #f0b4b1;
-  --color-light-accent-400: #e68986;
-  --color-light-accent-500: #d95a5a;
-  --color-light-accent-600: var(--color-dark-accent);
-  --color-light-accent-700: #a42c34;
-  --color-light-accent-800: #8a2731;
-  --color-light-accent-900: #762530;
-  --color-light-accent-950: #411015;
+  --color-dark-accent-50: #fdf4f3;
+  --color-dark-accent-100: #fbeae8;
+  --color-dark-accent-200: #f7d5d4;
+  --color-dark-accent-300: #f0b4b1;
+  --color-dark-accent-400: #e68986;
+  --color-dark-accent-500: #d95a5a;
+  --color-dark-accent-600: var(--color-dark-accent);
+  --color-dark-accent-700: #a42c34;
+  --color-dark-accent-800: #8a2731;
+  --color-dark-accent-900: #762530;
+  --color-dark-accent-950: #411015;
 
   --color-dark-neutral-50: #f8f8f7;
   --color-dark-neutral-100: var(--color-dark-neutral);
