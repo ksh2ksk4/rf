@@ -264,6 +264,12 @@ pub fn app() -> Html {
                                     e.prevent_default();
 
                                     if !is_dir {
+                                        let path = path.clone();
+                                        spawn_local(async move {
+                                            let args = JsValue::from_serde(&serde_json::json!({"path": path})).unwrap();
+                                            let _ = invoke("open_file", args).await;
+                                        });
+
                                         return;
                                     }
 

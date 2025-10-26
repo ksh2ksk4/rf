@@ -2,6 +2,7 @@ use chrono::{DateTime, Local};
 use serde::Serialize;
 use std::fs;
 use std::os::unix::fs::{FileTypeExt, PermissionsExt};
+use std::process::Command;
 
 #[derive(Debug, Eq, Ord, PartialEq, PartialOrd, Serialize)]
 struct FileInfo {
@@ -31,9 +32,33 @@ struct FileInfo {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![read_dir, select_dir])
+        .invoke_handler(tauri::generate_handler![open_file, read_dir, select_dir])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+#[tauri::command]
+fn open_file(path: String) -> Result<(), String> {
+    open_with_default(&path).map_err(|e| e.to_string())
+}
+
+#[cfg(target_os = "linux")]
+fn open_with_default(path: &str) -> std::io::Result<()> {
+    Command::new("xdg-open").arg(path).spawn().map(|_| ())
+}
+
+#[cfg(target_os = "macos")]
+fn open_with_default(path: &str) -> std::io::Result<()> {
+    Command::new("open").arg(path).spawn().map(|_| ())
+}
+
+#[cfg(target_os = "windows")]
+fn open_with_default(path: &str) -> std::io::Result<()> {
+    // start はシェル経由で実行する必要があるので cmd を使う
+    Command::new("cmd")
+        .args(&["/C", "start", "", path])
+        .spawn()
+        .map(|_| ())
 }
 
 #[tauri::command]
