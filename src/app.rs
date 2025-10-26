@@ -178,168 +178,168 @@ pub fn app() -> Html {
     };
 
     html! {
-        <>
-        <header>
-            <div class="toolbar">
-                <button
-                    class="icon"
-                    title="back"
-                    aria-label="back"
-                    onclick={handle_back_click}
-                    disabled={!navigation_history.can_back()}
-                >
-                    <i
-                        class="nf nf-fa-circle_left"
-                        aria-hidden="true"
-                    />
-                </button>
-                <button
-                    class="icon"
-                    title="forward"
-                    aria-label="forward"
-                    onclick={handle_forward_click}
-                    disabled={!navigation_history.can_forward()}
-                >
-                    <i
-                        class="nf nf-fa-circle_right"
-                        aria-hidden="true"
-                    />
-                </button>
-                <button
-                    class="icon"
-                    title="select dir"
-                    aria-label="select dir"
-                    onclick={handle_select_dir_click}
-                >
-                    <i
-                        class="nf nf-fa-folder_open"
-                        aria-hidden="true"
-                    />
-                </button>
-                <button
-                    class="icon"
-                    title="delete files"
-                    aria-label="delete files"
-                    //onclick={handle_delete_files_click}
-                >
-                    <i
-                        class="nf nf-fa-trash"
-                        aria-hidden="true"
-                    />
-                </button>
-                <div class="search">
-                    <i
-                        class="nf nf-fa-search"
-                        aria-hidden="true"
-                    />
-                    <input
-                        class="text-base"
-                        placeholder="search files"
-                        type="search"
-                    />
+        <div class="min-h-screen min-w-screen flex flex-col">
+            <header>
+                <div class="toolbar">
+                    <button
+                        class="icon"
+                        title="back"
+                        aria-label="back"
+                        onclick={handle_back_click}
+                        disabled={!navigation_history.can_back()}
+                    >
+                        <i
+                            class="nf nf-fa-circle_left"
+                            aria-hidden="true"
+                        />
+                    </button>
+                    <button
+                        class="icon"
+                        title="forward"
+                        aria-label="forward"
+                        onclick={handle_forward_click}
+                        disabled={!navigation_history.can_forward()}
+                    >
+                        <i
+                            class="nf nf-fa-circle_right"
+                            aria-hidden="true"
+                        />
+                    </button>
+                    <button
+                        class="icon"
+                        title="select dir"
+                        aria-label="select dir"
+                        onclick={handle_select_dir_click}
+                    >
+                        <i
+                            class="nf nf-fa-folder_open"
+                            aria-hidden="true"
+                        />
+                    </button>
+                    <button
+                        class="icon"
+                        title="delete files"
+                        aria-label="delete files"
+                        //onclick={handle_delete_files_click}
+                    >
+                        <i
+                            class="nf nf-fa-trash"
+                            aria-hidden="true"
+                        />
+                    </button>
+                    <div class="search">
+                        <i
+                            class="nf nf-fa-search"
+                            aria-hidden="true"
+                        />
+                        <input
+                            class="text-base"
+                            placeholder="search files"
+                            type="search"
+                        />
+                    </div>
                 </div>
-            </div>
-        </header>
-        <main>
-            <div class="overflow-auto max-h-[80vh]">
-                <table class="file-list">
-                    <thead>
-                        <tr>
-                            <th>{"name"}</th>
-                            <th>{"size"}</th>
-                            <th>{"created at"}</th>
-                            <th>{"modified at"}</th>
-                            <th>{"accessed at"}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {for files.iter().map(|f| {
-                            let is_dir = f.is_dir;
+            </header>
+            <main class="flex-1 overflow-auto">
+                <div class="overflow-auto max-h-[80vh]">
+                    <table class="file-list">
+                        <thead>
+                            <tr>
+                                <th>{"name"}</th>
+                                <th>{"size"}</th>
+                                <th>{"created at"}</th>
+                                <th>{"modified at"}</th>
+                                <th>{"accessed at"}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {for files.iter().map(|f| {
+                                let is_dir = f.is_dir;
 
-                            let handle_dir_click = {
-                                let navigation_history = navigation_history.clone();
-                                let files = files.clone();
-                                let path = f.path.clone();
-                                Callback::from(move |e: MouseEvent| {
-                                    e.prevent_default();
+                                let handle_dir_click = {
+                                    let navigation_history = navigation_history.clone();
+                                    let files = files.clone();
+                                    let path = f.path.clone();
+                                    Callback::from(move |e: MouseEvent| {
+                                        e.prevent_default();
 
-                                    if !is_dir {
+                                        if !is_dir {
+                                            let path = path.clone();
+                                            spawn_local(async move {
+                                                let args = JsValue::from_serde(&serde_json::json!({"path": path})).unwrap();
+                                                let _ = invoke("open_file", args).await;
+                                            });
+
+                                            return;
+                                        }
+
+                                        let mut nh = (*navigation_history).clone();
+                                        nh.push(&path);
+                                        navigation_history.set(nh);
+
+                                        let files = files.clone();
                                         let path = path.clone();
                                         spawn_local(async move {
                                             let args = JsValue::from_serde(&serde_json::json!({"path": path})).unwrap();
-                                            let _ = invoke("open_file", args).await;
+                                            files.set(invoke("read_dir", args).await.into_serde().unwrap());
                                         });
+                                    })
+                                };
 
-                                        return;
+                                let name = f.name.clone();
+                                let created = f.created.clone();
+                                let modified = f.modified.clone();
+                                let accessed = f.accessed.clone();
+
+                                let mut size = f.size as f64;
+                                let mut i: usize = 0;
+                                let (size, i) = loop {
+                                    if size < 1024.0 {
+                                        break (size, i);
                                     }
 
-                                    let mut nh = (*navigation_history).clone();
-                                    nh.push(&path);
-                                    navigation_history.set(nh);
+                                    size /= 1024.0;
+                                    i += 1;
+                                };
+                                let unit = UNITS[i];
+                                // 小数点第二位で丸める
+                                let size_rounded = (size * 100.0).round() / 100.0;
+                                // 小数部がほぼ 0 かどうかチェック
+                                let size_string = if size_rounded.fract() < f64::EPSILON {
+                                    format!("{size:.0} {unit}")
+                                } else {
+                                    format!("{size:.2} {unit}")
+                                };
 
-                                    let files = files.clone();
-                                    let path = path.clone();
-                                    spawn_local(async move {
-                                        let args = JsValue::from_serde(&serde_json::json!({"path": path})).unwrap();
-                                        files.set(invoke("read_dir", args).await.into_serde().unwrap());
-                                    });
-                                })
-                            };
-
-                            let name = f.name.clone();
-                            let created = f.created.clone();
-                            let modified = f.modified.clone();
-                            let accessed = f.accessed.clone();
-
-                            let mut size = f.size as f64;
-                            let mut i: usize = 0;
-                            let (size, i) = loop {
-                                if size < 1024.0 {
-                                    break (size, i);
+                                html! {
+                                    <tr class={if is_dir {"dir"} else {"file"}}>
+                                        <td class="name">
+                                            {if is_dir {
+                                                html! {<i class="line-start folder nf nf-fa-folder" />}
+                                            } else {
+                                                html! {<i class="line-start file nf nf-fa-file" />}
+                                            }}
+                                            <a
+                                                href="#"
+                                                onclick={handle_dir_click}
+                                            >
+                                                {name}
+                                            </a>
+                                        </td>
+                                        <td class="size">{size_string}</td>
+                                        <td class="datetime">{created}</td>
+                                        <td class="datetime">{modified}</td>
+                                        <td class="datetime">{accessed}</td>
+                                    </tr>
                                 }
-
-                                size /= 1024.0;
-                                i += 1;
-                            };
-                            let unit = UNITS[i];
-                            // 小数点第二位で丸める
-                            let size_rounded = (size * 100.0).round() / 100.0;
-                            // 小数部がほぼ 0 かどうかチェック
-                            let size_string = if size_rounded.fract() < f64::EPSILON {
-                                format!("{size:.0} {unit}")
-                            } else {
-                                format!("{size:.2} {unit}")
-                            };
-
-                            html! {
-                                <tr class={if is_dir {"dir"} else {"file"}}>
-                                    <td class="name">
-                                        {if is_dir {
-                                            html! {<i class="line-start folder nf nf-fa-folder" />}
-                                        } else {
-                                            html! {<i class="line-start file nf nf-fa-file" />}
-                                        }}
-                                        <a
-                                            href="#"
-                                            onclick={handle_dir_click}
-                                        >
-                                            {name}
-                                        </a>
-                                    </td>
-                                    <td class="size">{size_string}</td>
-                                    <td class="datetime">{created}</td>
-                                    <td class="datetime">{modified}</td>
-                                    <td class="datetime">{accessed}</td>
-                                </tr>
-                            }
-                        })}
-                    </tbody>
-                </table>
-            </div>
-        </main>
-        <footer>
-            <div>{navigation_history.current()}</div>
-        </footer>
-        </>
+                            })}
+                        </tbody>
+                    </table>
+                </div>
+            </main>
+            <footer>
+                <div>{navigation_history.current()}</div>
+            </footer>
+        </div>
     }
 }
