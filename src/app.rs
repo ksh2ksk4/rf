@@ -315,9 +315,9 @@ pub fn app() -> Html {
                                 <tr class={if is_dir {"dir"} else {"file"}}>
                                     <td class="name">
                                         {if is_dir {
-                                            html! {<i class="head nf nf-fa-folder" />}
+                                            html! {<i class="line-start folder nf nf-fa-folder" />}
                                         } else {
-                                            html! {<i class="head nf nf-fa-file" />}
+                                            html! {<i class="line-start file nf nf-fa-file" />}
                                         }}
                                         <a
                                             href="#"

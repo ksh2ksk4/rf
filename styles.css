@@ -29,6 +29,7 @@
     --color-dark-base-800: #aa4302;
     --color-dark-base-900: #883906;
     --color-dark-base-950: var(--color-dark-base);
+    --color-dark-accent-200: #f7d5d4;
     --color-dark-neutral-400: #9c9b94;
     --color-dark-neutral-900: #3f3e3b;
     --color-dark-neutral-950: #2a2a27;
@@ -266,12 +267,17 @@
     font-size: var(--text-2xl);
     line-height: var(--tw-leading, var(--text-2xl--line-height));
   }
-  i:not(.head) {
-    margin: calc(var(--spacing) * 1);
+  i.line-start {
+    margin-right: calc(var(--spacing) * 2);
+  }
+  i.line-start.folder {
     color: var(--color-sky-500);
   }
-  i.head {
-    margin-right: calc(var(--spacing) * 2);
+  i.line-start.file {
+    color: var(--color-dark-accent-200);
+  }
+  i:not(.line-start) {
+    margin: calc(var(--spacing) * 1);
     color: var(--color-sky-500);
   }
   table.file-list {

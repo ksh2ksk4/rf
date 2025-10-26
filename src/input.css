@@ -153,11 +153,17 @@
   div.toolbar {
     @apply bg-dark-base-900/15 flex gap-2 text-2xl;
   }
-  i:not(.head) {
-    @apply m-1 text-sky-500;
+  i.line-start {
+    @apply mr-2;
   }
-  i.head {
-    @apply mr-2 text-sky-500;
+  i.line-start.folder {
+    @apply text-sky-500;
+  }
+  i.line-start.file {
+    @apply text-dark-accent-200;
+  }
+  i:not(.line-start) {
+    @apply m-1 text-sky-500;
   }
   table.file-list {
     @apply border-collapse border;
