@@ -129,7 +129,7 @@ pub fn app() -> Html {
         );
     }
 
-    // Back ボタンクリックのイベントハンドラ
+    // back ボタンクリックのイベントハンドラ
     let handle_back_click = {
         let navigation_history = navigation_history.clone();
         let files = files.clone();
@@ -145,7 +145,7 @@ pub fn app() -> Html {
         })
     };
 
-    // Forward ボタンクリックのイベントハンドラ
+    // forward ボタンクリックのイベントハンドラ
     let handle_forward_click = {
         let navigation_history = navigation_history.clone();
         let files = files.clone();
@@ -161,7 +161,7 @@ pub fn app() -> Html {
         })
     };
 
-    // "Select Dir" ボタンクリックのイベントハンドラ
+    // "select Dir" ボタンクリックのイベントハンドラ
     let handle_select_dir_click = {
         let files = files.clone();
         Callback::from(move |_| {
