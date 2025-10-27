@@ -10,8 +10,12 @@ const UNITS: [&str; 5] = ["B", "KiB", "MiB", "GiB", "TiB"];
 
 #[wasm_bindgen]
 extern "C" {
+    // エラーが発生しない TAURI コマンドを実行する場合
     #[wasm_bindgen(js_namespace = ["window", "__TAURI__", "core"])]
     async fn invoke(cmd: &str, args: JsValue) -> JsValue;
+    // エラーが発生する可能性のある TAURI コマンドを実行する場合
+    #[wasm_bindgen(catch, js_name = invoke, js_namespace = ["window", "__TAURI__", "core"])]
+    async fn invoke2(cmd: &str, args: JsValue) -> Result<JsValue, JsValue>;
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
@@ -267,7 +271,10 @@ pub fn app() -> Html {
                                             let path = path.clone();
                                             spawn_local(async move {
                                                 let args = JsValue::from_serde(&serde_json::json!({"path": path})).unwrap();
-                                                let _ = invoke("open_file", args).await;
+
+                                                if let Err(e) = invoke2("open_file", args).await {
+                                                    console::error_1(&e);
+                                                }
                                             });
 
                                             return;

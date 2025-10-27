@@ -2,6 +2,7 @@ use chrono::{DateTime, Local};
 use serde::Serialize;
 use std::fs;
 use std::os::unix::fs::{FileTypeExt, PermissionsExt};
+use std::os::unix::process::ExitStatusExt;
 use std::process::Command;
 
 #[derive(Debug, Eq, Ord, PartialEq, PartialOrd, Serialize)]
@@ -39,7 +40,7 @@ pub fn run() {
 
 #[tauri::command]
 fn open_file(path: String) -> Result<(), String> {
-    open_with_default(&path).map_err(|e| e.to_string())
+    open_with_default(&path)
 }
 
 #[cfg(target_os = "linux")]
@@ -48,8 +49,28 @@ fn open_with_default(path: &str) -> std::io::Result<()> {
 }
 
 #[cfg(target_os = "macos")]
-fn open_with_default(path: &str) -> std::io::Result<()> {
-    Command::new("open").arg(path).spawn().map(|_| ())
+fn open_with_default(path: &str) -> Result<(), String> {
+    let output = Command::new("open")
+        .arg(path)
+        .output()
+        .map_err(|e| e.to_string())?;
+
+    if output.status.success() {
+        return Ok(());
+    }
+
+    let detail = match (output.status.code(), output.status.signal()) {
+        // 子プロセスの終了コードが 0 以外の場合
+        (Some(c), _) => format!("exit code: {c:?}"),
+        // 子プロセスがシグナルで終了した場合
+        (None, Some(s)) => format!("terminated by signal {s:?}"),
+        // 上記以外
+        _ => "failed".to_string(),
+    };
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    Err(format!(
+        "open_with_default() - detail: {detail}, stderr: {stderr:?}"
+    ))
 }
 
 #[cfg(target_os = "windows")]
