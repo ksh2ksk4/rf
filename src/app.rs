@@ -290,10 +290,9 @@ pub fn app() -> Html {
                                                 let args = JsValue::from_serde(
                                                     &serde_json::json!({"path": path})
                                                 ).unwrap();
-
-                                                if let Err(e) = invoke_r("open_file", args).await {
-                                                    console::error_1(&e);
-                                                }
+                                                let _ = invoke_r("open_file", args)
+                                                    .await
+                                                    .map_err(|e| console::error_1(&e));
                                             });
 
                                             return;
