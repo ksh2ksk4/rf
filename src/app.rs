@@ -282,7 +282,9 @@ pub fn app() -> Html {
                                         if !is_dir {
                                             let path = path.clone();
                                             spawn_local(async move {
-                                                let args = JsValue::from_serde(&serde_json::json!({"path": path})).unwrap();
+                                                let args = JsValue::from_serde(
+                                                    &serde_json::json!({"path": path})
+                                                ).unwrap();
 
                                                 if let Err(e) = invoke2("open_file", args).await {
                                                     console::error_1(&e);
@@ -299,7 +301,9 @@ pub fn app() -> Html {
                                         let files = files.clone();
                                         let path = path.clone();
                                         spawn_local(async move {
-                                            let args = JsValue::from_serde(&serde_json::json!({"path": path})).unwrap();
+                                            let args = JsValue::from_serde(
+                                                &serde_json::json!({"path": path})
+                                            ).unwrap();
                                             invoke2("read_dir", args)
                                                 .await
                                                 .map(|v| files.set(v.into_serde().unwrap()))
