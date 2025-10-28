@@ -128,9 +128,8 @@ fn read_dir(path: String) -> Result<Vec<FileInfo>, String> {
 }
 
 #[tauri::command]
-fn select_dir() -> Result<String, String> {
-    let path = rfd::FileDialog::new()
+fn select_dir() -> String {
+    rfd::FileDialog::new()
         .pick_folder()
-        .ok_or("No dir selected")?;
-    Ok(path.to_string_lossy().to_string())
+        .map_or("".to_string(), |v| v.to_string_lossy().to_string())
 }
