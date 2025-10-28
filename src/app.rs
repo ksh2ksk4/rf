@@ -182,18 +182,23 @@ pub fn app() -> Html {
         })
     };
 
-    // "select Dir" ボタンクリックのイベントハンドラ
+    // "select dir" ボタンクリックのイベントハンドラ
     let handle_select_dir_click = {
+        let navigation_history = navigation_history.clone();
         let files = files.clone();
         Callback::from(move |_| {
+            let navigation_history = navigation_history.clone();
             let files = files.clone();
             spawn_local(async move {
-                let folder = invoke_no_args("select_dir").await.as_string().unwrap();
-                let args = JsValue::from_serde(&serde_json::json!({"path": folder})).unwrap();
+                let path = invoke_no_args("select_dir").await.as_string().unwrap();
+                let args = JsValue::from_serde(&serde_json::json!({"path": path})).unwrap();
                 invoke_r("read_dir", args)
                     .await
                     .map(|v| files.set(v.into_serde().unwrap()))
                     .unwrap_or_else(|e| console::error_1(&e));
+                let mut nh = (*navigation_history).clone();
+                nh.push(&path);
+                navigation_history.set(nh);
             });
         })
     };
