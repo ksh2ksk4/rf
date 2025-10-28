@@ -10,12 +10,20 @@ const UNITS: [&str; 5] = ["B", "KiB", "MiB", "GiB", "TiB"];
 
 #[wasm_bindgen]
 extern "C" {
-    // エラーが発生しない TAURI コマンドを実行する場合
+    /**
+     * エラーが発生しない TAURI コマンドを実行する場合
+     */
     #[wasm_bindgen(js_namespace = ["window", "__TAURI__", "core"])]
     async fn invoke(cmd: &str, args: JsValue) -> JsValue;
-    // エラーが発生する可能性のある TAURI コマンドを実行する場合
+    #[wasm_bindgen(js_name = invoke, js_namespace = ["window", "__TAURI__", "core"])]
+    async fn invoke_no_args(cmd: &str) -> JsValue;
+    /**
+     * エラーが発生する可能性のある TAURI コマンドを実行する場合
+     */
     #[wasm_bindgen(catch, js_name = invoke, js_namespace = ["window", "__TAURI__", "core"])]
-    async fn invoke2(cmd: &str, args: JsValue) -> Result<JsValue, JsValue>;
+    async fn invoke_r(cmd: &str, args: JsValue) -> Result<JsValue, JsValue>;
+    #[wasm_bindgen(catch, js_name = invoke, js_namespace = ["window", "__TAURI__", "core"])]
+    async fn invoke_r_no_args(cmd: &str) -> Result<JsValue, JsValue>;
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
@@ -110,7 +118,7 @@ pub fn app() -> Html {
             spawn_local(async move {
                 let path = navigation_history.paths[0].clone();
                 let args = JsValue::from_serde(&serde_json::json!({"path": path})).unwrap();
-                invoke2("read_dir", args)
+                invoke_r("read_dir", args)
                     .await
                     .map(|v| files.set(v.into_serde().unwrap()))
                     .unwrap_or_else(|e| console::error_1(&e));
@@ -147,7 +155,7 @@ pub fn app() -> Html {
             let files = files.clone();
             spawn_local(async move {
                 let args = JsValue::from_serde(&serde_json::json!({"path": path})).unwrap();
-                invoke2("read_dir", args)
+                invoke_r("read_dir", args)
                     .await
                     .map(|v| files.set(v.into_serde().unwrap()))
                     .unwrap_or_else(|e| console::error_1(&e));
@@ -166,7 +174,7 @@ pub fn app() -> Html {
             let files = files.clone();
             spawn_local(async move {
                 let args = JsValue::from_serde(&serde_json::json!({"path": path})).unwrap();
-                invoke2("read_dir", args)
+                invoke_r("read_dir", args)
                     .await
                     .map(|v| files.set(v.into_serde().unwrap()))
                     .unwrap_or_else(|e| console::error_1(&e));
@@ -180,12 +188,9 @@ pub fn app() -> Html {
         Callback::from(move |_| {
             let files = files.clone();
             spawn_local(async move {
-                let folder = invoke("select_dir", JsValue::NULL)
-                    .await
-                    .as_string()
-                    .unwrap();
+                let folder = invoke_no_args("select_dir").await.as_string().unwrap();
                 let args = JsValue::from_serde(&serde_json::json!({"path": folder})).unwrap();
-                invoke2("read_dir", args)
+                invoke_r("read_dir", args)
                     .await
                     .map(|v| files.set(v.into_serde().unwrap()))
                     .unwrap_or_else(|e| console::error_1(&e));
@@ -286,7 +291,7 @@ pub fn app() -> Html {
                                                     &serde_json::json!({"path": path})
                                                 ).unwrap();
 
-                                                if let Err(e) = invoke2("open_file", args).await {
+                                                if let Err(e) = invoke_r("open_file", args).await {
                                                     console::error_1(&e);
                                                 }
                                             });
@@ -304,7 +309,7 @@ pub fn app() -> Html {
                                             let args = JsValue::from_serde(
                                                 &serde_json::json!({"path": path})
                                             ).unwrap();
-                                            invoke2("read_dir", args)
+                                            invoke_r("read_dir", args)
                                                 .await
                                                 .map(|v| files.set(v.into_serde().unwrap()))
                                                 .unwrap_or_else(|e| console::error_1(&e));
