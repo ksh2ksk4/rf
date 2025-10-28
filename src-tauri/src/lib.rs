@@ -104,19 +104,16 @@ fn read_dir(path: String) -> Result<Vec<FileInfo>, String> {
             size: metadata.len(),
             readonly: permissions.readonly(),
             mode: permissions.mode(),
-            // error handling
             accessed: metadata.accessed().map_err(|e| e.to_string()).map(|st| {
                 DateTime::<Local>::from(st)
                     .format("%Y-%m-%d %H:%M:%S")
                     .to_string()
             })?,
-            // error handling
             created: metadata.created().map_err(|e| e.to_string()).map(|st| {
                 DateTime::<Local>::from(st)
                     .format("%Y-%m-%d %H:%M:%S")
                     .to_string()
             })?,
-            // error handling
             modified: metadata.modified().map_err(|e| e.to_string()).map(|st| {
                 DateTime::<Local>::from(st)
                     .format("%Y-%m-%d %H:%M:%S")

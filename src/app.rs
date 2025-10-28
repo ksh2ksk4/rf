@@ -110,7 +110,10 @@ pub fn app() -> Html {
             spawn_local(async move {
                 let path = navigation_history.paths[0].clone();
                 let args = JsValue::from_serde(&serde_json::json!({"path": path})).unwrap();
-                files.set(invoke("read_dir", args).await.into_serde().unwrap());
+                invoke2("read_dir", args)
+                    .await
+                    .map(|v| files.set(v.into_serde().unwrap()))
+                    .unwrap_or_else(|e| console::error_1(&e));
             });
 
             || {}
@@ -144,7 +147,10 @@ pub fn app() -> Html {
             let files = files.clone();
             spawn_local(async move {
                 let args = JsValue::from_serde(&serde_json::json!({"path": path})).unwrap();
-                files.set(invoke("read_dir", args).await.into_serde().unwrap());
+                invoke2("read_dir", args)
+                    .await
+                    .map(|v| files.set(v.into_serde().unwrap()))
+                    .unwrap_or_else(|e| console::error_1(&e));
             });
         })
     };
@@ -160,7 +166,10 @@ pub fn app() -> Html {
             let files = files.clone();
             spawn_local(async move {
                 let args = JsValue::from_serde(&serde_json::json!({"path": path})).unwrap();
-                files.set(invoke("read_dir", args).await.into_serde().unwrap());
+                invoke2("read_dir", args)
+                    .await
+                    .map(|v| files.set(v.into_serde().unwrap()))
+                    .unwrap_or_else(|e| console::error_1(&e));
             });
         })
     };
@@ -176,7 +185,10 @@ pub fn app() -> Html {
                     .as_string()
                     .unwrap();
                 let args = JsValue::from_serde(&serde_json::json!({"path": folder})).unwrap();
-                files.set(invoke("read_dir", args).await.into_serde().unwrap());
+                invoke2("read_dir", args)
+                    .await
+                    .map(|v| files.set(v.into_serde().unwrap()))
+                    .unwrap_or_else(|e| console::error_1(&e));
             });
         })
     };
@@ -288,7 +300,10 @@ pub fn app() -> Html {
                                         let path = path.clone();
                                         spawn_local(async move {
                                             let args = JsValue::from_serde(&serde_json::json!({"path": path})).unwrap();
-                                            files.set(invoke("read_dir", args).await.into_serde().unwrap());
+                                            invoke2("read_dir", args)
+                                                .await
+                                                .map(|v| files.set(v.into_serde().unwrap()))
+                                                .unwrap_or_else(|e| console::error_1(&e));
                                         });
                                     })
                                 };
