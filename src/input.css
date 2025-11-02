@@ -150,6 +150,24 @@
   div.search {
     @apply flex items-center ml-auto;
   }
+  div.toast-area {
+    @apply fixed top-4 right-4 z-20 gap-2;
+  }
+  div.toast-base {
+    @apply text-white shadow-lg rounded px-4 py-2 text-sm flex items-center max-w-md;
+  }
+  div.toast-success {
+    @apply bg-emerald-600;
+  }
+  div.toast-info {
+    @apply bg-sky-600;
+  }
+  div.toast-warning {
+    @apply bg-amber-600;
+  }
+  div.toast-error {
+    @apply bg-rose-600;
+  }
   div.toolbar {
     @apply bg-dark-base-900/15 flex gap-2 text-2xl;
   }
