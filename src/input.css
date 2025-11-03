@@ -101,22 +101,21 @@
 }
 
 :root {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, "Noto Sans JP", "Hiragino Kaku Gothic ProN",
-    "Yu Gothic", "Meiryo", "Segoe UI Emoji", "Apple Color Emoji",
-    "Noto Color Emoji", sans-serif;
-  font-size: 24px;
-  line-height: 24px;
-  font-weight: 400;
-
+  font-family: /* macOS */ -apple-system, BlinkMacSystemFont,
+    "Hiragino Kaku Gothic", "Yu Gothic", "Apple Color Emoji",
+    /* Windows */ "Segoe UI Variable", "Segoe UI", "Yu Gothic", "Meiryo",
+    "Noto Sans JP", "Segoe UI Emoji", "Noto Color Emoji",
+    /* fallback */ sans-serif;
+  font-size: 20px;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-text-size-adjust: 100%;
+}
 
-  background-color: var(--color-light-base);
-  color: var(--color-light-neutral);
+@media (prefers-color-scheme: light) {
+  :root {
+    background-color: var(--color-light-base);
+    color: var(--color-light-neutral);
+  }
 }
 
 @media (prefers-color-scheme: dark) {
@@ -186,28 +185,28 @@
   table.file-list {
     @apply border-collapse border;
   }
-  table.file-list thead tr {
+  table.file-list > thead > tr {
     @apply sticky top-0 backdrop-blur z-10;
   }
-  table.file-list thead tr th {
+  table.file-list th {
     @apply bg-dark-base-700/20
            border border-dark-neutral-900 p-1;
   }
-  table.file-list tbody tr:nth-child(odd) {
+  table.file-list > tbody > tr:nth-child(odd) {
     @apply bg-dark-base-950;
   }
-  table.file-list tbody tr:nth-child(even) {
+  table.file-list > tbody > tr:nth-child(even) {
     @apply bg-dark-neutral-950;
   }
-  table.file-list tbody tr td.name {
+  table.file-list td.name {
     @apply border border-dark-neutral-900 max-w-500
            wrap-anywhere whitespace-normal p-1;
   }
-  table.file-list tbody tr td.size {
+  table.file-list td.size {
     @apply border border-dark-neutral-900 max-w-80
            whitespace-normal p-1 text-center text-dark-neutral-400;
   }
-  table.file-list tbody tr td.datetime {
+  table.file-list td.datetime {
     @apply border border-dark-neutral-900 max-w-150
            whitespace-normal p-1 text-center text-dark-neutral-400;
   }
