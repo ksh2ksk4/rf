@@ -1,9 +1,10 @@
 use gloo_timers::future::TimeoutFuture;
 use gloo_utils::format::JsValueSerdeExt;
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::spawn_local;
-use web_sys::console;
+use web_sys::{console, HtmlInputElement};
 use yew::prelude::*;
 
 // トーストを表示する時間(ms)
@@ -223,6 +224,9 @@ struct Toast {
 pub fn app() -> Html {
     let navigation_history = use_state(|| NavigationHistory::new());
     let files = use_state(|| Vec::<FileInfo>::new());
+    // 選択されたファイルの集合
+    let selected = use_state(|| HashSet::<String>::new());
+
     let toasts = use_state(|| Vec::<Toast>::new());
     let next_toast_id = use_state(|| 1_usize);
     let push_toast = {
@@ -271,12 +275,14 @@ pub fn app() -> Html {
     {
         let navigation_history = navigation_history.clone();
         let files = files.clone();
+        let selected = selected.clone();
         #[allow(unused_variables)]
         use_effect_with(
-            (navigation_history, files),
-            move |(navigation_history, files)| {
-                console::info_1(&format!("navigation_history: {navigation_history:?}").into());
+            (navigation_history, files, selected),
+            move |(navigation_history, files, selected)| {
+                //console::info_1(&format!("navigation_history: {navigation_history:?}").into());
                 //console::info_1(&format!("files: {files:?}").into());
+                console::info_1(&format!("selected: {selected:?}").into());
 
                 || {}
             },
@@ -473,6 +479,13 @@ pub fn app() -> Html {
                     <table class="file-list">
                         <thead>
                             <tr>
+                                <th>
+                                    <input
+                                        type="checkbox"
+                                        checked=false
+                                        aria-label="select all"
+                                    />
+                                </th>
                                 <th>{"name"}</th>
                                 <th>{"size"}</th>
                                 <th>{"created at"}</th>
@@ -483,6 +496,23 @@ pub fn app() -> Html {
                         <tbody>
                             {for files.iter().map(|f| {
                                 let is_dir = f.is_dir;
+
+                                let selected = selected.clone();
+                                let path = f.path.clone();
+                                let is_checked = (*selected).contains(&path);
+                                let handle_checkbox_click = Callback::from(move |e: Event| {
+                                    let input: HtmlInputElement = e.target_unchecked_into();
+                                    let checked = input.checked();
+                                    let mut new_value = (*selected).clone();
+
+                                    if checked {
+                                        new_value.insert(path.clone());
+                                    } else {
+                                        new_value.remove(&path);
+                                    }
+
+                                    selected.set(new_value);
+                                });
 
                                 let handle_dir_click = {
                                     let navigation_history = navigation_history.clone();
@@ -560,6 +590,14 @@ pub fn app() -> Html {
 
                                 html! {
                                     <tr class={if is_dir {"dir"} else {"file"}}>
+                                        <td class="select-file">
+                                            <input
+                                                type="checkbox"
+                                                checked={is_checked}
+                                                onchange={handle_checkbox_click}
+                                                aria-label="select file"
+                                            />
+                                        </td>
                                         <td class="name">
                                             {if is_dir {
                                                 html! {<i class="line-start folder nf nf-fa-folder" />}

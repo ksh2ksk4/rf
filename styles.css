@@ -389,6 +389,12 @@
   table.file-list > tbody > tr:nth-child(even) {
     background-color: var(--color-dark-neutral-950);
   }
+  table.file-list td.select-file {
+    border-style: var(--tw-border-style);
+    border-width: 1px;
+    border-color: var(--color-dark-neutral-900);
+    padding: calc(var(--spacing) * 1);
+  }
   table.file-list td.name {
     max-width: calc(var(--spacing) * 500);
     border-style: var(--tw-border-style);
