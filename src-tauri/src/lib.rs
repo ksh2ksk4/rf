@@ -5,6 +5,27 @@ use std::os::unix::fs::{FileTypeExt, PermissionsExt};
 use std::os::unix::process::ExitStatusExt;
 use std::process::Command;
 
+/// # Summary
+///
+/// ファイルに関するデータ
+///
+/// # Fields
+///
+/// - `name`: 名前
+/// - `path`: パス(フルパス)
+/// - `is_dir`: ディレクトリかどうかを表すフラグ
+/// - `is_file`: ファイルかどうかを表すフラグ
+/// - `is_symlink`: シンボリックリンクかどうかを表すフラグ
+/// - `is_block_device`: ブロックデバイスかどうかを表すフラグ(UNIX only)
+/// - `is_char_device`: キャラクタデバイスかどうかを表すフラグ(UNIX only)
+/// - `is_fifo`: FIFO かどうかを表すフラグ(UNIX only)
+/// - `is_socket`: ソケットかどうかを表すフラグ(UNIX only)
+/// - `size`: サイズ
+/// - `readonly`: 読取専用かどうかを表すフラグ
+/// - `mode`: モード(UNIX only)
+/// - `accessed`: アクセス日時
+/// - `created`: 作成日時
+/// - `modified`: 更新日時
 #[derive(Debug, Eq, Ord, PartialEq, PartialOrd, Serialize)]
 struct FileInfo {
     name: String,
@@ -12,23 +33,21 @@ struct FileInfo {
     is_dir: bool,
     is_file: bool,
     is_symlink: bool,
-    // Unix only
     is_block_device: bool,
-    // Unix only
     is_char_device: bool,
-    // Unix only
     is_fifo: bool,
-    // Unix only
     is_socket: bool,
     size: u64,
     readonly: bool,
-    // Unix only
     mode: u32,
     accessed: String,
     created: String,
     modified: String,
 }
 
+/// # Summary
+///
+/// Tauri アプリのエントリポイント
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -38,6 +57,18 @@ pub fn run() {
         .expect("error while running tauri application");
 }
 
+/// # Summary
+///
+/// 指定したパスのファイルをオープン
+///
+/// # Arguments
+///
+/// - `path`: パス(String)
+///
+/// # Returns
+///
+/// - `Ok(())`: ()
+/// - `Err(String)`: エラーメッセージ
 #[tauri::command]
 fn open_file(path: String) -> Result<(), String> {
     open_with_default(&path)
@@ -48,6 +79,18 @@ fn open_with_default(path: &str) -> std::io::Result<()> {
     Command::new("xdg-open").arg(path).spawn().map(|_| ())
 }
 
+/// # Summary
+///
+/// 指定したパスのファイルをデフォルトアプリでオープン
+///
+/// # Arguments
+///
+/// - `path`: パス(&str)
+///
+/// # Returns
+///
+/// - `Ok(())`: ()
+/// - `Err(String)`: エラーメッセージ
 #[cfg(target_os = "macos")]
 fn open_with_default(path: &str) -> Result<(), String> {
     let output = Command::new("open")
@@ -82,6 +125,18 @@ fn open_with_default(path: &str) -> std::io::Result<()> {
         .map(|_| ())
 }
 
+/// # Summary
+///
+/// 指定したパスのファイルリストを取得
+///
+/// # Arguments
+///
+/// - `path`: パス(String)
+///
+/// # Returns
+///
+/// - `Ok(Vec<FileInfo>)`: ファイルリスト
+/// - `Err(String)`: エラーメッセージ
 #[tauri::command]
 fn read_dir(path: String) -> Result<Vec<FileInfo>, String> {
     let mut entries = Vec::<FileInfo>::new();
@@ -127,6 +182,13 @@ fn read_dir(path: String) -> Result<Vec<FileInfo>, String> {
     Ok(entries)
 }
 
+/// # Summary
+///
+/// ファイルダイアログを表示してパスを選択させる
+///
+/// # Returns
+///
+/// - `String`: 選択されたパス
 #[tauri::command]
 fn select_dir() -> String {
     rfd::FileDialog::new()

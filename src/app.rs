@@ -6,8 +6,11 @@ use wasm_bindgen_futures::spawn_local;
 use web_sys::console;
 use yew::prelude::*;
 
+// トーストを表示する時間(ms)
 const TOAST_DURATION: u32 = 5000;
+// 初期表示パス
 const INIT_PATH: &str = "/Users/ksh2ksk4/Downloads";
+// ファイルサイズの単位
 const UNITS: [&str; 5] = ["B", "KiB", "MiB", "GiB", "TiB"];
 
 #[wasm_bindgen]
@@ -28,6 +31,27 @@ extern "C" {
     async fn invoke_r_no_args(cmd: &str) -> Result<JsValue, JsValue>;
 }
 
+/// # Summary
+///
+/// ファイルに関するデータ
+///
+/// # Fields
+///
+/// - `name`: 名前
+/// - `path`: パス(フルパス)
+/// - `is_dir`: ディレクトリかどうかを表すフラグ
+/// - `is_file`: ファイルかどうかを表すフラグ
+/// - `is_symlink`: シンボリックリンクかどうかを表すフラグ
+/// - `is_block_device`: ブロックデバイスかどうかを表すフラグ(UNIX only)
+/// - `is_char_device`: キャラクタデバイスかどうかを表すフラグ(UNIX only)
+/// - `is_fifo`: FIFO かどうかを表すフラグ(UNIX only)
+/// - `is_socket`: ソケットかどうかを表すフラグ(UNIX only)
+/// - `size`: サイズ
+/// - `readonly`: 読取専用かどうかを表すフラグ
+/// - `mode`: モード(UNIX only)
+/// - `accessed`: アクセス日時
+/// - `created`: 作成日時
+/// - `modified`: 更新日時
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 struct FileInfo {
     name: String,
@@ -35,23 +59,26 @@ struct FileInfo {
     is_dir: bool,
     is_file: bool,
     is_symlink: bool,
-    // Unix only
     is_block_device: bool,
-    // Unix only
     is_char_device: bool,
-    // Unix only
     is_fifo: bool,
-    // Unix only
     is_socket: bool,
     size: u64,
     readonly: bool,
-    // Unix only
     mode: u32,
     accessed: String,
     created: String,
     modified: String,
 }
 
+/// # Summary
+///
+/// 表示履歴に関するデータ
+///
+/// # Fields
+///
+/// - `index`: 表示中のパスを指し示すインデックス
+/// - `paths`: 表示したパスのリスト
 #[derive(Clone, Debug, PartialEq)]
 struct NavigationHistory {
     index: usize,
@@ -59,6 +86,13 @@ struct NavigationHistory {
 }
 
 impl NavigationHistory {
+    /// # Summary
+    ///
+    /// インスタンスを生成
+    ///
+    /// # Returns
+    ///
+    /// - `Self`: インスタンス
     pub fn new() -> Self {
         Self {
             index: 0,
@@ -66,18 +100,47 @@ impl NavigationHistory {
         }
     }
 
+    /// # Summary
+    ///
+    /// 一つ前のパスに戻れるかチェック
+    ///
+    /// # Returns
+    ///
+    /// - `bool`: 一つ前のパスに戻れるかどうか
     pub fn can_back(&self) -> bool {
         self.index > 0
     }
 
+    /// # Summary
+    ///
+    /// 一つ後のパスに進めるかチェック
+    ///
+    /// # Returns
+    ///
+    /// - `bool`: 一つ後のパスに進めるかどうか
     pub fn can_forward(&self) -> bool {
         self.index + 1 < self.paths.len()
     }
 
+    /// # Summary
+    ///
+    /// 現在のパスを返す
+    ///
+    /// # Returns
+    ///
+    /// - `&str`: パス
     pub fn current(&self) -> &str {
         &self.paths[self.index]
     }
 
+    /// # Summary
+    ///
+    /// 一つ前のパスに戻る
+    ///
+    /// # Returns
+    ///
+    /// - `Some(String)`: 一つ前のパス
+    /// - `None`: 前のパスがない場合
     pub fn back(&mut self) -> Option<String> {
         if !self.can_back() {
             None
@@ -87,6 +150,14 @@ impl NavigationHistory {
         }
     }
 
+    /// # Summary
+    ///
+    /// 一つ後のパスに進む
+    ///
+    /// # Returns
+    ///
+    /// - `Some(String)`: 一つ後のパス
+    /// - `None`: 後のパスがない場合
     pub fn forward(&mut self) -> Option<String> {
         if !self.can_forward() {
             None
@@ -96,6 +167,13 @@ impl NavigationHistory {
         }
     }
 
+    /// # Summary
+    ///
+    /// 履歴にパスを追加
+    ///
+    /// # Arguments
+    ///
+    /// - `path`: パス(&str)
     pub fn push(&mut self, path: &str) {
         if self.index + 1 < self.paths.len() {
             // 最新の移動履歴ではない場合
@@ -107,6 +185,9 @@ impl NavigationHistory {
     }
 }
 
+/// # Summary
+///
+/// トーストの種類
 #[derive(Clone, Copy, Debug, PartialEq)]
 enum ToastKind {
     Success,
@@ -115,6 +196,15 @@ enum ToastKind {
     Error,
 }
 
+/// # Summary
+///
+/// 個々のトーストに関するデータ
+///
+/// # Fields
+///
+/// - `id`: ID
+/// - `kind`: 種類
+/// - `message`: メッセージ
 #[derive(Clone, Debug, PartialEq)]
 struct Toast {
     id: usize,
@@ -122,6 +212,13 @@ struct Toast {
     message: String,
 }
 
+/// # Summary
+///
+/// メインコンテンツを表示する
+///
+/// # Returns
+///
+/// `Html`: HTML
 #[function_component(App)]
 pub fn app() -> Html {
     let navigation_history = use_state(|| NavigationHistory::new());
