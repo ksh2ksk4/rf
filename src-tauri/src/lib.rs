@@ -4,6 +4,7 @@ use std::fs;
 use std::os::unix::fs::{FileTypeExt, PermissionsExt};
 use std::os::unix::process::ExitStatusExt;
 use std::process::Command;
+use trash;
 
 /// # Summary
 ///
@@ -52,9 +53,33 @@ struct FileInfo {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![open_file, read_dir, select_dir])
+        .invoke_handler(tauri::generate_handler![
+            delete_files,
+            open_file,
+            read_dir,
+            select_dir
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+/// # Summary
+///
+/// 指定したパスのファイルを削除
+/// (物理削除ではなくゴミ箱へ移動)
+///
+/// # Arguments
+///
+/// - `paths`: パス(Vec<String>)
+///
+/// # Returns
+///
+/// - `Ok(())`: ()
+/// - `Err(String)`: エラーメッセージ
+#[tauri::command]
+fn delete_files(paths: Vec<String>) -> Result<(), String> {
+    trash::delete_all(&paths).map_err(|e| e.to_string())?;
+    Ok(())
 }
 
 /// # Summary

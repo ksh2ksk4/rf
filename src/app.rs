@@ -366,6 +366,46 @@ pub fn app() -> Html {
         })
     };
 
+    // "delete files" ボタンクリックのイベントハンドラ
+    let handle_delete_files_click = {
+        let navigation_history = navigation_history.clone();
+        let files = files.clone();
+        let selected = selected.clone();
+        let push_toast = push_toast.clone();
+        Callback::from(move |_| {
+            let nh = (*navigation_history).clone();
+            let current_path = nh.current().to_string();
+            let files = files.clone();
+            let selected = selected.clone();
+            let paths: Vec<String> = (*selected).iter().cloned().collect();
+            let push_toast = push_toast.clone();
+            spawn_local(async move {
+                let mut args = JsValue::from_serde(&serde_json::json!({"paths": paths})).unwrap();
+                match invoke_r("delete_files", args).await {
+                    Ok(_) => {
+                        console::info_1(&"delete_files() succeeded".into());
+                        args = JsValue::from_serde(&serde_json::json!({"path": current_path}))
+                            .unwrap();
+                        // 選択状態をクリア
+                        selected.set(HashSet::new());
+                        // ファイルリストを再取得
+                        invoke_r("read_dir", args)
+                            .await
+                            .inspect(|v| files.set(v.into_serde().unwrap()))
+                            .inspect_err(|e| {
+                                console::error_1(&e);
+                                push_toast.emit((ToastKind::Error, format!("{e:?}")));
+                            });
+                    }
+                    Err(e) => {
+                        console::error_1(&e);
+                        push_toast.emit((ToastKind::Error, format!("{e:?}")));
+                    }
+                }
+            });
+        })
+    };
+
     html! {
         <div class="min-h-screen min-w-screen flex flex-col">
             <div class="toast-area">
