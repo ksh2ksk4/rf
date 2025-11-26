@@ -494,7 +494,8 @@ pub fn app() -> Html {
                         class="icon"
                         title="delete files"
                         aria-label="delete files"
-                        //onclick={handle_delete_files_click}
+                        onclick={handle_delete_files_click}
+                        disabled={selected.is_empty()}
                     >
                         <i
                             class="nf nf-fa-trash"
