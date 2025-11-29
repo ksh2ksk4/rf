@@ -257,7 +257,14 @@ pub fn app() -> Html {
         use_effect_with((), move |_| {
             spawn_local(async move {
                 let path = navigation_history.paths[0].clone();
-                let args = JsValue::from_serde(&serde_json::json!({"path": path})).unwrap();
+                let args = match JsValue::from_serde(&serde_json::json!({"path": path})) {
+                    Ok(v) => v,
+                    Err(e) => {
+                        console::error_1(&format!("{e:?}").into());
+                        push_toast.emit((ToastKind::Error, format!("{e:?}")));
+                        return;
+                    }
+                };
                 invoke_r("read_dir", args)
                     .await
                     .map(|v| files.set(v.into_serde().unwrap()))
@@ -301,7 +308,14 @@ pub fn app() -> Html {
             let files = files.clone();
             let push_toast = push_toast.clone();
             spawn_local(async move {
-                let args = JsValue::from_serde(&serde_json::json!({"path": path})).unwrap();
+                let args = match JsValue::from_serde(&serde_json::json!({"path": path})) {
+                    Ok(v) => v,
+                    Err(e) => {
+                        console::error_1(&format!("{e:?}").into());
+                        push_toast.emit((ToastKind::Error, format!("{e:?}")));
+                        return;
+                    }
+                };
                 invoke_r("read_dir", args)
                     .await
                     .map(|v| files.set(v.into_serde().unwrap()))
@@ -325,7 +339,14 @@ pub fn app() -> Html {
             let files = files.clone();
             let push_toast = push_toast.clone();
             spawn_local(async move {
-                let args = JsValue::from_serde(&serde_json::json!({"path": path})).unwrap();
+                let args = match JsValue::from_serde(&serde_json::json!({"path": path})) {
+                    Ok(v) => v,
+                    Err(e) => {
+                        console::error_1(&format!("{e:?}").into());
+                        push_toast.emit((ToastKind::Error, format!("{e:?}")));
+                        return;
+                    }
+                };
                 invoke_r("read_dir", args)
                     .await
                     .map(|v| files.set(v.into_serde().unwrap()))
@@ -348,7 +369,14 @@ pub fn app() -> Html {
             let push_toast = push_toast.clone();
             spawn_local(async move {
                 let path = invoke_no_args("select_dir").await.as_string().unwrap();
-                let args = JsValue::from_serde(&serde_json::json!({"path": path})).unwrap();
+                let args = match JsValue::from_serde(&serde_json::json!({"path": path})) {
+                    Ok(v) => v,
+                    Err(e) => {
+                        console::error_1(&format!("{e:?}").into());
+                        push_toast.emit((ToastKind::Error, format!("{e:?}")));
+                        return;
+                    }
+                };
                 invoke_r("read_dir", args)
                     .await
                     .map(|v| {
@@ -377,7 +405,14 @@ pub fn app() -> Html {
             let files = files.clone();
             let push_toast = push_toast.clone();
             spawn_local(async move {
-                let args = JsValue::from_serde(&serde_json::json!({"path": current_path})).unwrap();
+                let args = match JsValue::from_serde(&serde_json::json!({"path": current_path})) {
+                    Ok(v) => v,
+                    Err(e) => {
+                        console::error_1(&format!("{e:?}").into());
+                        push_toast.emit((ToastKind::Error, format!("{e:?}")));
+                        return;
+                    }
+                };
                 // ファイルリストを再取得
                 let _ = invoke_r("read_dir", args)
                     .await
@@ -404,12 +439,26 @@ pub fn app() -> Html {
             let paths: Vec<String> = (*selected).iter().cloned().collect();
             let push_toast = push_toast.clone();
             spawn_local(async move {
-                let mut args = JsValue::from_serde(&serde_json::json!({"paths": paths})).unwrap();
+                let mut args = match JsValue::from_serde(&serde_json::json!({"paths": paths})) {
+                    Ok(v) => v,
+                    Err(e) => {
+                        console::error_1(&format!("{e:?}").into());
+                        push_toast.emit((ToastKind::Error, format!("{e:?}")));
+                        return;
+                    }
+                };
                 match invoke_r("delete_files", args).await {
                     Ok(_) => {
                         console::info_1(&"delete_files() succeeded".into());
-                        args = JsValue::from_serde(&serde_json::json!({"path": current_path}))
-                            .unwrap();
+                        args = match JsValue::from_serde(&serde_json::json!({"path": current_path}))
+                        {
+                            Ok(v) => v,
+                            Err(e) => {
+                                console::error_1(&format!("{e:?}").into());
+                                push_toast.emit((ToastKind::Error, format!("{e:?}")));
+                                return;
+                            }
+                        };
                         // 選択状態をクリア
                         selected.set(HashSet::new());
                         // ファイルリストを再取得
@@ -602,9 +651,14 @@ pub fn app() -> Html {
                                             let push_toast = push_toast.clone();
                                             let path = path.clone();
                                             spawn_local(async move {
-                                                let args = JsValue::from_serde(
-                                                    &serde_json::json!({"path": path})
-                                                ).unwrap();
+                                                let args = match JsValue::from_serde(&serde_json::json!({"path": path})) {
+                                                    Ok(v) => v,
+                                                    Err(e) => {
+                                                        console::error_1(&format!("{e:?}").into());
+                                                        push_toast.emit((ToastKind::Error, format!("{e:?}")));
+                                                        return;
+                                                    }
+                                                };
                                                 invoke_r("open_file", args)
                                                     .await
                                                     .map(|_| console::info_1(&"open_file() succeeded".into()))
@@ -625,9 +679,14 @@ pub fn app() -> Html {
                                         let push_toast = push_toast.clone();
                                         let path = path.clone();
                                         spawn_local(async move {
-                                            let args = JsValue::from_serde(
-                                                &serde_json::json!({"path": path})
-                                            ).unwrap();
+                                            let args = match JsValue::from_serde(&serde_json::json!({"path": path})) {
+                                                Ok(v) => v,
+                                                Err(e) => {
+                                                    console::error_1(&format!("{e:?}").into());
+                                                    push_toast.emit((ToastKind::Error, format!("{e:?}")));
+                                                    return;
+                                                }
+                                            };
                                             invoke_r("read_dir", args)
                                                 .await
                                                 .map(|v| files.set(v.into_serde().unwrap()))
