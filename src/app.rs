@@ -413,7 +413,7 @@ pub fn app() -> Html {
                         // 選択状態をクリア
                         selected.set(HashSet::new());
                         // ファイルリストを再取得
-                        invoke_r("read_dir", args)
+                        let _ = invoke_r("read_dir", args)
                             .await
                             .inspect(|v| files.set(v.into_serde().unwrap()))
                             .inspect_err(|e| {
