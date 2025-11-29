@@ -265,13 +265,23 @@ pub fn app() -> Html {
                         return;
                     }
                 };
-                invoke_r("read_dir", args)
-                    .await
-                    .map(|v| files.set(v.into_serde().unwrap()))
-                    .unwrap_or_else(|e| {
+                match invoke_r("read_dir", args).await {
+                    Ok(v) => {
+                        let file_infos = match v.into_serde() {
+                            Ok(v) => v,
+                            Err(e) => {
+                                console::error_1(&format!("{e:?}").into());
+                                push_toast.emit((ToastKind::Error, format!("{e:?}")));
+                                return;
+                            }
+                        };
+                        files.set(file_infos);
+                    }
+                    Err(e) => {
                         console::error_1(&e);
                         push_toast.emit((ToastKind::Error, format!("{e:?}")));
-                    });
+                    }
+                }
             });
 
             || {}
@@ -316,13 +326,23 @@ pub fn app() -> Html {
                         return;
                     }
                 };
-                invoke_r("read_dir", args)
-                    .await
-                    .map(|v| files.set(v.into_serde().unwrap()))
-                    .unwrap_or_else(|e| {
+                match invoke_r("read_dir", args).await {
+                    Ok(v) => {
+                        let file_infos = match v.into_serde() {
+                            Ok(v) => v,
+                            Err(e) => {
+                                console::error_1(&format!("{e:?}").into());
+                                push_toast.emit((ToastKind::Error, format!("{e:?}")));
+                                return;
+                            }
+                        };
+                        files.set(file_infos);
+                    }
+                    Err(e) => {
                         console::error_1(&e);
                         push_toast.emit((ToastKind::Error, format!("{e:?}")));
-                    });
+                    }
+                }
             });
         })
     };
@@ -347,13 +367,23 @@ pub fn app() -> Html {
                         return;
                     }
                 };
-                invoke_r("read_dir", args)
-                    .await
-                    .map(|v| files.set(v.into_serde().unwrap()))
-                    .unwrap_or_else(|e| {
+                match invoke_r("read_dir", args).await {
+                    Ok(v) => {
+                        let file_infos = match v.into_serde() {
+                            Ok(v) => v,
+                            Err(e) => {
+                                console::error_1(&format!("{e:?}").into());
+                                push_toast.emit((ToastKind::Error, format!("{e:?}")));
+                                return;
+                            }
+                        };
+                        files.set(file_infos);
+                    }
+                    Err(e) => {
                         console::error_1(&e);
                         push_toast.emit((ToastKind::Error, format!("{e:?}")));
-                    });
+                    }
+                }
             });
         })
     };
@@ -377,16 +407,23 @@ pub fn app() -> Html {
                         return;
                     }
                 };
-                invoke_r("read_dir", args)
-                    .await
-                    .map(|v| {
-                        files.set(v.into_serde().unwrap());
-                        push_toast.emit((ToastKind::Success, "read_dir() succeeded".to_string()));
-                    })
-                    .unwrap_or_else(|e| {
+                match invoke_r("read_dir", args).await {
+                    Ok(v) => {
+                        let file_infos = match v.into_serde() {
+                            Ok(v) => v,
+                            Err(e) => {
+                                console::error_1(&format!("{e:?}").into());
+                                push_toast.emit((ToastKind::Error, format!("{e:?}")));
+                                return;
+                            }
+                        };
+                        files.set(file_infos);
+                    }
+                    Err(e) => {
                         console::error_1(&e);
                         push_toast.emit((ToastKind::Error, format!("{e:?}")));
-                    });
+                    }
+                }
                 let mut nh = (*navigation_history).clone();
                 nh.push(&path);
                 navigation_history.set(nh);
@@ -413,14 +450,23 @@ pub fn app() -> Html {
                         return;
                     }
                 };
-                // ファイルリストを再取得
-                let _ = invoke_r("read_dir", args)
-                    .await
-                    .inspect(|v| files.set(v.into_serde().unwrap()))
-                    .inspect_err(|e| {
+                match invoke_r("read_dir", args).await {
+                    Ok(v) => {
+                        let file_infos = match v.into_serde() {
+                            Ok(v) => v,
+                            Err(e) => {
+                                console::error_1(&format!("{e:?}").into());
+                                push_toast.emit((ToastKind::Error, format!("{e:?}")));
+                                return;
+                            }
+                        };
+                        files.set(file_infos);
+                    }
+                    Err(e) => {
                         console::error_1(&e);
                         push_toast.emit((ToastKind::Error, format!("{e:?}")));
-                    });
+                    }
+                }
             });
         })
     };
@@ -449,7 +495,6 @@ pub fn app() -> Html {
                 };
                 match invoke_r("delete_files", args).await {
                     Ok(_) => {
-                        console::info_1(&"delete_files() succeeded".into());
                         args = match JsValue::from_serde(&serde_json::json!({"path": current_path}))
                         {
                             Ok(v) => v,
@@ -461,14 +506,23 @@ pub fn app() -> Html {
                         };
                         // 選択状態をクリア
                         selected.set(HashSet::new());
-                        // ファイルリストを再取得
-                        let _ = invoke_r("read_dir", args)
-                            .await
-                            .inspect(|v| files.set(v.into_serde().unwrap()))
-                            .inspect_err(|e| {
+                        match invoke_r("read_dir", args).await {
+                            Ok(v) => {
+                                let file_infos = match v.into_serde() {
+                                    Ok(v) => v,
+                                    Err(e) => {
+                                        console::error_1(&format!("{e:?}").into());
+                                        push_toast.emit((ToastKind::Error, format!("{e:?}")));
+                                        return;
+                                    }
+                                };
+                                files.set(file_infos);
+                            }
+                            Err(e) => {
                                 console::error_1(&e);
                                 push_toast.emit((ToastKind::Error, format!("{e:?}")));
-                            });
+                            }
+                        }
                     }
                     Err(e) => {
                         console::error_1(&e);
@@ -687,13 +741,23 @@ pub fn app() -> Html {
                                                     return;
                                                 }
                                             };
-                                            invoke_r("read_dir", args)
-                                                .await
-                                                .map(|v| files.set(v.into_serde().unwrap()))
-                                                .unwrap_or_else(|e| {
+                                            match invoke_r("read_dir", args).await {
+                                                Ok(v) => {
+                                                    let file_infos = match v.into_serde() {
+                                                        Ok(v) => v,
+                                                        Err(e) => {
+                                                            console::error_1(&format!("{e:?}").into());
+                                                            push_toast.emit((ToastKind::Error, format!("{e:?}")));
+                                                            return;
+                                                        }
+                                                    };
+                                                    files.set(file_infos);
+                                                }
+                                                Err(e) => {
                                                     console::error_1(&e);
                                                     push_toast.emit((ToastKind::Error, format!("{e:?}")));
-                                                });
+                                                }
+                                            }
                                         });
                                     })
                                 };
