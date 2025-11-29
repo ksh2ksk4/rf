@@ -28,17 +28,15 @@
     --color-light-base: #f3f3f2;
     --color-light-accent: #c53d43;
     --color-light-neutral: #250d00;
-    --color-dark-base: var(--color-light-neutral);
-    --color-dark-accent: var(--color-light-accent);
-    --color-dark-neutral: var(--color-light-base);
-    --color-dark-base-700: #d75500;
-    --color-dark-base-800: #aa4302;
-    --color-dark-base-900: #883906;
-    --color-dark-base-950: var(--color-dark-base);
-    --color-dark-accent-200: #f7d5d4;
-    --color-dark-neutral-400: #9c9b94;
-    --color-dark-neutral-900: #3f3e3b;
-    --color-dark-neutral-950: #2a2a27;
+    --color-dark-base-500: #896a57;
+    --color-dark-base-600: #684b39;
+    --color-dark-base-800: #371e0c;
+    --color-dark-base-950: #1f0700;
+    --color-dark-neutral-50: #e8e8e7;
+    --color-dark-neutral-300: #b0b0af;
+    --color-dark-neutral-700: #383838;
+    --color-dark-neutral-800: #252524;
+    --color-dark-neutral-950: #0f0f0e;
   }
 }
 @layer base {
@@ -252,8 +250,8 @@
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    background-color: var(--color-dark-base);
-    color: var(--color-dark-neutral);
+    background-color: var(--color-dark-base-950);
+    color: var(--color-dark-neutral-50);
   }
 }
 @layer components {
@@ -276,7 +274,7 @@
   }
   button:not(.icon) {
     border-radius: var(--radius-md);
-    background-color: var(--color-dark-base-800);
+    background-color: var(--color-dark-base-600);
     padding: calc(var(--spacing) * 1);
     &:disabled {
       cursor: not-allowed;
@@ -336,10 +334,10 @@
   div.toolbar {
     display: flex;
     gap: calc(var(--spacing) * 2);
-    background-color: color-mix(in srgb, #883906 15%, transparent);
+    background-color: color-mix(in srgb, #1f0700 15%, transparent);
     @supports (color: color-mix(in lab, red, red)) {
       & {
-        background-color: color-mix(in oklab, var(--color-dark-base-900) 15%, transparent);
+        background-color: color-mix(in oklab, var(--color-dark-base-950) 15%, transparent);
       }
     }
     font-size: var(--text-2xl);
@@ -352,7 +350,7 @@
     color: var(--color-sky-500);
   }
   i.line-start.file {
-    color: var(--color-dark-accent-200);
+    color: var(--color-emerald-600);
   }
   i:not(.line-start) {
     margin: calc(var(--spacing) * 1);
@@ -374,32 +372,32 @@
   table.file-list th {
     border-style: var(--tw-border-style);
     border-width: 1px;
-    border-color: var(--color-dark-neutral-900);
-    background-color: color-mix(in srgb, #d75500 20%, transparent);
+    border-color: var(--color-dark-neutral-700);
+    background-color: color-mix(in srgb, #896a57 20%, transparent);
     @supports (color: color-mix(in lab, red, red)) {
       & {
-        background-color: color-mix(in oklab, var(--color-dark-base-700) 20%, transparent);
+        background-color: color-mix(in oklab, var(--color-dark-base-500) 20%, transparent);
       }
     }
     padding: calc(var(--spacing) * 1);
   }
   table.file-list > tbody > tr:nth-child(odd) {
-    background-color: var(--color-dark-base-950);
+    background-color: var(--color-dark-base-800);
   }
   table.file-list > tbody > tr:nth-child(even) {
-    background-color: var(--color-dark-neutral-950);
+    background-color: var(--color-dark-neutral-800);
   }
   table.file-list td.select-file {
     border-style: var(--tw-border-style);
     border-width: 1px;
-    border-color: var(--color-dark-neutral-900);
+    border-color: var(--color-dark-neutral-700);
     padding: calc(var(--spacing) * 1);
   }
   table.file-list td.name {
     max-width: calc(var(--spacing) * 500);
     border-style: var(--tw-border-style);
     border-width: 1px;
-    border-color: var(--color-dark-neutral-900);
+    border-color: var(--color-dark-neutral-700);
     padding: calc(var(--spacing) * 1);
     overflow-wrap: anywhere;
     white-space: normal;
@@ -408,21 +406,21 @@
     max-width: calc(var(--spacing) * 80);
     border-style: var(--tw-border-style);
     border-width: 1px;
-    border-color: var(--color-dark-neutral-900);
+    border-color: var(--color-dark-neutral-700);
     padding: calc(var(--spacing) * 1);
     text-align: center;
     white-space: normal;
-    color: var(--color-dark-neutral-400);
+    color: var(--color-dark-neutral-300);
   }
   table.file-list td.datetime {
     max-width: calc(var(--spacing) * 150);
     border-style: var(--tw-border-style);
     border-width: 1px;
-    border-color: var(--color-dark-neutral-900);
+    border-color: var(--color-dark-neutral-700);
     padding: calc(var(--spacing) * 1);
     text-align: center;
     white-space: normal;
-    color: var(--color-dark-neutral-400);
+    color: var(--color-dark-neutral-300);
   }
 }
 @property --tw-leading {

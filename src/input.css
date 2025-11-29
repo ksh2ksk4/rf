@@ -3,12 +3,8 @@
 
 @theme {
   /**
-   * https://www.colordic.org/
-   * https://uicolors.app/generate
-   */
-
-  /**
    * ライトモード
+   * https://contrast-color-palette.vercel.app/?baseColors=%23250d00,%23c53d43,%23f3f3f2&numberOfColors=11&lightnessGain=0.5&selectedColorIndex=2
    */
   /* 白練 */
   --color-light-base: #f3f3f2;
@@ -17,44 +13,45 @@
   /* 黒檀 */
   --color-light-neutral: #250d00;
 
-  --color-light-base-50: #f8f8f7;
-  --color-light-base-100: var(--color-light-base);
-  --color-light-base-200: #ddddda;
-  --color-light-base-300: #bfbfba;
-  --color-light-base-400: #9c9b94;
-  --color-light-base-500: #807f77;
-  --color-light-base-600: #696860;
-  --color-light-base-700: #55554f;
-  --color-light-base-800: #494943;
-  --color-light-base-900: #3f3e3b;
-  --color-light-base-950: #2a2a27;
+  --color-light-base-50: #e8e8e7;
+  --color-light-base-100: #dcdcdb;
+  --color-light-base-200: #c9c9c8;
+  --color-light-base-300: #b0b0af;
+  --color-light-base-400: #929291;
+  --color-light-base-500: #717171;
+  --color-light-base-600: #525252;
+  --color-light-base-700: #383838;
+  --color-light-base-800: #252524;
+  --color-light-base-900: #181817;
+  --color-light-base-950: #0f0f0e;
 
-  --color-light-accent-50: #fdf4f3;
-  --color-light-accent-100: #fbeae8;
-  --color-light-accent-200: #f7d5d4;
-  --color-light-accent-300: #f0b4b1;
-  --color-light-accent-400: #e68986;
-  --color-light-accent-500: #d95a5a;
-  --color-light-accent-600: var(--color-light-accent);
-  --color-light-accent-700: #a42c34;
-  --color-light-accent-800: #8a2731;
-  --color-light-accent-900: #762530;
-  --color-light-accent-950: #411015;
+  --color-light-accent-50: #ffb7b3;
+  --color-light-accent-100: #ffaaa7;
+  --color-light-accent-200: #ff9795;
+  --color-light-accent-300: #ff7e7d;
+  --color-light-accent-400: #e95e60;
+  --color-light-accent-500: #c23a40;
+  --color-light-accent-600: #9b0921;
+  --color-light-accent-700: #7a0003;
+  --color-light-accent-800: #600000;
+  --color-light-accent-900: #4c0000;
+  --color-light-accent-950: #3f0000;
 
-  --color-light-neutral-50: #fffaeb;
-  --color-light-neutral-100: #fff4d0;
-  --color-light-neutral-200: #ffe5a0;
-  --color-light-neutral-300: #ffcf64;
-  --color-light-neutral-400: #ffad26;
-  --color-light-neutral-500: #ff9000;
-  --color-light-neutral-600: #ff7200;
-  --color-light-neutral-700: #d75500;
-  --color-light-neutral-800: #aa4302;
-  --color-light-neutral-900: #883906;
-  --color-light-neutral-950: var(--color-light-neutral);
+  --color-light-neutral-50: #ffe0cb;
+  --color-light-neutral-100: #f7d4be;
+  --color-light-neutral-200: #e4c1ac;
+  --color-light-neutral-300: #caa994;
+  --color-light-neutral-400: #ab8b77;
+  --color-light-neutral-500: #896a57;
+  --color-light-neutral-600: #684b39;
+  --color-light-neutral-700: #4d3120;
+  --color-light-neutral-800: #371e0c;
+  --color-light-neutral-900: #281001;
+  --color-light-neutral-950: #1f0700;
 
   /**
    * ダークモード
+   * https://contrast-color-palette.vercel.app/?baseColors=%23250d00,%23c53d43,%23f3f3f2&numberOfColors=11&lightnessGain=0.5&selectedColorIndex=2
    */
   /* 黒檀 */
   --color-dark-base: var(--color-light-neutral);
@@ -63,41 +60,41 @@
   /* 白練 */
   --color-dark-neutral: var(--color-light-base);
 
-  --color-dark-base-50: #fffaeb;
-  --color-dark-base-100: #fff4d0;
-  --color-dark-base-200: #ffe5a0;
-  --color-dark-base-300: #ffcf64;
-  --color-dark-base-400: #ffad26;
-  --color-dark-base-500: #ff9000;
-  --color-dark-base-600: #ff7200;
-  --color-dark-base-700: #d75500;
-  --color-dark-base-800: #aa4302;
-  --color-dark-base-900: #883906;
-  --color-dark-base-950: var(--color-dark-base);
+  --color-dark-base-50: #ffe0cb;
+  --color-dark-base-100: #f7d4be;
+  --color-dark-base-200: #e4c1ac;
+  --color-dark-base-300: #caa994;
+  --color-dark-base-400: #ab8b77;
+  --color-dark-base-500: #896a57;
+  --color-dark-base-600: #684b39;
+  --color-dark-base-700: #4d3120;
+  --color-dark-base-800: #371e0c;
+  --color-dark-base-900: #281001;
+  --color-dark-base-950: #1f0700;
 
-  --color-dark-accent-50: #fdf4f3;
-  --color-dark-accent-100: #fbeae8;
-  --color-dark-accent-200: #f7d5d4;
-  --color-dark-accent-300: #f0b4b1;
-  --color-dark-accent-400: #e68986;
-  --color-dark-accent-500: #d95a5a;
-  --color-dark-accent-600: var(--color-dark-accent);
-  --color-dark-accent-700: #a42c34;
-  --color-dark-accent-800: #8a2731;
-  --color-dark-accent-900: #762530;
-  --color-dark-accent-950: #411015;
+  --color-dark-accent-50: #ffb7b3;
+  --color-dark-accent-100: #ffaaa7;
+  --color-dark-accent-200: #ff9795;
+  --color-dark-accent-300: #ff7e7d;
+  --color-dark-accent-400: #e95e60;
+  --color-dark-accent-500: #c23a40;
+  --color-dark-accent-600: #9b0921;
+  --color-dark-accent-700: #7a0003;
+  --color-dark-accent-800: #600000;
+  --color-dark-accent-900: #4c0000;
+  --color-dark-accent-950: #3f0000;
 
-  --color-dark-neutral-50: #f8f8f7;
-  --color-dark-neutral-100: var(--color-dark-neutral);
-  --color-dark-neutral-200: #ddddda;
-  --color-dark-neutral-300: #bfbfba;
-  --color-dark-neutral-400: #9c9b94;
-  --color-dark-neutral-500: #807f77;
-  --color-dark-neutral-600: #696860;
-  --color-dark-neutral-700: #55554f;
-  --color-dark-neutral-800: #494943;
-  --color-dark-neutral-900: #3f3e3b;
-  --color-dark-neutral-950: #2a2a27;
+  --color-dark-neutral-50: #e8e8e7;
+  --color-dark-neutral-100: #dcdcdb;
+  --color-dark-neutral-200: #c9c9c8;
+  --color-dark-neutral-300: #b0b0af;
+  --color-dark-neutral-400: #929291;
+  --color-dark-neutral-500: #717171;
+  --color-dark-neutral-600: #525252;
+  --color-dark-neutral-700: #383838;
+  --color-dark-neutral-800: #252524;
+  --color-dark-neutral-900: #181817;
+  --color-dark-neutral-950: #0f0f0e;
 }
 
 :root {
@@ -120,8 +117,8 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    background-color: var(--color-dark-base);
-    color: var(--color-dark-neutral);
+    background-color: var(--color-dark-base-950);
+    color: var(--color-dark-neutral-50);
   }
 }
 
@@ -139,7 +136,7 @@
     @apply bg-dark-neutral-950 text-center text-sm;
   }
   button:not(.icon) {
-    @apply bg-dark-base-800 p-1 rounded-md
+    @apply bg-dark-base-600 p-1 rounded-md
            disabled:cursor-not-allowed disabled:opacity-50;
   }
   button.icon {
@@ -168,7 +165,7 @@
     @apply bg-rose-600;
   }
   div.toolbar {
-    @apply bg-dark-base-900/15 flex gap-2 text-2xl;
+    @apply bg-dark-base-950/15 flex gap-2 text-2xl;
   }
   i.line-start {
     @apply mr-2;
@@ -177,7 +174,7 @@
     @apply text-sky-500;
   }
   i.line-start.file {
-    @apply text-dark-accent-200;
+    @apply text-emerald-600;
   }
   i:not(.line-start) {
     @apply m-1 text-sky-500;
@@ -189,29 +186,29 @@
     @apply sticky top-0 backdrop-blur z-10;
   }
   table.file-list th {
-    @apply bg-dark-base-700/20
-           border border-dark-neutral-900 p-1;
+    @apply bg-dark-base-500/20
+           border border-dark-neutral-700 p-1;
   }
   table.file-list > tbody > tr:nth-child(odd) {
-    @apply bg-dark-base-950;
+    @apply bg-dark-base-800;
   }
   table.file-list > tbody > tr:nth-child(even) {
-    @apply bg-dark-neutral-950;
+    @apply bg-dark-neutral-800;
   }
   table.file-list td.select-file {
-    @apply border border-dark-neutral-900
+    @apply border border-dark-neutral-700
            p-1;
   }
   table.file-list td.name {
-    @apply border border-dark-neutral-900 max-w-500
+    @apply border border-dark-neutral-700 max-w-500
            wrap-anywhere whitespace-normal p-1;
   }
   table.file-list td.size {
-    @apply border border-dark-neutral-900 max-w-80
-           whitespace-normal p-1 text-center text-dark-neutral-400;
+    @apply border border-dark-neutral-700 max-w-80
+           whitespace-normal p-1 text-center text-dark-neutral-300;
   }
   table.file-list td.datetime {
-    @apply border border-dark-neutral-900 max-w-150
-           whitespace-normal p-1 text-center text-dark-neutral-400;
+    @apply border border-dark-neutral-700 max-w-150
+           whitespace-normal p-1 text-center text-dark-neutral-300;
   }
 }
