@@ -366,6 +366,30 @@ pub fn app() -> Html {
         })
     };
 
+    // "reload" ボタンクリックのイベントハンドラ
+    let handle_reload_click = {
+        let navigation_history = navigation_history.clone();
+        let files = files.clone();
+        let push_toast = push_toast.clone();
+        Callback::from(move |_| {
+            let nh = (*navigation_history).clone();
+            let current_path = nh.current().to_string();
+            let files = files.clone();
+            let push_toast = push_toast.clone();
+            spawn_local(async move {
+                let args = JsValue::from_serde(&serde_json::json!({"path": current_path})).unwrap();
+                // ファイルリストを再取得
+                let _ = invoke_r("read_dir", args)
+                    .await
+                    .inspect(|v| files.set(v.into_serde().unwrap()))
+                    .inspect_err(|e| {
+                        console::error_1(&e);
+                        push_toast.emit((ToastKind::Error, format!("{e:?}")));
+                    });
+            });
+        })
+    };
+
     // "delete files" ボタンクリックのイベントハンドラ
     let handle_delete_files_click = {
         let navigation_history = navigation_history.clone();
@@ -487,6 +511,17 @@ pub fn app() -> Html {
                     >
                         <i
                             class="nf nf-fa-folder_open"
+                            aria-hidden="true"
+                        />
+                    </button>
+                    <button
+                        class="icon"
+                        title="reload"
+                        aria-label="reload"
+                        onclick={handle_reload_click}
+                    >
+                        <i
+                            class="nf nf-md-reload"
                             aria-hidden="true"
                         />
                     </button>
