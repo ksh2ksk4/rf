@@ -13,6 +13,11 @@ const TOAST_DURATION: u32 = 5000;
 const INIT_PATH: &str = "/Users/ksh2ksk4/Downloads";
 // ファイルサイズの単位
 const UNITS: [&str; 5] = ["B", "KiB", "MiB", "GiB", "TiB"];
+// TAURI コマンド
+const TAURI_COMMAND_DELETE_FILES: &str = "delete_files";
+const TAURI_COMMAND_OPEN_FILE: &str = "open_file";
+const TAURI_COMMAND_READ_DIR: &str = "read_dir";
+const TAURI_COMMAND_SELECT_DIR: &str = "select_dir";
 
 #[wasm_bindgen]
 extern "C" {
@@ -266,7 +271,7 @@ pub fn app() -> Html {
                         return;
                     }
                 };
-                match invoke_r("read_dir", args).await {
+                match invoke_r(TAURI_COMMAND_READ_DIR, args).await {
                     Ok(v) => {
                         let file_infos = match v.into_serde() {
                             Ok(v) => v,
@@ -327,7 +332,7 @@ pub fn app() -> Html {
                         return;
                     }
                 };
-                match invoke_r("read_dir", args).await {
+                match invoke_r(TAURI_COMMAND_READ_DIR, args).await {
                     Ok(v) => {
                         let file_infos = match v.into_serde() {
                             Ok(v) => v,
@@ -368,7 +373,7 @@ pub fn app() -> Html {
                         return;
                     }
                 };
-                match invoke_r("read_dir", args).await {
+                match invoke_r(TAURI_COMMAND_READ_DIR, args).await {
                     Ok(v) => {
                         let file_infos = match v.into_serde() {
                             Ok(v) => v,
@@ -399,7 +404,10 @@ pub fn app() -> Html {
             let files = files.clone();
             let push_toast = push_toast.clone();
             spawn_local(async move {
-                let path = invoke_no_args("select_dir").await.as_string().unwrap();
+                let path = invoke_no_args(TAURI_COMMAND_SELECT_DIR)
+                    .await
+                    .as_string()
+                    .unwrap();
                 let args = match JsValue::from_serde(&serde_json::json!({"path": path})) {
                     Ok(v) => v,
                     Err(e) => {
@@ -408,7 +416,7 @@ pub fn app() -> Html {
                         return;
                     }
                 };
-                match invoke_r("read_dir", args).await {
+                match invoke_r(TAURI_COMMAND_READ_DIR, args).await {
                     Ok(v) => {
                         let file_infos = match v.into_serde() {
                             Ok(v) => v,
@@ -451,7 +459,7 @@ pub fn app() -> Html {
                         return;
                     }
                 };
-                match invoke_r("read_dir", args).await {
+                match invoke_r(TAURI_COMMAND_READ_DIR, args).await {
                     Ok(v) => {
                         let file_infos = match v.into_serde() {
                             Ok(v) => v,
@@ -494,7 +502,7 @@ pub fn app() -> Html {
                         return;
                     }
                 };
-                match invoke_r("delete_files", args).await {
+                match invoke_r(TAURI_COMMAND_DELETE_FILES, args).await {
                     Ok(_) => {
                         args = match JsValue::from_serde(&serde_json::json!({"path": current_path}))
                         {
@@ -507,7 +515,7 @@ pub fn app() -> Html {
                         };
                         // 選択状態をクリア
                         selected.set(HashSet::new());
-                        match invoke_r("read_dir", args).await {
+                        match invoke_r(TAURI_COMMAND_READ_DIR, args).await {
                             Ok(v) => {
                                 let file_infos = match v.into_serde() {
                                     Ok(v) => v,
@@ -714,7 +722,7 @@ pub fn app() -> Html {
                                                         return;
                                                     }
                                                 };
-                                                let _ = invoke_r("open_file", args)
+                                                let _ = invoke_r(TAURI_COMMAND_OPEN_FILE, args)
                                                     .await
                                                     .inspect_err(|e| {
                                                         console::error_1(&e);
@@ -741,7 +749,7 @@ pub fn app() -> Html {
                                                     return;
                                                 }
                                             };
-                                            match invoke_r("read_dir", args).await {
+                                            match invoke_r(TAURI_COMMAND_READ_DIR, args).await {
                                                 Ok(v) => {
                                                     let file_infos = match v.into_serde() {
                                                         Ok(v) => v,
