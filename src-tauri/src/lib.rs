@@ -57,7 +57,7 @@ pub fn run() {
             delete_files,
             open_file,
             read_dir,
-            select_dir
+            select_dir,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

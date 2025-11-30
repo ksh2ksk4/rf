@@ -282,7 +282,7 @@ pub fn app() -> Html {
                         console::error_1(&e);
                         push_toast.emit((ToastKind::Error, format!("{e:?}")));
                     }
-                }
+                };
             });
 
             || {}
@@ -343,7 +343,7 @@ pub fn app() -> Html {
                         console::error_1(&e);
                         push_toast.emit((ToastKind::Error, format!("{e:?}")));
                     }
-                }
+                };
             });
         })
     };
@@ -384,7 +384,7 @@ pub fn app() -> Html {
                         console::error_1(&e);
                         push_toast.emit((ToastKind::Error, format!("{e:?}")));
                     }
-                }
+                };
             });
         })
     };
@@ -424,7 +424,7 @@ pub fn app() -> Html {
                         console::error_1(&e);
                         push_toast.emit((ToastKind::Error, format!("{e:?}")));
                     }
-                }
+                };
                 let mut nh = (*navigation_history).clone();
                 nh.push(&path);
                 navigation_history.set(nh);
@@ -467,7 +467,7 @@ pub fn app() -> Html {
                         console::error_1(&e);
                         push_toast.emit((ToastKind::Error, format!("{e:?}")));
                     }
-                }
+                };
             });
         })
     };
@@ -523,13 +523,13 @@ pub fn app() -> Html {
                                 console::error_1(&e);
                                 push_toast.emit((ToastKind::Error, format!("{e:?}")));
                             }
-                        }
+                        };
                     }
                     Err(e) => {
                         console::error_1(&e);
                         push_toast.emit((ToastKind::Error, format!("{e:?}")));
                     }
-                }
+                };
             });
         })
     };
@@ -564,7 +564,7 @@ pub fn app() -> Html {
                                         ToastKind::Success => "nf-fa-ok_sign",
                                         ToastKind::Info => "nf-fa-circle_info",
                                         ToastKind::Warning => "nf-fa-warning",
-                                        ToastKind::Error => "nf-fa-triangle_exclamation"
+                                        ToastKind::Error => "nf-fa-triangle_exclamation",
                                     }
                                 )}
                                 aria-hidden="true"
@@ -757,7 +757,7 @@ pub fn app() -> Html {
                                                     console::error_1(&e);
                                                     push_toast.emit((ToastKind::Error, format!("{e:?}")));
                                                 }
-                                            }
+                                            };
                                         });
                                     })
                                 };
