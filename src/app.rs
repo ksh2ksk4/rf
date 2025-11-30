@@ -189,6 +189,7 @@ impl NavigationHistory {
 /// # Summary
 ///
 /// トーストの種類
+#[allow(dead_code)]
 #[derive(Clone, Copy, Debug, PartialEq)]
 enum ToastKind {
     Success,
