@@ -714,10 +714,9 @@ pub fn app() -> Html {
                                                         return;
                                                     }
                                                 };
-                                                invoke_r("open_file", args)
+                                                let _ = invoke_r("open_file", args)
                                                     .await
-                                                    .map(|_| console::info_1(&"open_file() succeeded".into()))
-                                                    .unwrap_or_else(|e| {
+                                                    .inspect_err(|e| {
                                                         console::error_1(&e);
                                                         push_toast.emit((ToastKind::Error, format!("{e:?}")));
                                                     });
