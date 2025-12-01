@@ -273,7 +273,7 @@ pub fn app() -> Html {
                 };
                 match invoke_r(TAURI_COMMAND_READ_DIR, args).await {
                     Ok(v) => {
-                        let file_infos = match v.into_serde() {
+                        let file_infos = match v.into_serde::<Vec<FileInfo>>() {
                             Ok(v) => v,
                             Err(e) => {
                                 console::error_1(&format!("{e:?}").into());
@@ -334,7 +334,7 @@ pub fn app() -> Html {
                 };
                 match invoke_r(TAURI_COMMAND_READ_DIR, args).await {
                     Ok(v) => {
-                        let file_infos = match v.into_serde() {
+                        let file_infos = match v.into_serde::<Vec<FileInfo>>() {
                             Ok(v) => v,
                             Err(e) => {
                                 console::error_1(&format!("{e:?}").into());
@@ -375,7 +375,7 @@ pub fn app() -> Html {
                 };
                 match invoke_r(TAURI_COMMAND_READ_DIR, args).await {
                     Ok(v) => {
-                        let file_infos = match v.into_serde() {
+                        let file_infos = match v.into_serde::<Vec<FileInfo>>() {
                             Ok(v) => v,
                             Err(e) => {
                                 console::error_1(&format!("{e:?}").into());
@@ -418,7 +418,7 @@ pub fn app() -> Html {
                 };
                 match invoke_r(TAURI_COMMAND_READ_DIR, args).await {
                     Ok(v) => {
-                        let file_infos = match v.into_serde() {
+                        let file_infos = match v.into_serde::<Vec<FileInfo>>() {
                             Ok(v) => v,
                             Err(e) => {
                                 console::error_1(&format!("{e:?}").into());
@@ -461,7 +461,7 @@ pub fn app() -> Html {
                 };
                 match invoke_r(TAURI_COMMAND_READ_DIR, args).await {
                     Ok(v) => {
-                        let file_infos = match v.into_serde() {
+                        let file_infos = match v.into_serde::<Vec<FileInfo>>() {
                             Ok(v) => v,
                             Err(e) => {
                                 console::error_1(&format!("{e:?}").into());
@@ -517,7 +517,7 @@ pub fn app() -> Html {
                         selected.set(HashSet::new());
                         match invoke_r(TAURI_COMMAND_READ_DIR, args).await {
                             Ok(v) => {
-                                let file_infos = match v.into_serde() {
+                                let file_infos = match v.into_serde::<Vec<FileInfo>>() {
                                     Ok(v) => v,
                                     Err(e) => {
                                         console::error_1(&format!("{e:?}").into());
@@ -751,7 +751,7 @@ pub fn app() -> Html {
                                             };
                                             match invoke_r(TAURI_COMMAND_READ_DIR, args).await {
                                                 Ok(v) => {
-                                                    let file_infos = match v.into_serde() {
+                                                    let file_infos = match v.into_serde::<Vec<FileInfo>>() {
                                                         Ok(v) => v,
                                                         Err(e) => {
                                                             console::error_1(&format!("{e:?}").into());
