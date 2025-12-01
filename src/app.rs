@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::spawn_local;
-use web_sys::{console, HtmlInputElement};
+use web_sys::{console, HtmlInputElement, InputEvent};
 use yew::prelude::*;
 
 // トーストを表示する時間(ms)
@@ -229,7 +229,12 @@ struct Toast {
 #[function_component(App)]
 pub fn app() -> Html {
     let navigation_history = use_state(|| NavigationHistory::new());
+    // カレントディレクトリのすべてのファイル
+    let all_files = use_state(|| Vec::<FileInfo>::new());
+    // ファイルリストに表示するファイル(カレントディレクトリのファイルをフィルタリングしたもの)
     let files = use_state(|| Vec::<FileInfo>::new());
+    // ファイル名に対するフィルタ
+    let filter = use_state(|| String::new());
     // 選択されたファイルの集合
     let selected = use_state(|| HashSet::<String>::new());
 
@@ -258,6 +263,7 @@ pub fn app() -> Html {
     // 初回マウント時に実行されるフック
     {
         let navigation_history = navigation_history.clone();
+        let all_files = all_files.clone();
         let files = files.clone();
         let push_toast = push_toast.clone();
         use_effect_with((), move |_| {
@@ -281,6 +287,7 @@ pub fn app() -> Html {
                                 return;
                             }
                         };
+                        all_files.set(file_infos.clone());
                         files.set(file_infos);
                     }
                     Err(e) => {
@@ -294,22 +301,51 @@ pub fn app() -> Html {
         });
     }
 
-    // state の値が変化したときに実行されるフック
+    // ステート更新時にログを出力するフック
     {
         let navigation_history = navigation_history.clone();
+        let all_files = all_files.clone();
         let files = files.clone();
+        let filter = filter.clone();
         let selected = selected.clone();
         #[allow(unused_variables)]
         use_effect_with(
-            (navigation_history, files, selected),
-            move |(navigation_history, files, selected)| {
+            (navigation_history, all_files, files, filter, selected),
+            move |(navigation_history, all_files, files, filter, selected)| {
                 //console::info_1(&format!("navigation_history: {navigation_history:?}").into());
-                //console::info_1(&format!("files: {files:?}").into());
-                console::info_1(&format!("selected: {selected:?}").into());
+                console::info_1(&format!("all_files: {all_files:?}").into());
+                console::info_1(&format!("files: {files:?}").into());
+                console::info_1(&format!("filter: {filter:?}").into());
+                //console::info_1(&format!("selected: {selected:?}").into());
 
                 || {}
             },
         );
+    }
+
+    // フィルタ更新時にフィルタリングを実行するフック
+    {
+        let all_files = all_files.clone();
+        let files = files.clone();
+        let filter = filter.clone();
+        //let push_toast = push_toast.clone();
+        use_effect_with(filter, move |filter| {
+            let query = (*filter).to_lowercase();
+
+            if query.is_empty() {
+                files.set((*all_files).clone());
+            } else {
+                files.set(
+                    (*all_files)
+                        .iter()
+                        .filter(|f| f.name.to_lowercase().contains(&query))
+                        .cloned()
+                        .collect::<Vec<FileInfo>>(),
+                );
+            }
+
+            || {}
+        });
     }
 
     // back ボタンクリックのイベントハンドラ
@@ -542,6 +578,15 @@ pub fn app() -> Html {
         })
     };
 
+    // フィルタ設定のイベントハンドラ
+    let handle_filter_input = {
+        let filter = filter.clone();
+        Callback::from(move |e: InputEvent| {
+            let input: HtmlInputElement = e.target_unchecked_into();
+            filter.set(input.value());
+        })
+    };
+
     html! {
         <div class="min-h-screen min-w-screen flex flex-col">
             <div class="toast-area">
@@ -649,6 +694,19 @@ pub fn app() -> Html {
                             aria-hidden="true"
                         />
                     </button>
+                    <div class="filter">
+                        <i
+                            class="nf nf-fa-filter"
+                            aria-hidden="true"
+                        />
+                        <input
+                            class="text-base"
+                            oninput={handle_filter_input}
+                            placeholder="filter files"
+                            type="search"
+                            value={(*filter).clone()}
+                        />
+                    </div>
                     <div class="search">
                         <i
                             class="nf nf-fa-search"

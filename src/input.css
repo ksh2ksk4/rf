@@ -143,6 +143,9 @@
     @apply flex items-center justify-center
            disabled:cursor-not-allowed disabled:opacity-50;
   }
+  div.filter {
+    @apply flex items-center ml-auto;
+  }
   div.search {
     @apply flex items-center ml-auto;
   }
