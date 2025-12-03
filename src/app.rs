@@ -15,6 +15,7 @@ const INIT_PATH: &str = "/Users/ksh2ksk4/Downloads";
 const UNITS: [&str; 5] = ["B", "KiB", "MiB", "GiB", "TiB"];
 // TAURI コマンド
 const TAURI_COMMAND_DELETE_FILES: &str = "delete_files";
+const TAURI_COMMAND_GET_PARENT_DIR: &str = "get_parent_dir";
 const TAURI_COMMAND_OPEN_FILE: &str = "open_file";
 const TAURI_COMMAND_READ_DIR: &str = "read_dir";
 const TAURI_COMMAND_SELECT_DIR: &str = "select_dir";
@@ -436,6 +437,62 @@ pub fn app() -> Html {
         })
     };
 
+    // "go_to_parent_dir" ボタンクリックのイベントハンドラ
+    let handle_go_to_parent_dir_click = {
+        let navigation_history = navigation_history.clone();
+        let display_files = display_files.clone();
+        let push_toast = push_toast.clone();
+        Callback::from(move |_| {
+            let navigation_history = navigation_history.clone();
+            let display_files = display_files.clone();
+            let push_toast = push_toast.clone();
+            spawn_local(async move {
+                let mut args = match JsValue::from_serde(
+                    &serde_json::json!({"path": navigation_history.current()}),
+                ) {
+                    Ok(v) => v,
+                    Err(e) => {
+                        console::error_1(&format!("{e:?}").into());
+                        push_toast.emit((ToastKind::Error, format!("{e:?}")));
+                        return;
+                    }
+                };
+                let path = invoke(TAURI_COMMAND_GET_PARENT_DIR, args)
+                    .await
+                    .as_string()
+                    .unwrap();
+                args = match JsValue::from_serde(&serde_json::json!({"path": path})) {
+                    Ok(v) => v,
+                    Err(e) => {
+                        console::error_1(&format!("{e:?}").into());
+                        push_toast.emit((ToastKind::Error, format!("{e:?}")));
+                        return;
+                    }
+                };
+                match invoke_r(TAURI_COMMAND_READ_DIR, args).await {
+                    Ok(v) => {
+                        let file_infos = match v.into_serde::<Vec<FileInfo>>() {
+                            Ok(v) => v,
+                            Err(e) => {
+                                console::error_1(&format!("{e:?}").into());
+                                push_toast.emit((ToastKind::Error, format!("{e:?}")));
+                                return;
+                            }
+                        };
+                        display_files.set(file_infos);
+                    }
+                    Err(e) => {
+                        console::error_1(&e);
+                        push_toast.emit((ToastKind::Error, format!("{e:?}")));
+                    }
+                };
+                let mut nh = (*navigation_history).clone();
+                nh.push(&path);
+                navigation_history.set(nh);
+            });
+        })
+    };
+
     // "select dir" ボタンクリックのイベントハンドラ
     let handle_select_dir_click = {
         let navigation_history = navigation_history.clone();
@@ -663,6 +720,17 @@ pub fn app() -> Html {
                     >
                         <i
                             class="nf nf-fa-circle_right"
+                            aria-hidden="true"
+                        />
+                    </button>
+                    <button
+                        class="icon"
+                        title="go to parent dir"
+                        aria-label="go to parent dir"
+                        onclick={handle_go_to_parent_dir_click}
+                    >
+                        <i
+                            class="nf nf-fa-circle_up"
                             aria-hidden="true"
                         />
                     </button>

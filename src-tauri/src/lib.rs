@@ -3,6 +3,7 @@ use serde::Serialize;
 use std::fs;
 use std::os::unix::fs::{FileTypeExt, PermissionsExt};
 use std::os::unix::process::ExitStatusExt;
+use std::path::Path;
 use std::process::Command;
 use trash;
 
@@ -55,6 +56,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
             delete_files,
+            get_parent_dir,
             open_file,
             read_dir,
             select_dir,
@@ -80,6 +82,26 @@ pub fn run() {
 fn delete_files(paths: Vec<String>) -> Result<(), String> {
     trash::delete_all(&paths).map_err(|e| e.to_string())?;
     Ok(())
+}
+
+/// # Summary
+///
+/// 親ディレクトリのパスを取得
+/// 親ディレクトリが存在しない場合、カレントディレクトリのパスを返す
+///
+/// # Arguments
+///
+/// - `path`: パス(String)
+///
+/// # Returns
+///
+/// - `String`: 親ディレクトリのパス
+#[tauri::command]
+fn get_parent_dir(path: String) -> String {
+    match Path::new(&path).parent() {
+        Some(p) => p.to_string_lossy().to_string(),
+        None => path,
+    }
 }
 
 /// # Summary
