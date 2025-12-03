@@ -232,7 +232,7 @@ pub fn app() -> Html {
     // カレントディレクトリのすべてのファイル
     let all_files = use_state(|| Vec::<FileInfo>::new());
     // ファイルリストに表示するファイル(カレントディレクトリのファイルをフィルタリングしたもの)
-    let files = use_state(|| Vec::<FileInfo>::new());
+    let display_files = use_state(|| Vec::<FileInfo>::new());
     // ファイル名に対するフィルタ
     let filter = use_state(|| String::new());
     // 選択されたファイルの集合
@@ -264,7 +264,7 @@ pub fn app() -> Html {
     {
         let navigation_history = navigation_history.clone();
         let all_files = all_files.clone();
-        let files = files.clone();
+        let display_files = display_files.clone();
         let push_toast = push_toast.clone();
         use_effect_with((), move |_| {
             spawn_local(async move {
@@ -288,7 +288,7 @@ pub fn app() -> Html {
                             }
                         };
                         all_files.set(file_infos.clone());
-                        files.set(file_infos);
+                        display_files.set(file_infos);
                     }
                     Err(e) => {
                         console::error_1(&e);
@@ -305,16 +305,22 @@ pub fn app() -> Html {
     {
         let navigation_history = navigation_history.clone();
         let all_files = all_files.clone();
-        let files = files.clone();
+        let display_files = display_files.clone();
         let filter = filter.clone();
         let selected = selected.clone();
         #[allow(unused_variables)]
         use_effect_with(
-            (navigation_history, all_files, files, filter, selected),
-            move |(navigation_history, all_files, files, filter, selected)| {
+            (
+                navigation_history,
+                all_files,
+                display_files,
+                filter,
+                selected,
+            ),
+            move |(navigation_history, all_files, display_files, filter, selected)| {
                 //console::info_1(&format!("navigation_history: {navigation_history:?}").into());
                 console::info_1(&format!("all_files: {all_files:?}").into());
-                console::info_1(&format!("files: {files:?}").into());
+                console::info_1(&format!("display_files: {display_files:?}").into());
                 console::info_1(&format!("filter: {filter:?}").into());
                 //console::info_1(&format!("selected: {selected:?}").into());
 
@@ -326,16 +332,16 @@ pub fn app() -> Html {
     // フィルタ更新時にフィルタリングを実行するフック
     {
         let all_files = all_files.clone();
-        let files = files.clone();
+        let display_files = display_files.clone();
         let filter = filter.clone();
         //let push_toast = push_toast.clone();
         use_effect_with(filter, move |filter| {
             let query = (*filter).to_lowercase();
 
             if query.is_empty() {
-                files.set((*all_files).clone());
+                display_files.set((*all_files).clone());
             } else {
-                files.set(
+                display_files.set(
                     (*all_files)
                         .iter()
                         .filter(|f| f.name.to_lowercase().contains(&query))
@@ -351,13 +357,13 @@ pub fn app() -> Html {
     // back ボタンクリックのイベントハンドラ
     let handle_back_click = {
         let navigation_history = navigation_history.clone();
-        let files = files.clone();
+        let display_files = display_files.clone();
         let push_toast = push_toast.clone();
         Callback::from(move |_| {
             let mut nh = (*navigation_history).clone();
             let path = nh.back().unwrap_or(INIT_PATH.to_string());
             navigation_history.set(nh);
-            let files = files.clone();
+            let display_files = display_files.clone();
             let push_toast = push_toast.clone();
             spawn_local(async move {
                 let args = match JsValue::from_serde(&serde_json::json!({"path": path})) {
@@ -378,7 +384,7 @@ pub fn app() -> Html {
                                 return;
                             }
                         };
-                        files.set(file_infos);
+                        display_files.set(file_infos);
                     }
                     Err(e) => {
                         console::error_1(&e);
@@ -392,13 +398,13 @@ pub fn app() -> Html {
     // forward ボタンクリックのイベントハンドラ
     let handle_forward_click = {
         let navigation_history = navigation_history.clone();
-        let files = files.clone();
+        let display_files = display_files.clone();
         let push_toast = push_toast.clone();
         Callback::from(move |_| {
             let mut nh = (*navigation_history).clone();
             let path = nh.forward().unwrap_or(nh.current().to_string());
             navigation_history.set(nh);
-            let files = files.clone();
+            let display_files = display_files.clone();
             let push_toast = push_toast.clone();
             spawn_local(async move {
                 let args = match JsValue::from_serde(&serde_json::json!({"path": path})) {
@@ -419,7 +425,7 @@ pub fn app() -> Html {
                                 return;
                             }
                         };
-                        files.set(file_infos);
+                        display_files.set(file_infos);
                     }
                     Err(e) => {
                         console::error_1(&e);
@@ -433,11 +439,11 @@ pub fn app() -> Html {
     // "select dir" ボタンクリックのイベントハンドラ
     let handle_select_dir_click = {
         let navigation_history = navigation_history.clone();
-        let files = files.clone();
+        let display_files = display_files.clone();
         let push_toast = push_toast.clone();
         Callback::from(move |_| {
             let navigation_history = navigation_history.clone();
-            let files = files.clone();
+            let display_files = display_files.clone();
             let push_toast = push_toast.clone();
             spawn_local(async move {
                 let path = invoke_no_args(TAURI_COMMAND_SELECT_DIR)
@@ -462,7 +468,7 @@ pub fn app() -> Html {
                                 return;
                             }
                         };
-                        files.set(file_infos);
+                        display_files.set(file_infos);
                     }
                     Err(e) => {
                         console::error_1(&e);
@@ -479,12 +485,12 @@ pub fn app() -> Html {
     // "reload" ボタンクリックのイベントハンドラ
     let handle_reload_click = {
         let navigation_history = navigation_history.clone();
-        let files = files.clone();
+        let display_files = display_files.clone();
         let push_toast = push_toast.clone();
         Callback::from(move |_| {
             let nh = (*navigation_history).clone();
             let current_path = nh.current().to_string();
-            let files = files.clone();
+            let display_files = display_files.clone();
             let push_toast = push_toast.clone();
             spawn_local(async move {
                 let args = match JsValue::from_serde(&serde_json::json!({"path": current_path})) {
@@ -505,7 +511,7 @@ pub fn app() -> Html {
                                 return;
                             }
                         };
-                        files.set(file_infos);
+                        display_files.set(file_infos);
                     }
                     Err(e) => {
                         console::error_1(&e);
@@ -519,13 +525,13 @@ pub fn app() -> Html {
     // "delete files" ボタンクリックのイベントハンドラ
     let handle_delete_files_click = {
         let navigation_history = navigation_history.clone();
-        let files = files.clone();
+        let display_files = display_files.clone();
         let selected = selected.clone();
         let push_toast = push_toast.clone();
         Callback::from(move |_| {
             let nh = (*navigation_history).clone();
             let current_path = nh.current().to_string();
-            let files = files.clone();
+            let display_files = display_files.clone();
             let selected = selected.clone();
             let paths: Vec<String> = (*selected).iter().cloned().collect();
             let push_toast = push_toast.clone();
@@ -561,7 +567,7 @@ pub fn app() -> Html {
                                         return;
                                     }
                                 };
-                                files.set(file_infos);
+                                display_files.set(file_infos);
                             }
                             Err(e) => {
                                 console::error_1(&e);
@@ -740,7 +746,7 @@ pub fn app() -> Html {
                             </tr>
                         </thead>
                         <tbody>
-                            {for files.iter().map(|f| {
+                            {for display_files.iter().map(|f| {
                                 let is_dir = f.is_dir;
 
                                 let selected = selected.clone();
@@ -762,7 +768,7 @@ pub fn app() -> Html {
 
                                 let handle_dir_click = {
                                     let navigation_history = navigation_history.clone();
-                                    let files = files.clone();
+                                    let display_files = display_files.clone();
                                     let push_toast = push_toast.clone();
                                     let path = f.path.clone();
                                     Callback::from(move |e: MouseEvent| {
@@ -795,7 +801,7 @@ pub fn app() -> Html {
                                         nh.push(&path);
                                         navigation_history.set(nh);
 
-                                        let files = files.clone();
+                                        let display_files = display_files.clone();
                                         let push_toast = push_toast.clone();
                                         let path = path.clone();
                                         spawn_local(async move {
@@ -817,7 +823,7 @@ pub fn app() -> Html {
                                                             return;
                                                         }
                                                     };
-                                                    files.set(file_infos);
+                                                    display_files.set(file_infos);
                                                 }
                                                 Err(e) => {
                                                     console::error_1(&e);
