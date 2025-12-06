@@ -502,20 +502,7 @@ pub fn app() -> Html {
                 let push_toast = push_toast.clone();
                 let path = path.clone();
                 spawn_local(async move {
-                    let args = match JsValue::from_serde(&serde_json::json!({"path": path})) {
-                        Ok(v) => v,
-                        Err(e) => {
-                            console::error_1(&format!("{e:?}").into());
-                            push_toast.emit((ToastKind::Error, format!("{e:?}")));
-                            return;
-                        }
-                    };
-                    let _ = invoke_r(TAURI_COMMAND_OPEN_FILE, args)
-                        .await
-                        .inspect_err(|e| {
-                            console::error_1(e);
-                            push_toast.emit((ToastKind::Error, format!("{e:?}")));
-                        });
+                    open_file(path, push_toast).await;
                 });
 
                 return;
@@ -799,6 +786,31 @@ async fn get_parent_dir(path: &str, push_toast: Callback<(ToastKind, String)>) -
         .await
         .as_string()
         .unwrap()
+}
+
+/// # Summary
+///
+/// 指定したパスのファイルをデフォルトアプリでオープンする
+///
+/// # Arguments
+///
+/// - `path`: 対象ファイルのパス
+/// - `push_toast`: エラーメッセージ表示用のトースト
+async fn open_file(path: String, push_toast: Callback<(ToastKind, String)>) {
+    let args = match JsValue::from_serde(&serde_json::json!({"path": path})) {
+        Ok(v) => v,
+        Err(e) => {
+            console::error_1(&format!("{e:?}").into());
+            push_toast.emit((ToastKind::Error, format!("{e:?}")));
+            return;
+        }
+    };
+    let _ = invoke_r(TAURI_COMMAND_OPEN_FILE, args)
+        .await
+        .inspect_err(|e| {
+            console::error_1(e);
+            push_toast.emit((ToastKind::Error, format!("{e:?}")));
+        });
 }
 
 /// # Summary
