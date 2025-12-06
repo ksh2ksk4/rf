@@ -432,25 +432,11 @@ pub fn app() -> Html {
             let paths: Vec<String> = (*selected).iter().cloned().collect();
             let push_toast = push_toast.clone();
             spawn_local(async move {
-                let args = match JsValue::from_serde(&serde_json::json!({"paths": paths})) {
-                    Ok(v) => v,
-                    Err(e) => {
-                        console::error_1(&format!("{e:?}").into());
-                        push_toast.emit((ToastKind::Error, format!("{e:?}")));
-                        return;
-                    }
-                };
-                match invoke_r(TAURI_COMMAND_DELETE_FILES, args).await {
-                    Ok(_) => {
-                        display_files.set(read_dir(&current_path, push_toast).await);
-                        // 選択状態をクリア
-                        selected.set(HashSet::new());
-                    }
-                    Err(e) => {
-                        console::error_1(&e);
-                        push_toast.emit((ToastKind::Error, format!("{e:?}")));
-                    }
-                };
+                if delete_files(paths, push_toast.clone()).await {
+                    display_files.set(read_dir(&current_path, push_toast).await);
+                    // 選択状態をクリア
+                    selected.set(HashSet::new());
+                }
             });
         })
     };
@@ -754,6 +740,37 @@ pub fn app() -> Html {
                 <div>{navigation_history.current()}</div>
             </footer>
         </div>
+    }
+}
+
+/// # Summary
+///
+/// 指定したパスのファイルを削除する
+///
+/// # Arguments
+///
+/// - `paths`: 削除対象ファイルのパス
+/// - `push_toast`: エラーメッセージ表示用のトースト
+///
+/// # Returns
+///
+/// - `bool`: 正常に削除したかどうか
+async fn delete_files(paths: Vec<String>, push_toast: Callback<(ToastKind, String)>) -> bool {
+    let args = match JsValue::from_serde(&serde_json::json!({"paths": paths})) {
+        Ok(v) => v,
+        Err(e) => {
+            console::error_1(&format!("{e:?}").into());
+            push_toast.emit((ToastKind::Error, format!("{e:?}")));
+            return false;
+        }
+    };
+    match invoke_r(TAURI_COMMAND_DELETE_FILES, args).await {
+        Ok(_) => true,
+        Err(e) => {
+            console::error_1(&e);
+            push_toast.emit((ToastKind::Error, format!("{e:?}")));
+            false
+        }
     }
 }
 
