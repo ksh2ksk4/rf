@@ -475,8 +475,8 @@ pub fn app() -> Html {
         })
     };
 
-    // ファイルクリックのイベントハンドラ
-    let handle_file_click = {
+    // ファイルダブルクリックのイベントハンドラ
+    let handle_file_double_click = {
         let navigation_history = navigation_history.clone();
         let display_files = display_files.clone();
         let push_toast = push_toast.clone();
@@ -705,7 +705,7 @@ pub fn app() -> Html {
                                             }}
                                             <a
                                                 href="#"
-                                                onclick={handle_file_click.clone()}
+                                                ondblclick={handle_file_double_click.clone()}
                                                 data-is-dir={f.is_dir.to_string()}
                                                 data-path={f.path.clone()}
                                             >
