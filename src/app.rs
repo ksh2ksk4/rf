@@ -729,19 +729,12 @@ pub fn app() -> Html {
                         </thead>
                         <tbody>
                             {for display_files.iter().map(|f| {
-                                let name = f.name.clone();
-                                let created = f.created.clone();
-                                let modified = f.modified.clone();
-                                let accessed = f.accessed.clone();
-
-                                let is_checked = (*selected).contains(&f.path);
-
                                 html! {
                                     <tr class={if f.is_dir {"dir"} else {"file"}}>
                                         <td class="select-file">
                                             <input
                                                 type="checkbox"
-                                                checked={is_checked}
+                                                checked={(*selected).contains(&f.path)}
                                                 onchange={handle_checkbox_click.clone()}
                                                 data-path={f.path.clone()}
                                                 aria-label="select file"
@@ -759,13 +752,13 @@ pub fn app() -> Html {
                                                 data-is-dir={f.is_dir.to_string()}
                                                 data-path={f.path.clone()}
                                             >
-                                                {name}
+                                                {&f.name}
                                             </a>
                                         </td>
                                         <td class="size">{convert_file_size(f.size)}</td>
-                                        <td class="datetime">{created}</td>
-                                        <td class="datetime">{modified}</td>
-                                        <td class="datetime">{accessed}</td>
+                                        <td class="datetime">{&f.created}</td>
+                                        <td class="datetime">{&f.modified}</td>
+                                        <td class="datetime">{&f.accessed}</td>
                                     </tr>
                                 }
                             })}
