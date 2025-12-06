@@ -178,7 +178,7 @@ impl NavigationHistory {
     ///
     /// # Arguments
     ///
-    /// - `path`: パス(&str)
+    /// - `path`: パス
     pub fn push(&mut self, path: &str) {
         if self.index + 1 < self.paths.len() {
             // 最新の移動履歴ではない場合
@@ -778,6 +778,11 @@ async fn delete_files(paths: Vec<String>, push_toast: Callback<(ToastKind, Strin
 ///
 /// 指定したディレクトリの親ディレクトリのパスを取得する
 ///
+/// # Arguments
+///
+/// - `path`: 対象ディレクトリのパス
+/// - `push_toast`: エラーメッセージ表示用のトースト
+///
 /// # Returns
 ///
 /// - `String`: 親ディレクトリのパス(エラーの場合は空文字)
@@ -799,6 +804,11 @@ async fn get_parent_dir(path: &str, push_toast: Callback<(ToastKind, String)>) -
 /// # Summary
 ///
 /// 指定したディレクトリのファイルリストを取得する
+///
+/// # Arguments
+///
+/// - `path`: 対象ディレクトリのパス
+/// - `push_toast`: エラーメッセージ表示用のトースト
 ///
 /// # Returns
 ///
@@ -846,6 +856,10 @@ async fn select_dir() -> String {
 /// # Summary
 ///
 /// ファイルサイズを分かり易い文字列に変換する
+///
+/// # Arguments
+///
+/// - `file_size`: ファイルサイズ
 ///
 /// # Returns
 ///

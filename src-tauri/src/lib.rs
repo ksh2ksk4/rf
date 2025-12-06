@@ -67,16 +67,16 @@ pub fn run() {
 
 /// # Summary
 ///
-/// 指定したパスのファイルを削除
-/// (物理削除ではなくゴミ箱へ移動)
+/// 指定したパスのファイルを削除する
+/// (物理削除ではなくゴミ箱へ移動する)
 ///
 /// # Arguments
 ///
-/// - `paths`: パス(Vec<String>)
+/// - `paths`: パス
 ///
 /// # Returns
 ///
-/// - `Ok(())`: ()
+/// - `Ok(())`: `()`
 /// - `Err(String)`: エラーメッセージ
 #[tauri::command]
 fn delete_files(paths: Vec<String>) -> Result<(), String> {
@@ -86,12 +86,12 @@ fn delete_files(paths: Vec<String>) -> Result<(), String> {
 
 /// # Summary
 ///
-/// 親ディレクトリのパスを取得
+/// 親ディレクトリのパスを取得する
 /// 親ディレクトリが存在しない場合、カレントディレクトリのパスを返す
 ///
 /// # Arguments
 ///
-/// - `path`: パス(String)
+/// - `path`: パス
 ///
 /// # Returns
 ///
@@ -106,15 +106,15 @@ fn get_parent_dir(path: String) -> String {
 
 /// # Summary
 ///
-/// 指定したパスのファイルをオープン
+/// 指定したパスのファイルをオープンする
 ///
 /// # Arguments
 ///
-/// - `path`: パス(String)
+/// - `path`: パス
 ///
 /// # Returns
 ///
-/// - `Ok(())`: ()
+/// - `Ok(())`: `()`
 /// - `Err(String)`: エラーメッセージ
 #[tauri::command]
 fn open_file(path: String) -> Result<(), String> {
@@ -128,15 +128,15 @@ fn open_with_default(path: &str) -> std::io::Result<()> {
 
 /// # Summary
 ///
-/// 指定したパスのファイルをデフォルトアプリでオープン
+/// 指定したパスのファイルをデフォルトアプリでオープンする
 ///
 /// # Arguments
 ///
-/// - `path`: パス(&str)
+/// - `path`: パス
 ///
 /// # Returns
 ///
-/// - `Ok(())`: ()
+/// - `Ok(())`: `()`
 /// - `Err(String)`: エラーメッセージ
 #[cfg(target_os = "macos")]
 fn open_with_default(path: &str) -> Result<(), String> {
@@ -174,11 +174,11 @@ fn open_with_default(path: &str) -> std::io::Result<()> {
 
 /// # Summary
 ///
-/// 指定したパスのファイルリストを取得
+/// 指定したパスのファイルリストを取得する
 ///
 /// # Arguments
 ///
-/// - `path`: パス(String)
+/// - `path`: パス
 ///
 /// # Returns
 ///
