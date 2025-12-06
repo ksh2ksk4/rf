@@ -364,7 +364,7 @@ pub fn app() -> Html {
         })
     };
 
-    // "go_to_parent_dir" ボタンクリックのイベントハンドラ
+    // "go to parent dir" ボタンクリックのイベントハンドラ
     let handle_go_to_parent_dir_click = {
         let navigation_history = navigation_history.clone();
         let display_files = display_files.clone();
@@ -374,20 +374,7 @@ pub fn app() -> Html {
             let display_files = display_files.clone();
             let push_toast = push_toast.clone();
             spawn_local(async move {
-                let args = match JsValue::from_serde(
-                    &serde_json::json!({"path": navigation_history.current()}),
-                ) {
-                    Ok(v) => v,
-                    Err(e) => {
-                        console::error_1(&format!("{e:?}").into());
-                        push_toast.emit((ToastKind::Error, format!("{e:?}")));
-                        return;
-                    }
-                };
-                let path = invoke(TAURI_COMMAND_GET_PARENT_DIR, args)
-                    .await
-                    .as_string()
-                    .unwrap();
+                let path = get_parent_dir(navigation_history.current(), push_toast.clone()).await;
                 display_files.set(read_dir(&path, push_toast).await);
                 let mut nh = (*navigation_history).clone();
                 nh.push(&path);
@@ -771,6 +758,28 @@ pub fn app() -> Html {
             </footer>
         </div>
     }
+}
+
+/// # Summary
+///
+/// 指定したディレクトリの親ディレクトリのパスを取得する
+///
+/// # Returns
+///
+/// - `String`: 親ディレクトリのパス(エラーの場合は空文字)
+async fn get_parent_dir(path: &str, push_toast: Callback<(ToastKind, String)>) -> String {
+    let args = match JsValue::from_serde(&serde_json::json!({"path": path})) {
+        Ok(v) => v,
+        Err(e) => {
+            console::error_1(&format!("{e:?}").into());
+            push_toast.emit((ToastKind::Error, format!("{e:?}")));
+            return String::new();
+        }
+    };
+    invoke(TAURI_COMMAND_GET_PARENT_DIR, args)
+        .await
+        .as_string()
+        .unwrap()
 }
 
 /// # Summary
