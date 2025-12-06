@@ -482,6 +482,31 @@ pub fn app() -> Html {
         })
     };
 
+    // チェックボックスクリックのイベントハンドラ
+    let handle_checkbox_click = {
+        let selected = selected.clone();
+        Callback::from(move |e: Event| {
+            let element = match e
+                .target()
+                .and_then(|v| v.dyn_into::<HtmlInputElement>().ok())
+            {
+                Some(v) => v,
+                None => return,
+            };
+            let checked = element.checked();
+            let path = element.get_attribute("data-path").unwrap_or_default();
+            let mut new_value = (*selected).clone();
+
+            if checked {
+                new_value.insert(path);
+            } else {
+                new_value.remove(&path);
+            }
+
+            selected.set(new_value);
+        })
+    };
+
     // ファイルクリックのイベントハンドラ
     let handle_file_click = {
         let navigation_history = navigation_history.clone();
@@ -706,25 +731,6 @@ pub fn app() -> Html {
                         </thead>
                         <tbody>
                             {for display_files.iter().map(|f| {
-                                let handle_checkbox_click = {
-                                    let selected = selected.clone();
-                                    let path = f.path.clone();
-                                    Callback::from(move |e: Event| {
-                                        let input: HtmlInputElement = e.target_unchecked_into();
-                                        let checked = input.checked();
-                                        let mut new_value = (*selected).clone();
-
-                                        if checked {
-                                            new_value.insert(path.clone());
-                                        } else {
-                                            new_value.remove(&path);
-                                        }
-
-                                        selected.set(new_value);
-                                    })
-                                };
-
-                                let path = f.path.clone();
                                 let name = f.name.clone();
                                 let created = f.created.clone();
                                 let modified = f.modified.clone();
@@ -750,7 +756,7 @@ pub fn app() -> Html {
                                     format!("{size:.2} {unit}")
                                 };
 
-                                let is_checked = (*selected).contains(&path);
+                                let is_checked = (*selected).contains(&f.path);
 
                                 html! {
                                     <tr class={if f.is_dir {"dir"} else {"file"}}>
@@ -758,7 +764,8 @@ pub fn app() -> Html {
                                             <input
                                                 type="checkbox"
                                                 checked={is_checked}
-                                                onchange={handle_checkbox_click}
+                                                onchange={handle_checkbox_click.clone()}
+                                                data-path={f.path.clone()}
                                                 aria-label="select file"
                                             />
                                         </td>
@@ -772,7 +779,7 @@ pub fn app() -> Html {
                                                 href="#"
                                                 onclick={handle_file_click.clone()}
                                                 data-is-dir={f.is_dir.to_string()}
-                                                data-path={path}
+                                                data-path={f.path.clone()}
                                             >
                                                 {name}
                                             </a>
