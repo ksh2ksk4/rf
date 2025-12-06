@@ -393,10 +393,7 @@ pub fn app() -> Html {
             let display_files = display_files.clone();
             let push_toast = push_toast.clone();
             spawn_local(async move {
-                let path = invoke_no_args(TAURI_COMMAND_SELECT_DIR)
-                    .await
-                    .as_string()
-                    .unwrap();
+                let path = select_dir().await;
                 display_files.set(read_dir(&path, push_toast).await);
                 let mut nh = (*navigation_history).clone();
                 nh.push(&path);
@@ -813,6 +810,20 @@ async fn read_dir(path: &String, push_toast: Callback<(ToastKind, String)>) -> V
             vec![]
         }
     }
+}
+
+/// # Summary
+///
+/// ファイル選択ダイアログを表示してディレクトリを選択する
+///
+/// # Returns
+///
+/// - `String`: 選択したディレクトリのパス
+async fn select_dir() -> String {
+    invoke_no_args(TAURI_COMMAND_SELECT_DIR)
+        .await
+        .as_string()
+        .unwrap()
 }
 
 /// # Summary

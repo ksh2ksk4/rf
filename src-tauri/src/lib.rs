@@ -231,11 +231,11 @@ fn read_dir(path: String) -> Result<Vec<FileInfo>, String> {
 
 /// # Summary
 ///
-/// ファイルダイアログを表示してパスを選択させる
+/// ファイル選択ダイアログを表示してディレクトリを選択させる
 ///
 /// # Returns
 ///
-/// - `String`: 選択されたパス
+/// - `String`: 選択されたディレクトリのパス
 #[tauri::command]
 fn select_dir() -> String {
     rfd::FileDialog::new()
