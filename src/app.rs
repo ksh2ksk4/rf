@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::spawn_local;
-use web_sys::{console, HtmlInputElement, InputEvent};
+use web_sys::{console, Element, HtmlInputElement, InputEvent};
 use yew::prelude::*;
 
 // トーストを表示する時間(ms)
@@ -482,6 +482,65 @@ pub fn app() -> Html {
         })
     };
 
+    // ファイルクリックのイベントハンドラ
+    let handle_file_click = {
+        let navigation_history = navigation_history.clone();
+        let display_files = display_files.clone();
+        let push_toast = push_toast.clone();
+        Callback::from(move |e: MouseEvent| {
+            e.prevent_default();
+
+            // current_target() だと <a> ではなく <body> になる
+            let element = match e.target().and_then(|v| v.dyn_into::<Element>().ok()) {
+                Some(v) => {
+                    //let tag_name = v.tag_name();
+                    //console::info_1(&format!("{tag_name:?}").into());
+                    v
+                }
+                None => return,
+            };
+            let is_dir = element
+                .get_attribute("data-is-dir")
+                .map(|v| v == "true")
+                .unwrap_or(false);
+            let path = element.get_attribute("data-path").unwrap_or_default();
+
+            if !is_dir {
+                let push_toast = push_toast.clone();
+                let path = path.clone();
+                spawn_local(async move {
+                    let args = match JsValue::from_serde(&serde_json::json!({"path": path})) {
+                        Ok(v) => v,
+                        Err(e) => {
+                            console::error_1(&format!("{e:?}").into());
+                            push_toast.emit((ToastKind::Error, format!("{e:?}")));
+                            return;
+                        }
+                    };
+                    let _ = invoke_r(TAURI_COMMAND_OPEN_FILE, args)
+                        .await
+                        .inspect_err(|e| {
+                            console::error_1(&e);
+                            push_toast.emit((ToastKind::Error, format!("{e:?}")));
+                        });
+                });
+
+                return;
+            }
+
+            let mut nh = (*navigation_history).clone();
+            nh.push(&path);
+            navigation_history.set(nh);
+
+            let display_files = display_files.clone();
+            let push_toast = push_toast.clone();
+            let path = path.clone();
+            spawn_local(async move {
+                display_files.set(read_dir(&path, push_toast).await);
+            });
+        })
+    };
+
     html! {
         <div class="min-h-screen min-w-screen flex flex-col">
             <div class="toast-area">
@@ -647,69 +706,25 @@ pub fn app() -> Html {
                         </thead>
                         <tbody>
                             {for display_files.iter().map(|f| {
-                                let is_dir = f.is_dir;
-
-                                let selected = selected.clone();
-                                let path = f.path.clone();
-                                let is_checked = (*selected).contains(&path);
-                                let handle_checkbox_click = Callback::from(move |e: Event| {
-                                    let input: HtmlInputElement = e.target_unchecked_into();
-                                    let checked = input.checked();
-                                    let mut new_value = (*selected).clone();
-
-                                    if checked {
-                                        new_value.insert(path.clone());
-                                    } else {
-                                        new_value.remove(&path);
-                                    }
-
-                                    selected.set(new_value);
-                                });
-
-                                let handle_dir_click = {
-                                    let navigation_history = navigation_history.clone();
-                                    let display_files = display_files.clone();
-                                    let push_toast = push_toast.clone();
+                                let handle_checkbox_click = {
+                                    let selected = selected.clone();
                                     let path = f.path.clone();
-                                    Callback::from(move |e: MouseEvent| {
-                                        e.prevent_default();
+                                    Callback::from(move |e: Event| {
+                                        let input: HtmlInputElement = e.target_unchecked_into();
+                                        let checked = input.checked();
+                                        let mut new_value = (*selected).clone();
 
-                                        if !is_dir {
-                                            let push_toast = push_toast.clone();
-                                            let path = path.clone();
-                                            spawn_local(async move {
-                                                let args = match JsValue::from_serde(&serde_json::json!({"path": path})) {
-                                                    Ok(v) => v,
-                                                    Err(e) => {
-                                                        console::error_1(&format!("{e:?}").into());
-                                                        push_toast.emit((ToastKind::Error, format!("{e:?}")));
-                                                        return;
-                                                    }
-                                                };
-                                                let _ = invoke_r(TAURI_COMMAND_OPEN_FILE, args)
-                                                    .await
-                                                    .inspect_err(|e| {
-                                                        console::error_1(&e);
-                                                        push_toast.emit((ToastKind::Error, format!("{e:?}")));
-                                                    });
-                                            });
-
-                                            return;
+                                        if checked {
+                                            new_value.insert(path.clone());
+                                        } else {
+                                            new_value.remove(&path);
                                         }
 
-                                        let mut nh = (*navigation_history).clone();
-                                        nh.push(&path);
-                                        navigation_history.set(nh);
-
-                                        let display_files = display_files.clone();
-                                        let push_toast = push_toast.clone();
-                                        let path = path.clone();
-                                        spawn_local(async move {
-                                            display_files.set(read_dir(&path, push_toast).await);
-                                        });
+                                        selected.set(new_value);
                                     })
                                 };
 
+                                let path = f.path.clone();
                                 let name = f.name.clone();
                                 let created = f.created.clone();
                                 let modified = f.modified.clone();
@@ -735,8 +750,10 @@ pub fn app() -> Html {
                                     format!("{size:.2} {unit}")
                                 };
 
+                                let is_checked = (*selected).contains(&path);
+
                                 html! {
-                                    <tr class={if is_dir {"dir"} else {"file"}}>
+                                    <tr class={if f.is_dir {"dir"} else {"file"}}>
                                         <td class="select-file">
                                             <input
                                                 type="checkbox"
@@ -746,14 +763,16 @@ pub fn app() -> Html {
                                             />
                                         </td>
                                         <td class="name">
-                                            {if is_dir {
+                                            {if f.is_dir {
                                                 html! {<i class="line-start folder nf nf-fa-folder" />}
                                             } else {
                                                 html! {<i class="line-start file nf nf-fa-file" />}
                                             }}
                                             <a
                                                 href="#"
-                                                onclick={handle_dir_click}
+                                                onclick={handle_file_click.clone()}
+                                                data-is-dir={f.is_dir.to_string()}
+                                                data-path={path}
                                             >
                                                 {name}
                                             </a>
