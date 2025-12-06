@@ -475,6 +475,23 @@ pub fn app() -> Html {
         })
     };
 
+    // ファイルクリックのイベントハンドラ
+    let handle_file_click = {
+        let selected = selected.clone();
+        Callback::from(move |e: MouseEvent| {
+            e.prevent_default();
+
+            let element = match e.target().and_then(|v| v.dyn_into::<Element>().ok()) {
+                Some(v) => v,
+                None => return,
+            };
+            let path = element.get_attribute("data-path").unwrap_or_default();
+            let mut new_value = HashSet::<String>::new();
+            new_value.insert(path);
+            selected.set(new_value);
+        })
+    };
+
     // ファイルダブルクリックのイベントハンドラ
     let handle_file_double_click = {
         let navigation_history = navigation_history.clone();
@@ -705,6 +722,7 @@ pub fn app() -> Html {
                                             }}
                                             <a
                                                 href="#"
+                                                onclick={handle_file_click.clone()}
                                                 ondblclick={handle_file_double_click.clone()}
                                                 data-is-dir={f.is_dir.to_string()}
                                                 data-path={f.path.clone()}
