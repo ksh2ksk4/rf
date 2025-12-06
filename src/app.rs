@@ -11,8 +11,6 @@ use yew::prelude::*;
 const TOAST_DURATION: u32 = 5000;
 // 初期表示パス
 const INIT_PATH: &str = "/Users/ksh2ksk4/Downloads";
-// ファイルサイズの単位
-const UNITS: [&str; 5] = ["B", "KiB", "MiB", "GiB", "TiB"];
 // TAURI コマンド
 const TAURI_COMMAND_DELETE_FILES: &str = "delete_files";
 const TAURI_COMMAND_GET_PARENT_DIR: &str = "get_parent_dir";
@@ -736,26 +734,6 @@ pub fn app() -> Html {
                                 let modified = f.modified.clone();
                                 let accessed = f.accessed.clone();
 
-                                let mut size = f.size as f64;
-                                let mut i: usize = 0;
-                                let (size, i) = loop {
-                                    if size < 1024.0 {
-                                        break (size, i);
-                                    }
-
-                                    size /= 1024.0;
-                                    i += 1;
-                                };
-                                let unit = UNITS[i];
-                                // 小数点第二位で丸める
-                                let size_rounded = (size * 100.0).round() / 100.0;
-                                // 小数部がほぼ 0 かどうかチェック
-                                let size_string = if size_rounded.fract() < f64::EPSILON {
-                                    format!("{size:.0} {unit}")
-                                } else {
-                                    format!("{size:.2} {unit}")
-                                };
-
                                 let is_checked = (*selected).contains(&f.path);
 
                                 html! {
@@ -784,7 +762,7 @@ pub fn app() -> Html {
                                                 {name}
                                             </a>
                                         </td>
-                                        <td class="size">{size_string}</td>
+                                        <td class="size">{convert_file_size(f.size)}</td>
                                         <td class="datetime">{created}</td>
                                         <td class="datetime">{modified}</td>
                                         <td class="datetime">{accessed}</td>
@@ -832,5 +810,38 @@ async fn read_dir(path: &String, push_toast: Callback<(ToastKind, String)>) -> V
             push_toast.emit((ToastKind::Error, format!("{e:?}")));
             vec![]
         }
+    }
+}
+
+/// # Summary
+///
+/// ファイルサイズを分かり易い文字列に変換する
+///
+/// # Returns
+///
+/// - `String`: ファイルサイズ文字列
+fn convert_file_size(file_size: u64) -> String {
+    // ファイルサイズの単位
+    const UNITS: [&str; 5] = ["B", "KiB", "MiB", "GiB", "TiB"];
+
+    let mut size = file_size as f64;
+    let mut i: usize = 0;
+    let (size, i) = loop {
+        if size < 1024.0 {
+            break (size, i);
+        }
+
+        size /= 1024.0;
+        i += 1;
+    };
+    let unit = UNITS[i];
+    // 小数点第二位で丸める
+    let size_rounded = (size * 100.0).round() / 100.0;
+
+    // 小数部がほぼ 0 かどうかチェック
+    if size_rounded.fract() < f64::EPSILON {
+        format!("{size:.0} {unit}")
+    } else {
+        format!("{size:.2} {unit}")
     }
 }
