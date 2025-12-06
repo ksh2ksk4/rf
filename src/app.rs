@@ -269,33 +269,10 @@ pub fn app() -> Html {
         let push_toast = push_toast.clone();
         use_effect_with((), move |_| {
             spawn_local(async move {
-                let path = navigation_history.paths[0].clone();
-                let args = match JsValue::from_serde(&serde_json::json!({"path": path})) {
-                    Ok(v) => v,
-                    Err(e) => {
-                        console::error_1(&format!("{e:?}").into());
-                        push_toast.emit((ToastKind::Error, format!("{e:?}")));
-                        return;
-                    }
-                };
-                match invoke_r(TAURI_COMMAND_READ_DIR, args).await {
-                    Ok(v) => {
-                        let file_infos = match v.into_serde::<Vec<FileInfo>>() {
-                            Ok(v) => v,
-                            Err(e) => {
-                                console::error_1(&format!("{e:?}").into());
-                                push_toast.emit((ToastKind::Error, format!("{e:?}")));
-                                return;
-                            }
-                        };
-                        all_files.set(file_infos.clone());
-                        display_files.set(file_infos);
-                    }
-                    Err(e) => {
-                        console::error_1(&e);
-                        push_toast.emit((ToastKind::Error, format!("{e:?}")));
-                    }
-                };
+                let path = navigation_history.paths.first().unwrap();
+                let file_infos = read_dir(path, push_toast).await;
+                all_files.set(file_infos.clone());
+                display_files.set(file_infos);
             });
 
             || {}
@@ -367,31 +344,7 @@ pub fn app() -> Html {
             let display_files = display_files.clone();
             let push_toast = push_toast.clone();
             spawn_local(async move {
-                let args = match JsValue::from_serde(&serde_json::json!({"path": path})) {
-                    Ok(v) => v,
-                    Err(e) => {
-                        console::error_1(&format!("{e:?}").into());
-                        push_toast.emit((ToastKind::Error, format!("{e:?}")));
-                        return;
-                    }
-                };
-                match invoke_r(TAURI_COMMAND_READ_DIR, args).await {
-                    Ok(v) => {
-                        let file_infos = match v.into_serde::<Vec<FileInfo>>() {
-                            Ok(v) => v,
-                            Err(e) => {
-                                console::error_1(&format!("{e:?}").into());
-                                push_toast.emit((ToastKind::Error, format!("{e:?}")));
-                                return;
-                            }
-                        };
-                        display_files.set(file_infos);
-                    }
-                    Err(e) => {
-                        console::error_1(&e);
-                        push_toast.emit((ToastKind::Error, format!("{e:?}")));
-                    }
-                };
+                display_files.set(read_dir(&path, push_toast).await);
             });
         })
     };
@@ -408,31 +361,7 @@ pub fn app() -> Html {
             let display_files = display_files.clone();
             let push_toast = push_toast.clone();
             spawn_local(async move {
-                let args = match JsValue::from_serde(&serde_json::json!({"path": path})) {
-                    Ok(v) => v,
-                    Err(e) => {
-                        console::error_1(&format!("{e:?}").into());
-                        push_toast.emit((ToastKind::Error, format!("{e:?}")));
-                        return;
-                    }
-                };
-                match invoke_r(TAURI_COMMAND_READ_DIR, args).await {
-                    Ok(v) => {
-                        let file_infos = match v.into_serde::<Vec<FileInfo>>() {
-                            Ok(v) => v,
-                            Err(e) => {
-                                console::error_1(&format!("{e:?}").into());
-                                push_toast.emit((ToastKind::Error, format!("{e:?}")));
-                                return;
-                            }
-                        };
-                        display_files.set(file_infos);
-                    }
-                    Err(e) => {
-                        console::error_1(&e);
-                        push_toast.emit((ToastKind::Error, format!("{e:?}")));
-                    }
-                };
+                display_files.set(read_dir(&path, push_toast).await);
             });
         })
     };
@@ -447,7 +376,7 @@ pub fn app() -> Html {
             let display_files = display_files.clone();
             let push_toast = push_toast.clone();
             spawn_local(async move {
-                let mut args = match JsValue::from_serde(
+                let args = match JsValue::from_serde(
                     &serde_json::json!({"path": navigation_history.current()}),
                 ) {
                     Ok(v) => v,
@@ -461,31 +390,7 @@ pub fn app() -> Html {
                     .await
                     .as_string()
                     .unwrap();
-                args = match JsValue::from_serde(&serde_json::json!({"path": path})) {
-                    Ok(v) => v,
-                    Err(e) => {
-                        console::error_1(&format!("{e:?}").into());
-                        push_toast.emit((ToastKind::Error, format!("{e:?}")));
-                        return;
-                    }
-                };
-                match invoke_r(TAURI_COMMAND_READ_DIR, args).await {
-                    Ok(v) => {
-                        let file_infos = match v.into_serde::<Vec<FileInfo>>() {
-                            Ok(v) => v,
-                            Err(e) => {
-                                console::error_1(&format!("{e:?}").into());
-                                push_toast.emit((ToastKind::Error, format!("{e:?}")));
-                                return;
-                            }
-                        };
-                        display_files.set(file_infos);
-                    }
-                    Err(e) => {
-                        console::error_1(&e);
-                        push_toast.emit((ToastKind::Error, format!("{e:?}")));
-                    }
-                };
+                display_files.set(read_dir(&path, push_toast).await);
                 let mut nh = (*navigation_history).clone();
                 nh.push(&path);
                 navigation_history.set(nh);
@@ -507,31 +412,7 @@ pub fn app() -> Html {
                     .await
                     .as_string()
                     .unwrap();
-                let args = match JsValue::from_serde(&serde_json::json!({"path": path})) {
-                    Ok(v) => v,
-                    Err(e) => {
-                        console::error_1(&format!("{e:?}").into());
-                        push_toast.emit((ToastKind::Error, format!("{e:?}")));
-                        return;
-                    }
-                };
-                match invoke_r(TAURI_COMMAND_READ_DIR, args).await {
-                    Ok(v) => {
-                        let file_infos = match v.into_serde::<Vec<FileInfo>>() {
-                            Ok(v) => v,
-                            Err(e) => {
-                                console::error_1(&format!("{e:?}").into());
-                                push_toast.emit((ToastKind::Error, format!("{e:?}")));
-                                return;
-                            }
-                        };
-                        display_files.set(file_infos);
-                    }
-                    Err(e) => {
-                        console::error_1(&e);
-                        push_toast.emit((ToastKind::Error, format!("{e:?}")));
-                    }
-                };
+                display_files.set(read_dir(&path, push_toast).await);
                 let mut nh = (*navigation_history).clone();
                 nh.push(&path);
                 navigation_history.set(nh);
@@ -550,31 +431,7 @@ pub fn app() -> Html {
             let display_files = display_files.clone();
             let push_toast = push_toast.clone();
             spawn_local(async move {
-                let args = match JsValue::from_serde(&serde_json::json!({"path": current_path})) {
-                    Ok(v) => v,
-                    Err(e) => {
-                        console::error_1(&format!("{e:?}").into());
-                        push_toast.emit((ToastKind::Error, format!("{e:?}")));
-                        return;
-                    }
-                };
-                match invoke_r(TAURI_COMMAND_READ_DIR, args).await {
-                    Ok(v) => {
-                        let file_infos = match v.into_serde::<Vec<FileInfo>>() {
-                            Ok(v) => v,
-                            Err(e) => {
-                                console::error_1(&format!("{e:?}").into());
-                                push_toast.emit((ToastKind::Error, format!("{e:?}")));
-                                return;
-                            }
-                        };
-                        display_files.set(file_infos);
-                    }
-                    Err(e) => {
-                        console::error_1(&e);
-                        push_toast.emit((ToastKind::Error, format!("{e:?}")));
-                    }
-                };
+                display_files.set(read_dir(&current_path, push_toast).await);
             });
         })
     };
@@ -593,7 +450,7 @@ pub fn app() -> Html {
             let paths: Vec<String> = (*selected).iter().cloned().collect();
             let push_toast = push_toast.clone();
             spawn_local(async move {
-                let mut args = match JsValue::from_serde(&serde_json::json!({"paths": paths})) {
+                let args = match JsValue::from_serde(&serde_json::json!({"paths": paths})) {
                     Ok(v) => v,
                     Err(e) => {
                         console::error_1(&format!("{e:?}").into());
@@ -603,34 +460,9 @@ pub fn app() -> Html {
                 };
                 match invoke_r(TAURI_COMMAND_DELETE_FILES, args).await {
                     Ok(_) => {
-                        args = match JsValue::from_serde(&serde_json::json!({"path": current_path}))
-                        {
-                            Ok(v) => v,
-                            Err(e) => {
-                                console::error_1(&format!("{e:?}").into());
-                                push_toast.emit((ToastKind::Error, format!("{e:?}")));
-                                return;
-                            }
-                        };
+                        display_files.set(read_dir(&current_path, push_toast).await);
                         // 選択状態をクリア
                         selected.set(HashSet::new());
-                        match invoke_r(TAURI_COMMAND_READ_DIR, args).await {
-                            Ok(v) => {
-                                let file_infos = match v.into_serde::<Vec<FileInfo>>() {
-                                    Ok(v) => v,
-                                    Err(e) => {
-                                        console::error_1(&format!("{e:?}").into());
-                                        push_toast.emit((ToastKind::Error, format!("{e:?}")));
-                                        return;
-                                    }
-                                };
-                                display_files.set(file_infos);
-                            }
-                            Err(e) => {
-                                console::error_1(&e);
-                                push_toast.emit((ToastKind::Error, format!("{e:?}")));
-                            }
-                        };
                     }
                     Err(e) => {
                         console::error_1(&e);
@@ -873,31 +705,7 @@ pub fn app() -> Html {
                                         let push_toast = push_toast.clone();
                                         let path = path.clone();
                                         spawn_local(async move {
-                                            let args = match JsValue::from_serde(&serde_json::json!({"path": path})) {
-                                                Ok(v) => v,
-                                                Err(e) => {
-                                                    console::error_1(&format!("{e:?}").into());
-                                                    push_toast.emit((ToastKind::Error, format!("{e:?}")));
-                                                    return;
-                                                }
-                                            };
-                                            match invoke_r(TAURI_COMMAND_READ_DIR, args).await {
-                                                Ok(v) => {
-                                                    let file_infos = match v.into_serde::<Vec<FileInfo>>() {
-                                                        Ok(v) => v,
-                                                        Err(e) => {
-                                                            console::error_1(&format!("{e:?}").into());
-                                                            push_toast.emit((ToastKind::Error, format!("{e:?}")));
-                                                            return;
-                                                        }
-                                                    };
-                                                    display_files.set(file_infos);
-                                                }
-                                                Err(e) => {
-                                                    console::error_1(&e);
-                                                    push_toast.emit((ToastKind::Error, format!("{e:?}")));
-                                                }
-                                            };
+                                            display_files.set(read_dir(&path, push_toast).await);
                                         });
                                     })
                                 };
@@ -965,5 +773,38 @@ pub fn app() -> Html {
                 <div>{navigation_history.current()}</div>
             </footer>
         </div>
+    }
+}
+
+/// # Summary
+///
+/// 指定したディレクトリのファイルリストを取得する
+///
+/// # Returns
+///
+/// - `Vec<FileInfo>`: ファイルリスト(エラーの場合は空のリスト)
+async fn read_dir(path: &String, push_toast: Callback<(ToastKind, String)>) -> Vec<FileInfo> {
+    let args = match JsValue::from_serde(&serde_json::json!({"path": path})) {
+        Ok(v) => v,
+        Err(e) => {
+            console::error_1(&format!("{e:?}").into());
+            push_toast.emit((ToastKind::Error, format!("{e:?}")));
+            return vec![];
+        }
+    };
+    match invoke_r(TAURI_COMMAND_READ_DIR, args).await {
+        Ok(v) => match v.into_serde::<Vec<FileInfo>>() {
+            Ok(v) => v,
+            Err(e) => {
+                console::error_1(&format!("{e:?}").into());
+                push_toast.emit((ToastKind::Error, format!("{e:?}")));
+                vec![]
+            }
+        },
+        Err(e) => {
+            console::error_1(&e);
+            push_toast.emit((ToastKind::Error, format!("{e:?}")));
+            vec![]
+        }
     }
 }
