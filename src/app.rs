@@ -513,7 +513,7 @@ pub fn app() -> Html {
                     let _ = invoke_r(TAURI_COMMAND_OPEN_FILE, args)
                         .await
                         .inspect_err(|e| {
-                            console::error_1(&e);
+                            console::error_1(e);
                             push_toast.emit((ToastKind::Error, format!("{e:?}")));
                         });
                 });
