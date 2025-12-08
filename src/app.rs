@@ -227,6 +227,7 @@ struct Toast {
 /// `Html`: HTML
 #[function_component(App)]
 pub fn app() -> Html {
+    // ディレクトリの移動履歴
     let navigation_history = use_state(|| NavigationHistory::new());
     // カレントディレクトリのすべてのファイル
     let all_files = use_state(|| Vec::<FileInfo>::new());
@@ -234,8 +235,8 @@ pub fn app() -> Html {
     let display_files = use_state(|| Vec::<FileInfo>::new());
     // ファイル名に対するフィルタ
     let filter = use_state(|| String::new());
-    // 選択されたファイルの集合
-    let selected = use_state(|| HashSet::<String>::new());
+    // 選択されたファイル
+    let selected_files = use_state(|| HashSet::<String>::new());
 
     let toasts = use_state(|| Vec::<Toast>::new());
     let next_toast_id = use_state(|| 1_usize);
@@ -283,7 +284,7 @@ pub fn app() -> Html {
         let all_files = all_files.clone();
         let display_files = display_files.clone();
         let filter = filter.clone();
-        let selected = selected.clone();
+        let selected_files = selected_files.clone();
         #[allow(unused_variables)]
         use_effect_with(
             (
@@ -291,14 +292,14 @@ pub fn app() -> Html {
                 all_files,
                 display_files,
                 filter,
-                selected,
+                selected_files,
             ),
-            move |(navigation_history, all_files, display_files, filter, selected)| {
+            move |(navigation_history, all_files, display_files, filter, selected_files)| {
                 //console::info_1(&format!("navigation_history: {navigation_history:?}").into());
                 console::info_1(&format!("all_files: {all_files:?}").into());
                 console::info_1(&format!("display_files: {display_files:?}").into());
                 console::info_1(&format!("filter: {filter:?}").into());
-                //console::info_1(&format!("selected: {selected:?}").into());
+                console::info_1(&format!("selected_files: {selected_files:?}").into());
 
                 || {}
             },
@@ -422,20 +423,20 @@ pub fn app() -> Html {
     let handle_delete_files_click = {
         let navigation_history = navigation_history.clone();
         let display_files = display_files.clone();
-        let selected = selected.clone();
+        let selected_files = selected_files.clone();
         let push_toast = push_toast.clone();
         Callback::from(move |_| {
             let nh = (*navigation_history).clone();
             let current_path = nh.current().to_string();
             let display_files = display_files.clone();
-            let selected = selected.clone();
-            let paths: Vec<String> = (*selected).iter().cloned().collect();
+            let selected_files = selected_files.clone();
+            let paths: Vec<String> = (*selected_files).iter().cloned().collect();
             let push_toast = push_toast.clone();
             spawn_local(async move {
                 if delete_files(paths, push_toast.clone()).await {
                     display_files.set(read_dir(&current_path, push_toast).await);
                     // 選択状態をクリア
-                    selected.set(HashSet::new());
+                    selected_files.set(HashSet::new());
                 }
             });
         })
@@ -452,7 +453,7 @@ pub fn app() -> Html {
 
     // チェックボックスクリックのイベントハンドラ
     let handle_checkbox_click = {
-        let selected = selected.clone();
+        let selected_files = selected_files.clone();
         Callback::from(move |e: Event| {
             let element = match e
                 .target()
@@ -463,7 +464,7 @@ pub fn app() -> Html {
             };
             let checked = element.checked();
             let path = element.get_attribute("data-path").unwrap_or_default();
-            let mut new_value = (*selected).clone();
+            let mut new_value = (*selected_files).clone();
 
             if checked {
                 new_value.insert(path);
@@ -471,13 +472,13 @@ pub fn app() -> Html {
                 new_value.remove(&path);
             }
 
-            selected.set(new_value);
+            selected_files.set(new_value);
         })
     };
 
     // ファイルクリックのイベントハンドラ
     let handle_file_click = {
-        let selected = selected.clone();
+        let selected_files = selected_files.clone();
         Callback::from(move |e: MouseEvent| {
             e.prevent_default();
 
@@ -488,7 +489,7 @@ pub fn app() -> Html {
             let path = element.get_attribute("data-path").unwrap_or_default();
             let mut new_value = HashSet::<String>::new();
             new_value.insert(path);
-            selected.set(new_value);
+            selected_files.set(new_value);
         })
     };
 
@@ -649,7 +650,7 @@ pub fn app() -> Html {
                         title="delete files"
                         aria-label="delete files"
                         onclick={handle_delete_files_click}
-                        disabled={selected.is_empty()}
+                        disabled={selected_files.is_empty()}
                     >
                         <i
                             class="nf nf-fa-trash"
@@ -708,7 +709,7 @@ pub fn app() -> Html {
                                         <td class="select-file">
                                             <input
                                                 type="checkbox"
-                                                checked={(*selected).contains(&f.path)}
+                                                checked={(*selected_files).contains(&f.path)}
                                                 onchange={handle_checkbox_click.clone()}
                                                 data-path={f.path.clone()}
                                                 aria-label="select file"
