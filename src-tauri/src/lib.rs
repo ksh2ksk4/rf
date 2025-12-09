@@ -67,12 +67,12 @@ pub fn run() {
 
 /// # Summary
 ///
-/// 指定したパスのファイルを削除する
+/// 指定したファイルを削除する
 /// (物理削除ではなくゴミ箱へ移動する)
 ///
 /// # Arguments
 ///
-/// - `paths`: パス
+/// - `paths`: 対象ファイルのパス
 ///
 /// # Returns
 ///
@@ -86,12 +86,12 @@ fn delete_files(paths: Vec<String>) -> Result<(), String> {
 
 /// # Summary
 ///
-/// 親ディレクトリのパスを取得する
-/// 親ディレクトリが存在しない場合、カレントディレクトリのパスを返す
+/// 指定したディレクトリの親ディレクトリのパスを取得する
+/// 親ディレクトリが存在しない場合、指定したディレクトリのパスを返す
 ///
 /// # Arguments
 ///
-/// - `path`: パス
+/// - `path`: 対象ディレクトリのパス
 ///
 /// # Returns
 ///
@@ -106,11 +106,11 @@ fn get_parent_dir(path: String) -> String {
 
 /// # Summary
 ///
-/// 指定したパスのファイルをオープンする
+/// 指定したファイルをオープンする
 ///
 /// # Arguments
 ///
-/// - `path`: パス
+/// - `path`: 対象ファイルのパス
 ///
 /// # Returns
 ///
@@ -128,11 +128,11 @@ fn open_with_default(path: &str) -> std::io::Result<()> {
 
 /// # Summary
 ///
-/// 指定したパスのファイルをデフォルトアプリでオープンする
+/// 指定したファイルをデフォルトアプリでオープンする
 ///
 /// # Arguments
 ///
-/// - `path`: パス
+/// - `path`: 対象ファイルのパス
 ///
 /// # Returns
 ///
@@ -174,11 +174,11 @@ fn open_with_default(path: &str) -> std::io::Result<()> {
 
 /// # Summary
 ///
-/// 指定したパスのファイルリストを取得する
+/// 指定したディレクトリのファイルリストを取得する
 ///
 /// # Arguments
 ///
-/// - `path`: パス
+/// - `path`: 対象ディレクトリのパス
 ///
 /// # Returns
 ///
@@ -235,7 +235,7 @@ fn read_dir(path: String) -> Result<Vec<FileInfo>, String> {
 ///
 /// # Returns
 ///
-/// - `String`: 選択されたディレクトリのパス
+/// - `String`: 選択したディレクトリのパス
 #[tauri::command]
 fn select_dir() -> String {
     rfd::FileDialog::new()

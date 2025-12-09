@@ -501,7 +501,7 @@ pub fn app() -> Html {
         Callback::from(move |e: MouseEvent| {
             e.prevent_default();
 
-            // current_target() だと <a> ではなく <body> になる
+            //note Yew のイベントハンドラはキャプチャリングが有効なので `current_target()` は <a> ではなく <body> になる
             let element = match e.target().and_then(|v| v.dyn_into::<Element>().ok()) {
                 Some(v) => {
                     //let tag_name = v.tag_name();
@@ -751,11 +751,11 @@ pub fn app() -> Html {
 
 /// # Summary
 ///
-/// 指定したパスのファイルを削除する
+/// 指定したファイルを削除する
 ///
 /// # Arguments
 ///
-/// - `paths`: 削除対象ファイルのパス
+/// - `paths`: 対象ファイルのパス
 /// - `push_toast`: エラーメッセージ表示用のトースト
 ///
 /// # Returns
@@ -809,7 +809,7 @@ async fn get_parent_dir(path: &str, push_toast: Callback<(ToastKind, String)>) -
 
 /// # Summary
 ///
-/// 指定したパスのファイルをデフォルトアプリでオープンする
+/// 指定したファイルをデフォルトアプリでオープンする
 ///
 /// # Arguments
 ///
