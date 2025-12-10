@@ -458,14 +458,12 @@ pub fn app() -> Html {
     let handle_filter_input = {
         let filter = filter.clone();
         Callback::from(move |e: InputEvent| {
-            let element = match e
+            if let Some(element) = e
                 .target()
                 .and_then(|v| v.dyn_into::<HtmlInputElement>().ok())
             {
-                Some(v) => v,
-                None => return,
-            };
-            filter.set(element.value());
+                filter.set(element.value());
+            }
         })
     };
 
@@ -473,15 +471,16 @@ pub fn app() -> Html {
     let handle_checkbox_click = {
         let selected_files = selected_files.clone();
         Callback::from(move |e: Event| {
-            let element = match e
+            let (checked, path) = match e
                 .target()
                 .and_then(|v| v.dyn_into::<HtmlInputElement>().ok())
             {
-                Some(v) => v,
+                Some(v) => (
+                    v.checked(),
+                    v.get_attribute("data-path").unwrap_or_default(),
+                ),
                 None => return,
             };
-            let checked = element.checked();
-            let path = element.get_attribute("data-path").unwrap_or_default();
             let mut new_value = (*selected_files).clone();
 
             if checked {
@@ -501,11 +500,10 @@ pub fn app() -> Html {
         Callback::from(move |e: MouseEvent| {
             e.prevent_default();
 
-            let element = match e.target().and_then(|v| v.dyn_into::<Element>().ok()) {
-                Some(v) => v,
+            let path = match e.target().and_then(|v| v.dyn_into::<Element>().ok()) {
+                Some(v) => v.get_attribute("data-path").unwrap_or_default(),
                 None => return,
             };
-            let path = element.get_attribute("data-path").unwrap_or_default();
             let mut new_value = HashSet::<String>::new();
             new_value.insert(path.clone());
 
@@ -583,23 +581,19 @@ pub fn app() -> Html {
             e.prevent_default();
 
             //note Yew のイベントハンドラはキャプチャリングが有効なので `current_target()` は <a> ではなく <body> になる
-            let element = match e.target().and_then(|v| v.dyn_into::<Element>().ok()) {
-                Some(v) => {
-                    //let tag_name = v.tag_name();
-                    //console::info_1(&format!("{tag_name:?}").into());
-                    v
-                }
+            let (is_dir, path) = match e.target().and_then(|v| v.dyn_into::<Element>().ok()) {
+                Some(v) => (
+                    v.get_attribute("data-is-dir")
+                        .map(|v| v == "true")
+                        .unwrap_or(false),
+                    v.get_attribute("data-path").unwrap_or_default(),
+                ),
                 None => return,
             };
-            let is_dir = element
-                .get_attribute("data-is-dir")
-                .map(|v| v == "true")
-                .unwrap_or(false);
-            let path = element.get_attribute("data-path").unwrap_or_default();
 
             if !is_dir {
-                let push_toast = push_toast.clone();
                 let path = path.clone();
+                let push_toast = push_toast.clone();
                 spawn_local(async move {
                     open_file(path, push_toast).await;
                 });
