@@ -59,6 +59,7 @@ pub fn run() {
             get_parent_dir,
             open_file,
             read_dir,
+            rename_file,
             select_dir,
         ])
         .run(tauri::generate_context!())
@@ -227,6 +228,36 @@ fn read_dir(path: String) -> Result<Vec<FileInfo>, String> {
     entries.sort_by(|a, b| a.is_file.cmp(&b.is_file).then_with(|| a.name.cmp(&b.name)));
 
     Ok(entries)
+}
+
+/// # Summary
+///
+/// 指定したファイルをリネームする
+///
+/// # Arguments
+///
+/// - `path`: 対象ファイルのパス
+/// - `new_name`: 変更後のファイル名
+///
+/// # Returns
+///
+/// - `Ok(())`: `()`
+/// - `Err(String)`: エラーメッセージ
+#[tauri::command(rename_all = "snake_case")]
+fn rename_file(path: String, new_name: String) -> Result<(), String> {
+    let from = Path::new(&path);
+    let parent = from
+        .parent()
+        .ok_or_else(|| "Invalid source path".to_string())?;
+    let to = parent.join(new_name);
+
+    if to.exists() {
+        return Err("Same name file already exists".to_string());
+    }
+
+    fs::rename(from, &to).map_err(|e| e.to_string())?;
+
+    Ok(())
 }
 
 /// # Summary

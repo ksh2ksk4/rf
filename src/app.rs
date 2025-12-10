@@ -16,6 +16,7 @@ const TAURI_COMMAND_DELETE_FILES: &str = "delete_files";
 const TAURI_COMMAND_GET_PARENT_DIR: &str = "get_parent_dir";
 const TAURI_COMMAND_OPEN_FILE: &str = "open_file";
 const TAURI_COMMAND_READ_DIR: &str = "read_dir";
+const TAURI_COMMAND_RENAME_FILE: &str = "rename_file";
 const TAURI_COMMAND_SELECT_DIR: &str = "select_dir";
 
 #[wasm_bindgen]
@@ -235,6 +236,8 @@ pub fn app() -> Html {
     let display_files = use_state(|| Vec::<FileInfo>::new());
     // ファイル名に対するフィルタ
     let filter = use_state(|| String::new());
+    // 名称変更中のファイル
+    let renaming_file = use_state(|| Option::<String>::None);
     // 選択されたファイル
     let selected_files = use_state(|| HashSet::<String>::new());
 
@@ -284,6 +287,7 @@ pub fn app() -> Html {
         let all_files = all_files.clone();
         let display_files = display_files.clone();
         let filter = filter.clone();
+        let renaming_file = renaming_file.clone();
         let selected_files = selected_files.clone();
         #[allow(unused_variables)]
         use_effect_with(
@@ -292,13 +296,22 @@ pub fn app() -> Html {
                 all_files,
                 display_files,
                 filter,
+                renaming_file,
                 selected_files,
             ),
-            move |(navigation_history, all_files, display_files, filter, selected_files)| {
+            move |(
+                navigation_history,
+                all_files,
+                display_files,
+                filter,
+                renaming_file,
+                selected_files,
+            )| {
                 //console::info_1(&format!("navigation_history: {navigation_history:?}").into());
-                console::info_1(&format!("all_files: {all_files:?}").into());
-                console::info_1(&format!("display_files: {display_files:?}").into());
-                console::info_1(&format!("filter: {filter:?}").into());
+                //console::info_1(&format!("all_files: {all_files:?}").into());
+                //console::info_1(&format!("display_files: {display_files:?}").into());
+                //console::info_1(&format!("filter: {filter:?}").into());
+                console::info_1(&format!("renaming_file: {renaming_file:?}").into());
                 console::info_1(&format!("selected_files: {selected_files:?}").into());
 
                 || {}
@@ -478,6 +491,7 @@ pub fn app() -> Html {
 
     // ファイルクリックのイベントハンドラ
     let handle_file_click = {
+        let renaming_file = renaming_file.clone();
         let selected_files = selected_files.clone();
         Callback::from(move |e: MouseEvent| {
             e.prevent_default();
@@ -488,8 +502,70 @@ pub fn app() -> Html {
             };
             let path = element.get_attribute("data-path").unwrap_or_default();
             let mut new_value = HashSet::<String>::new();
-            new_value.insert(path);
+            new_value.insert(path.clone());
+
+            if (*selected_files).clone() == new_value {
+                // 選択しているファイルを再度クリックした場合
+                renaming_file.set(Some(path));
+            }
+
             selected_files.set(new_value);
+        })
+    };
+
+    // ファイル名変更(マウス操作)のイベントハンドラ
+    let handle_file_rename_blur = {
+        let navigation_history = navigation_history.clone();
+        let display_files = display_files.clone();
+        let renaming_file = renaming_file.clone();
+        let push_toast = push_toast.clone();
+        Callback::from(move |e: FocusEvent| {
+            // 後続処理の成否に関わらず名称変更状態は解除
+            renaming_file.set(None);
+
+            let (new_name, path) = match e
+                .target()
+                .and_then(|v| v.dyn_into::<HtmlInputElement>().ok())
+            {
+                Some(v) => (v.value(), v.get_attribute("data-path").unwrap_or_default()),
+                None => return,
+            };
+
+            if new_name.trim().is_empty() {
+                return;
+            }
+
+            let nh = (*navigation_history).clone();
+            let current_path = nh.current().to_string();
+            let display_files = display_files.clone();
+            let push_toast = push_toast.clone();
+            spawn_local(async move {
+                if rename_file(&path, &new_name, push_toast.clone()).await {
+                    display_files.set(read_dir(&current_path, push_toast).await);
+                }
+            });
+        })
+    };
+
+    // ファイル名変更(キー操作)のイベントハンドラ
+    let handle_file_rename_keypress = {
+        let renaming_file = renaming_file.clone();
+        Callback::from(move |e: KeyboardEvent| {
+            // ファイル名の変更をキャンセル
+            if e.key() == "Escape" {
+                renaming_file.set(None);
+                return;
+            }
+
+            // handle_file_rename_blur で処理
+            if e.key() == "Enter" {
+                if let Some(element) = e
+                    .target()
+                    .and_then(|v| v.dyn_into::<HtmlInputElement>().ok())
+                {
+                    let _ = element.blur();
+                }
+            }
         })
     };
 
@@ -721,15 +797,29 @@ pub fn app() -> Html {
                                             } else {
                                                 html! {<i class="line-start file nf nf-fa-file" />}
                                             }}
-                                            <a
-                                                href="#"
-                                                onclick={handle_file_click.clone()}
-                                                ondblclick={handle_file_double_click.clone()}
-                                                data-is-dir={f.is_dir.to_string()}
-                                                data-path={f.path.clone()}
-                                            >
-                                                {&f.name}
-                                            </a>
+                                            {if (*renaming_file).as_ref().map(|v| v == &f.path).unwrap_or(false) {
+                                                html! {
+                                                    <input
+                                                        type="text"
+                                                        value={f.name.clone()}
+                                                        onblur={handle_file_rename_blur.clone()}
+                                                        onkeypress={handle_file_rename_keypress.clone()}
+                                                        data-path={f.path.clone()}
+                                                    />
+                                                }
+                                            } else {
+                                                html! {
+                                                    <a
+                                                        href="#"
+                                                        onclick={handle_file_click.clone()}
+                                                        ondblclick={handle_file_double_click.clone()}
+                                                        data-is-dir={f.is_dir.to_string()}
+                                                        data-path={f.path.clone()}
+                                                    >
+                                                        {&f.name}
+                                                    </a>
+                                                }
+                                            }}
                                         </td>
                                         <td class="size">{convert_file_size(f.size)}</td>
                                         <td class="datetime">{&f.created}</td>
@@ -866,6 +956,42 @@ async fn read_dir(path: &String, push_toast: Callback<(ToastKind, String)>) -> V
             console::error_1(&e);
             push_toast.emit((ToastKind::Error, format!("{e:?}")));
             vec![]
+        }
+    }
+}
+
+/// # Summary
+///
+/// 指定したファイルをリネームする
+///
+/// # Arguments
+///
+/// - `path`: 対象ファイルのパス
+/// - `new_name`: 変更後のファイル名
+/// - `push_toast`: エラーメッセージ表示用のトースト
+///
+/// # Returns
+///
+/// - `bool`: リネームできたかどうか
+async fn rename_file(
+    path: &String,
+    new_name: &String,
+    push_toast: Callback<(ToastKind, String)>,
+) -> bool {
+    let args = match JsValue::from_serde(&serde_json::json!({"path": path, "new_name": new_name})) {
+        Ok(v) => v,
+        Err(e) => {
+            console::error_1(&format!("{e:?}").into());
+            push_toast.emit((ToastKind::Error, format!("{e:?}")));
+            return false;
+        }
+    };
+    match invoke_r(TAURI_COMMAND_RENAME_FILE, args).await {
+        Ok(_) => true,
+        Err(e) => {
+            console::error_1(&e);
+            push_toast.emit((ToastKind::Error, format!("{e:?}")));
+            false
         }
     }
 }
