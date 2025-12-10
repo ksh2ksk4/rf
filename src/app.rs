@@ -1,3 +1,4 @@
+use gloo_timers::callback::Timeout;
 use gloo_timers::future::TimeoutFuture;
 use gloo_utils::format::JsValueSerdeExt;
 use serde::{Deserialize, Serialize};
@@ -230,6 +231,8 @@ struct Toast {
 pub fn app() -> Html {
     // カレントディレクトリのすべてのファイル
     let all_files = use_state(|| Vec::<FileInfo>::new());
+    // シングルクリック処理用のキャンセラブルタイマー
+    let click_timeout = use_mut_ref(|| None::<Timeout>);
     // ファイルリストに表示するファイル(カレントディレクトリのファイルをフィルタリングしたもの)
     let display_files = use_state(|| Vec::<FileInfo>::new());
     // ファイル名に対するフィルタ
@@ -495,6 +498,7 @@ pub fn app() -> Html {
 
     // ファイルクリックのイベントハンドラ
     let handle_file_click = {
+        let click_timeout = click_timeout.clone();
         let renaming_file = renaming_file.clone();
         let selected_files = selected_files.clone();
         Callback::from(move |e: MouseEvent| {
@@ -504,15 +508,26 @@ pub fn app() -> Html {
                 Some(v) => v.get_attribute("data-path").unwrap_or_default(),
                 None => return,
             };
-            let mut new_value = HashSet::<String>::new();
-            new_value.insert(path.clone());
 
-            if (*selected_files).clone() == new_value {
-                // 選択しているファイルを再度クリックした場合
-                renaming_file.set(Some(path));
+            if let Some(v) = click_timeout.borrow_mut().take() {
+                // 既にタイマーがある場合
+                v.cancel();
             }
 
-            selected_files.set(new_value);
+            let renaming_file = renaming_file.clone();
+            let selected_files = selected_files.clone();
+            // シングルクリックの処理を 250ms 保留
+            *click_timeout.borrow_mut() = Some(Timeout::new(250, move || {
+                let mut new_value = HashSet::<String>::new();
+                new_value.insert(path.clone());
+
+                if (*selected_files).clone() == new_value {
+                    // 選択しているファイルを再度クリックした場合
+                    renaming_file.set(Some(path));
+                }
+
+                selected_files.set(new_value);
+            }));
         })
     };
 
@@ -574,11 +589,17 @@ pub fn app() -> Html {
 
     // ファイルダブルクリックのイベントハンドラ
     let handle_file_double_click = {
+        let click_timeout = click_timeout.clone();
         let display_files = display_files.clone();
         let navigation_history = navigation_history.clone();
         let push_toast = push_toast.clone();
         Callback::from(move |e: MouseEvent| {
             e.prevent_default();
+
+            // 保留しているシングルクリックの処理をキャンセル
+            if let Some(v) = click_timeout.borrow_mut().take() {
+                v.cancel();
+            }
 
             //note Yew のイベントハンドラはキャプチャリングが有効なので `current_target()` は <a> ではなく <body> になる
             let (is_dir, path) = match e.target().and_then(|v| v.dyn_into::<Element>().ok()) {
