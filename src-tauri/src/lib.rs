@@ -78,7 +78,7 @@ pub fn run() {
 ///
 /// - `Ok(())`: `()`
 /// - `Err(String)`: エラーメッセージ
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 fn delete_files(paths: Vec<String>) -> Result<(), String> {
     trash::delete_all(&paths).map_err(|e| e.to_string())?;
     Ok(())
@@ -96,7 +96,7 @@ fn delete_files(paths: Vec<String>) -> Result<(), String> {
 /// # Returns
 ///
 /// - `String`: 親ディレクトリのパス
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 fn get_parent_dir(path: String) -> String {
     match Path::new(&path).parent() {
         Some(p) => p.to_string_lossy().to_string(),
@@ -116,7 +116,7 @@ fn get_parent_dir(path: String) -> String {
 ///
 /// - `Ok(())`: `()`
 /// - `Err(String)`: エラーメッセージ
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 fn open_file(path: String) -> Result<(), String> {
     open_with_default(&path)
 }
@@ -184,7 +184,7 @@ fn open_with_default(path: &str) -> std::io::Result<()> {
 ///
 /// - `Ok(Vec<FileInfo>)`: ファイルリスト
 /// - `Err(String)`: エラーメッセージ
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 fn read_dir(path: String) -> Result<Vec<FileInfo>, String> {
     let mut entries = Vec::<FileInfo>::new();
 
@@ -236,7 +236,7 @@ fn read_dir(path: String) -> Result<Vec<FileInfo>, String> {
 /// # Returns
 ///
 /// - `String`: 選択したディレクトリのパス
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 fn select_dir() -> String {
     rfd::FileDialog::new()
         .pick_folder()
