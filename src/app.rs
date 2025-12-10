@@ -228,14 +228,14 @@ struct Toast {
 /// `Html`: HTML
 #[function_component(App)]
 pub fn app() -> Html {
-    // ディレクトリの移動履歴
-    let navigation_history = use_state(|| NavigationHistory::new());
     // カレントディレクトリのすべてのファイル
     let all_files = use_state(|| Vec::<FileInfo>::new());
     // ファイルリストに表示するファイル(カレントディレクトリのファイルをフィルタリングしたもの)
     let display_files = use_state(|| Vec::<FileInfo>::new());
     // ファイル名に対するフィルタ
     let filter = use_state(|| String::new());
+    // ディレクトリの移動履歴
+    let navigation_history = use_state(|| NavigationHistory::new());
     // 名称変更中のファイル
     let renaming_file = use_state(|| Option::<String>::None);
     // 選択されたファイル
@@ -265,9 +265,9 @@ pub fn app() -> Html {
 
     // 初回マウント時に実行されるフック
     {
-        let navigation_history = navigation_history.clone();
         let all_files = all_files.clone();
         let display_files = display_files.clone();
+        let navigation_history = navigation_history.clone();
         let push_toast = push_toast.clone();
         use_effect_with((), move |_| {
             spawn_local(async move {
@@ -283,34 +283,34 @@ pub fn app() -> Html {
 
     // ステート更新時にログを出力するフック
     {
-        let navigation_history = navigation_history.clone();
         let all_files = all_files.clone();
         let display_files = display_files.clone();
         let filter = filter.clone();
+        let navigation_history = navigation_history.clone();
         let renaming_file = renaming_file.clone();
         let selected_files = selected_files.clone();
         #[allow(unused_variables)]
         use_effect_with(
             (
-                navigation_history,
                 all_files,
                 display_files,
                 filter,
+                navigation_history,
                 renaming_file,
                 selected_files,
             ),
             move |(
-                navigation_history,
                 all_files,
                 display_files,
                 filter,
+                navigation_history,
                 renaming_file,
                 selected_files,
             )| {
-                //console::info_1(&format!("navigation_history: {navigation_history:?}").into());
                 //console::info_1(&format!("all_files: {all_files:?}").into());
                 //console::info_1(&format!("display_files: {display_files:?}").into());
                 //console::info_1(&format!("filter: {filter:?}").into());
+                //console::info_1(&format!("navigation_history: {navigation_history:?}").into());
                 console::info_1(&format!("renaming_file: {renaming_file:?}").into());
                 console::info_1(&format!("selected_files: {selected_files:?}").into());
 
@@ -324,7 +324,6 @@ pub fn app() -> Html {
         let all_files = all_files.clone();
         let display_files = display_files.clone();
         let filter = filter.clone();
-        //let push_toast = push_toast.clone();
         use_effect_with(filter, move |filter| {
             let query = (*filter).to_lowercase();
 
@@ -346,14 +345,14 @@ pub fn app() -> Html {
 
     // back ボタンクリックのイベントハンドラ
     let handle_back_click = {
-        let navigation_history = navigation_history.clone();
         let display_files = display_files.clone();
+        let navigation_history = navigation_history.clone();
         let push_toast = push_toast.clone();
         Callback::from(move |_| {
+            let display_files = display_files.clone();
             let mut nh = (*navigation_history).clone();
             let path = nh.back().unwrap_or(INIT_PATH.to_string());
             navigation_history.set(nh);
-            let display_files = display_files.clone();
             let push_toast = push_toast.clone();
             spawn_local(async move {
                 display_files.set(read_dir(&path, push_toast).await);
@@ -363,14 +362,14 @@ pub fn app() -> Html {
 
     // forward ボタンクリックのイベントハンドラ
     let handle_forward_click = {
-        let navigation_history = navigation_history.clone();
         let display_files = display_files.clone();
+        let navigation_history = navigation_history.clone();
         let push_toast = push_toast.clone();
         Callback::from(move |_| {
+            let display_files = display_files.clone();
             let mut nh = (*navigation_history).clone();
             let path = nh.forward().unwrap_or(nh.current().to_string());
             navigation_history.set(nh);
-            let display_files = display_files.clone();
             let push_toast = push_toast.clone();
             spawn_local(async move {
                 display_files.set(read_dir(&path, push_toast).await);
@@ -380,12 +379,12 @@ pub fn app() -> Html {
 
     // "go to parent dir" ボタンクリックのイベントハンドラ
     let handle_go_to_parent_dir_click = {
-        let navigation_history = navigation_history.clone();
         let display_files = display_files.clone();
+        let navigation_history = navigation_history.clone();
         let push_toast = push_toast.clone();
         Callback::from(move |_| {
-            let navigation_history = navigation_history.clone();
             let display_files = display_files.clone();
+            let navigation_history = navigation_history.clone();
             let push_toast = push_toast.clone();
             spawn_local(async move {
                 let path = get_parent_dir(navigation_history.current(), push_toast.clone()).await;
@@ -399,12 +398,12 @@ pub fn app() -> Html {
 
     // "select dir" ボタンクリックのイベントハンドラ
     let handle_select_dir_click = {
-        let navigation_history = navigation_history.clone();
         let display_files = display_files.clone();
+        let navigation_history = navigation_history.clone();
         let push_toast = push_toast.clone();
         Callback::from(move |_| {
-            let navigation_history = navigation_history.clone();
             let display_files = display_files.clone();
+            let navigation_history = navigation_history.clone();
             let push_toast = push_toast.clone();
             spawn_local(async move {
                 let path = select_dir().await;
@@ -416,15 +415,15 @@ pub fn app() -> Html {
         })
     };
 
-    // "reload" ボタンクリックのイベントハンドラ
+    // reload ボタンクリックのイベントハンドラ
     let handle_reload_click = {
-        let navigation_history = navigation_history.clone();
         let display_files = display_files.clone();
+        let navigation_history = navigation_history.clone();
         let push_toast = push_toast.clone();
         Callback::from(move |_| {
+            let display_files = display_files.clone();
             let nh = (*navigation_history).clone();
             let current_path = nh.current().to_string();
-            let display_files = display_files.clone();
             let push_toast = push_toast.clone();
             spawn_local(async move {
                 display_files.set(read_dir(&current_path, push_toast).await);
@@ -434,17 +433,17 @@ pub fn app() -> Html {
 
     // "delete files" ボタンクリックのイベントハンドラ
     let handle_delete_files_click = {
-        let navigation_history = navigation_history.clone();
         let display_files = display_files.clone();
-        let selected_files = selected_files.clone();
+        let navigation_history = navigation_history.clone();
         let push_toast = push_toast.clone();
+        let selected_files = selected_files.clone();
         Callback::from(move |_| {
+            let display_files = display_files.clone();
             let nh = (*navigation_history).clone();
             let current_path = nh.current().to_string();
-            let display_files = display_files.clone();
+            let push_toast = push_toast.clone();
             let selected_files = selected_files.clone();
             let paths: Vec<String> = (*selected_files).iter().cloned().collect();
-            let push_toast = push_toast.clone();
             spawn_local(async move {
                 if delete_files(paths, push_toast.clone()).await {
                     display_files.set(read_dir(&current_path, push_toast).await);
@@ -459,8 +458,14 @@ pub fn app() -> Html {
     let handle_filter_input = {
         let filter = filter.clone();
         Callback::from(move |e: InputEvent| {
-            let input: HtmlInputElement = e.target_unchecked_into();
-            filter.set(input.value());
+            let element = match e
+                .target()
+                .and_then(|v| v.dyn_into::<HtmlInputElement>().ok())
+            {
+                Some(v) => v,
+                None => return,
+            };
+            filter.set(element.value());
         })
     };
 
@@ -515,10 +520,10 @@ pub fn app() -> Html {
 
     // ファイル名変更(マウス操作)のイベントハンドラ
     let handle_file_rename_blur = {
-        let navigation_history = navigation_history.clone();
         let display_files = display_files.clone();
-        let renaming_file = renaming_file.clone();
+        let navigation_history = navigation_history.clone();
         let push_toast = push_toast.clone();
+        let renaming_file = renaming_file.clone();
         Callback::from(move |e: FocusEvent| {
             // 後続処理の成否に関わらず名称変更状態は解除
             renaming_file.set(None);
@@ -535,9 +540,9 @@ pub fn app() -> Html {
                 return;
             }
 
+            let display_files = display_files.clone();
             let nh = (*navigation_history).clone();
             let current_path = nh.current().to_string();
-            let display_files = display_files.clone();
             let push_toast = push_toast.clone();
             spawn_local(async move {
                 if rename_file(&path, &new_name, push_toast.clone()).await {
@@ -571,8 +576,8 @@ pub fn app() -> Html {
 
     // ファイルダブルクリックのイベントハンドラ
     let handle_file_double_click = {
-        let navigation_history = navigation_history.clone();
         let display_files = display_files.clone();
+        let navigation_history = navigation_history.clone();
         let push_toast = push_toast.clone();
         Callback::from(move |e: MouseEvent| {
             e.prevent_default();
@@ -601,13 +606,12 @@ pub fn app() -> Html {
                 return;
             }
 
+            let display_files = display_files.clone();
             let mut nh = (*navigation_history).clone();
             nh.push(&path);
             navigation_history.set(nh);
-
-            let display_files = display_files.clone();
-            let push_toast = push_toast.clone();
             let path = path.clone();
+            let push_toast = push_toast.clone();
             spawn_local(async move {
                 display_files.set(read_dir(&path, push_toast).await);
             });
