@@ -598,7 +598,6 @@ pub fn app() -> Html {
                 spawn_local(async move {
                     open_file(path, push_toast).await;
                 });
-
                 return;
             }
 
