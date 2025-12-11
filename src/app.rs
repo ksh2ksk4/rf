@@ -500,6 +500,7 @@ pub fn app() -> Html {
     // ファイルクリックのイベントハンドラ
     let handle_file_click = {
         let click_timeout = click_timeout.clone();
+        let push_toast = push_toast.clone();
         let renaming_file = renaming_file.clone();
         let selected_files = selected_files.clone();
         Callback::from(move |e: MouseEvent| {
@@ -507,7 +508,12 @@ pub fn app() -> Html {
 
             let path = match e.target().and_then(|v| v.dyn_into::<Element>().ok()) {
                 Some(v) => v.get_attribute("data-path").unwrap_or_default(),
-                None => return,
+                None => {
+                    let error_message = "Target element is not Element";
+                    console::error_1(&error_message.into());
+                    push_toast.emit((ToastKind::Error, format!("{error_message}")));
+                    return;
+                }
             };
 
             if let Some(v) = click_timeout.borrow_mut().take() {
@@ -557,10 +563,18 @@ pub fn app() -> Html {
                 .and_then(|v| v.dyn_into::<HtmlInputElement>().ok())
             {
                 Some(v) => (v.value(), v.get_attribute("data-path").unwrap_or_default()),
-                None => return,
+                None => {
+                    let error_message = "Target element is not HtmlInputElement";
+                    console::error_1(&error_message.into());
+                    push_toast.emit((ToastKind::Error, format!("{error_message}")));
+                    return;
+                }
             };
 
             if new_name.trim().is_empty() {
+                let error_message = "ファイル名を入力してください";
+                console::error_1(&error_message.into());
+                push_toast.emit((ToastKind::Error, format!("{error_message}")));
                 return;
             }
 
