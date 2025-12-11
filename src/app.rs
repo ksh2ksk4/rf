@@ -3,6 +3,7 @@ use gloo_timers::future::TimeoutFuture;
 use gloo_utils::format::JsValueSerdeExt;
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
+use std::path::Path;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::spawn_local;
 use web_sys::{console, Element, HtmlInputElement, InputEvent};
@@ -538,6 +539,16 @@ pub fn app() -> Html {
         let push_toast = push_toast.clone();
         let renaming_file = renaming_file.clone();
         Callback::from(move |e: FocusEvent| {
+            let mut current_name: String = Default::default();
+
+            if let Some(v) = (*renaming_file).clone() {
+                current_name = Path::new(&v)
+                    .file_name()
+                    .and_then(|v| v.to_str())
+                    .unwrap_or_default()
+                    .to_string();
+            }
+
             // 後続処理の成否に関わらず名称変更状態は解除
             renaming_file.set(None);
 
@@ -550,6 +561,12 @@ pub fn app() -> Html {
             };
 
             if new_name.trim().is_empty() {
+                return;
+            }
+
+            if current_name == new_name {
+                let warning_message = "ファイル名が変更されていません";
+                console::warn_1(&warning_message.into());
                 return;
             }
 
