@@ -461,30 +461,26 @@ pub fn app() -> Html {
     // フィルタ設定のイベントハンドラ
     let handle_filter_input = {
         let filter = filter.clone();
+        let push_toast = push_toast.clone();
         Callback::from(move |e: InputEvent| {
-            if let Some(element) = e
-                .target()
-                .and_then(|v| v.dyn_into::<HtmlInputElement>().ok())
-            {
-                filter.set(element.value());
-            }
+            downcast::<HtmlInputElement>(&e, &push_toast).inspect(|v| {
+                filter.set(v.value());
+            });
         })
     };
 
     // チェックボックスクリックのイベントハンドラ
     let handle_checkbox_click = {
+        let push_toast = push_toast.clone();
         let selected_files = selected_files.clone();
         Callback::from(move |e: Event| {
-            let (checked, path) = match e
-                .target()
-                .and_then(|v| v.dyn_into::<HtmlInputElement>().ok())
-            {
-                Some(v) => (
-                    v.checked(),
-                    v.get_attribute("data-path").unwrap_or_default(),
-                ),
-                None => return,
+            // イベントエレメントから必要なデータを取得
+            let Some(element) = downcast::<HtmlInputElement>(&e, &push_toast) else {
+                return;
             };
+            let checked = element.checked();
+            let path = element.get_attribute("data-path").unwrap_or_default();
+
             let mut new_value = (*selected_files).clone();
 
             if checked {
@@ -506,15 +502,11 @@ pub fn app() -> Html {
         Callback::from(move |e: MouseEvent| {
             e.prevent_default();
 
-            let path = match e.target().and_then(|v| v.dyn_into::<Element>().ok()) {
-                Some(v) => v.get_attribute("data-path").unwrap_or_default(),
-                None => {
-                    let error_message = "Target element is not Element";
-                    console::error_1(&error_message.into());
-                    push_toast.emit((ToastKind::Error, format!("{error_message}")));
-                    return;
-                }
+            // イベントエレメントから必要なデータを取得
+            let Some(element) = downcast::<Element>(&e, &push_toast) else {
+                return;
             };
+            let path = element.get_attribute("data-path").unwrap_or_default();
 
             if let Some(v) = click_timeout.borrow_mut().take() {
                 // 既にタイマーがある場合
@@ -557,19 +549,12 @@ pub fn app() -> Html {
 
             // 後続処理の成否に関わらず名称変更状態は解除
             renaming_file.set(None);
-
-            let (new_name, path) = match e
-                .target()
-                .and_then(|v| v.dyn_into::<HtmlInputElement>().ok())
-            {
-                Some(v) => (v.value(), v.get_attribute("data-path").unwrap_or_default()),
-                None => {
-                    let error_message = "Target element is not HtmlInputElement";
-                    console::error_1(&error_message.into());
-                    push_toast.emit((ToastKind::Error, format!("{error_message}")));
-                    return;
-                }
+            // イベントエレメントから必要なデータを取得
+            let Some(element) = downcast::<HtmlInputElement>(&e, &push_toast) else {
+                return;
             };
+            let new_name = element.value();
+            let path = element.get_attribute("data-path").unwrap_or_default();
 
             if new_name.trim().is_empty() {
                 let error_message = "ファイル名を入力してください";
@@ -598,6 +583,7 @@ pub fn app() -> Html {
 
     // ファイル名変更(キー操作)のイベントハンドラ
     let handle_file_rename_keypress = {
+        let push_toast = push_toast.clone();
         let renaming_file = renaming_file.clone();
         Callback::from(move |e: KeyboardEvent| {
             // ファイル名の変更をキャンセル
@@ -608,12 +594,9 @@ pub fn app() -> Html {
 
             // handle_file_rename_blur で処理
             if e.key() == "Enter" {
-                if let Some(element) = e
-                    .target()
-                    .and_then(|v| v.dyn_into::<HtmlInputElement>().ok())
-                {
-                    let _ = element.blur();
-                }
+                downcast::<HtmlInputElement>(&e, &push_toast).inspect(|v| {
+                    let _ = v.blur();
+                });
             }
         })
     };
@@ -633,15 +616,15 @@ pub fn app() -> Html {
             }
 
             //note Yew のイベントハンドラはキャプチャリングが有効なので `current_target()` は <a> ではなく <body> になる
-            let (is_dir, path) = match e.target().and_then(|v| v.dyn_into::<Element>().ok()) {
-                Some(v) => (
-                    v.get_attribute("data-is-dir")
-                        .map(|v| v == "true")
-                        .unwrap_or(false),
-                    v.get_attribute("data-path").unwrap_or_default(),
-                ),
-                None => return,
+            // イベントエレメントから必要なデータを取得
+            let Some(element) = downcast::<Element>(&e, &push_toast) else {
+                return;
             };
+            let is_dir = element
+                .get_attribute("data-is-dir")
+                .map(|v| v == "true")
+                .unwrap_or(false);
+            let path = element.get_attribute("data-path").unwrap_or_default();
 
             if !is_dir {
                 let path = path.clone();
@@ -1094,4 +1077,31 @@ fn convert_file_size(file_size: u64) -> String {
     } else {
         format!("{size:.2} {unit}")
     }
+}
+
+/// # Summary
+///
+/// イベントエレメントを指定したエレメントに変換する
+///
+/// # Arguments
+///
+/// - `e`: イベントエレメント
+/// - `push_toast`: エラーメッセージ表示用のトースト
+///
+/// # Returns
+///
+/// - `Option<T>`: 変換後のエレメント
+fn downcast<T>(e: &Event, push_toast: &Callback<(ToastKind, String)>) -> Option<T>
+where
+    T: wasm_bindgen::JsCast,
+{
+    let type_name_full = std::any::type_name::<T>();
+    let type_name_short = type_name_full.rsplit("::").next().unwrap_or(type_name_full);
+
+    e.target().and_then(|v| v.dyn_into::<T>().ok()).or_else(|| {
+        let error_message = format!("Target element is not {type_name_short}");
+        console::error_1(&error_message.clone().into());
+        push_toast.emit((ToastKind::Error, format!("{error_message}")));
+        None
+    })
 }
