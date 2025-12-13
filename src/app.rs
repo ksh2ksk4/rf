@@ -536,6 +536,7 @@ pub fn app() -> Html {
         let navigation_history = navigation_history.clone();
         let push_toast = push_toast.clone();
         let renaming_file = renaming_file.clone();
+        let selected_files = selected_files.clone();
         Callback::from(move |e: FocusEvent| {
             let mut current_name: String = Default::default();
 
@@ -573,9 +574,20 @@ pub fn app() -> Html {
             let nh = (*navigation_history).clone();
             let current_path = nh.current().to_string();
             let push_toast = push_toast.clone();
+            let selected_files = selected_files.clone();
             spawn_local(async move {
                 if rename_file(&path, &new_name, push_toast.clone()).await {
                     display_files.set(read_dir(&current_path, push_toast).await);
+
+                    let mut new_value = HashSet::<String>::new();
+                    new_value.insert(
+                        Path::new(&current_path)
+                            .join(&new_name)
+                            .to_string_lossy()
+                            .into_owned(),
+                    );
+                    // 選択しているファイルのファイル名を更新
+                    selected_files.set(new_value);
                 }
             });
         })
