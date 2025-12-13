@@ -347,6 +347,30 @@ pub fn app() -> Html {
         });
     }
 
+    // ファイル名変更時にテキストボックスを focus & select するフック
+    {
+        let renaming_file = renaming_file.clone();
+        use_effect_with(renaming_file, move |renaming_file| {
+            if let Some(_) = (*renaming_file).as_ref() {
+                spawn_local(async move {
+                    // DOM が確実に更新されるのを待機
+                    TimeoutFuture::new(0).await;
+
+                    web_sys::window()
+                        .and_then(|v| v.document())
+                        .and_then(|v| v.get_element_by_id("renaming_file"))
+                        .and_then(|v| v.dyn_into::<HtmlInputElement>().ok())
+                        .map(|v| {
+                            let _ = v.focus();
+                            v.select();
+                        });
+                });
+            }
+
+            || {}
+        });
+    }
+
     // back ボタンクリックのイベントハンドラ
     let handle_back_click = {
         let display_files = display_files.clone();
@@ -844,6 +868,7 @@ pub fn app() -> Html {
                                             {if (*renaming_file).as_ref().map(|v| v == &f.path).unwrap_or(false) {
                                                 html! {
                                                     <input
+                                                        id="renaming_file"
                                                         type="text"
                                                         value={f.name.clone()}
                                                         onblur={handle_file_rename_blur.clone()}
