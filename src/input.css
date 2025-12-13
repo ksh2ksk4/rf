@@ -127,13 +127,13 @@
     @apply font-[NerdFont];
   }
   body {
-    @apply leading-5;
+    @apply leading-5 m-2;
   }
-  main {
-    @apply mt-4 mb-4;
+  header {
+    @apply m-2;
   }
   footer {
-    @apply bg-dark-neutral-950 text-center text-sm;
+    @apply bg-dark-neutral-950 m-2 text-center text-sm;
   }
   button:not(.icon) {
     @apply bg-dark-base-600 p-1 rounded-md
