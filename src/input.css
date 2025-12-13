@@ -183,7 +183,7 @@
     @apply m-1 text-sky-500;
   }
   table.file-list {
-    @apply border-collapse border;
+    @apply border-collapse border w-full;
   }
   table.file-list > thead > tr {
     @apply sticky top-0 backdrop-blur z-10;
@@ -199,19 +199,18 @@
     @apply bg-dark-neutral-800;
   }
   table.file-list td.select-file {
-    @apply border border-dark-neutral-700
-           p-1;
+    @apply border border-dark-neutral-700 p-1;
   }
   table.file-list td.name {
-    @apply border border-dark-neutral-700 max-w-500
+    @apply border border-dark-neutral-700 w-full
            wrap-anywhere whitespace-normal p-1;
   }
   table.file-list td.size {
-    @apply border border-dark-neutral-700 max-w-80
+    @apply border border-dark-neutral-700 min-w-20
            whitespace-normal p-1 text-center text-dark-neutral-300;
   }
   table.file-list td.datetime {
-    @apply border border-dark-neutral-700 max-w-150
+    @apply border border-dark-neutral-700 min-w-30
            whitespace-normal p-1 text-center text-dark-neutral-300;
   }
 }

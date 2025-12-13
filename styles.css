@@ -205,6 +205,9 @@
   .min-h-screen {
     min-height: 100vh;
   }
+  .w-full {
+    width: 100%;
+  }
   .min-w-screen {
     min-width: 100vw;
   }
@@ -366,6 +369,7 @@
     color: var(--color-sky-500);
   }
   table.file-list {
+    width: 100%;
     border-collapse: collapse;
     border-style: var(--tw-border-style);
     border-width: 1px;
@@ -403,7 +407,7 @@
     padding: calc(var(--spacing) * 1);
   }
   table.file-list td.name {
-    max-width: calc(var(--spacing) * 500);
+    width: 100%;
     border-style: var(--tw-border-style);
     border-width: 1px;
     border-color: var(--color-dark-neutral-700);
@@ -412,7 +416,7 @@
     white-space: normal;
   }
   table.file-list td.size {
-    max-width: calc(var(--spacing) * 80);
+    min-width: calc(var(--spacing) * 20);
     border-style: var(--tw-border-style);
     border-width: 1px;
     border-color: var(--color-dark-neutral-700);
@@ -422,7 +426,7 @@
     color: var(--color-dark-neutral-300);
   }
   table.file-list td.datetime {
-    max-width: calc(var(--spacing) * 150);
+    min-width: calc(var(--spacing) * 30);
     border-style: var(--tw-border-style);
     border-width: 1px;
     border-color: var(--color-dark-neutral-700);
