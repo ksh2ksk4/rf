@@ -1,3 +1,4 @@
+use gloo::events::EventListener;
 use gloo_timers::callback::Timeout;
 use gloo_timers::future::TimeoutFuture;
 use gloo_utils::format::JsValueSerdeExt;
@@ -6,7 +7,7 @@ use std::collections::HashSet;
 use std::path::Path;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::spawn_local;
-use web_sys::{console, Element, HtmlInputElement, InputEvent};
+use web_sys::{console, Element, HtmlElement, HtmlInputElement, InputEvent};
 use yew::prelude::*;
 
 // トーストを表示する時間(ms)
@@ -267,13 +268,28 @@ pub fn app() -> Html {
         })
     };
 
+    // <header> を参照する NodeRef
+    let header_ref = use_node_ref();
+    // <footer> を参照する NodeRef
+    let footer_ref = use_node_ref();
+
     // 初回マウント時に実行されるフック
     {
         let all_files = all_files.clone();
         let display_files = display_files.clone();
         let navigation_history = navigation_history.clone();
         let push_toast = push_toast.clone();
+        let header_ref = header_ref.clone();
+        let footer_ref = footer_ref.clone();
         use_effect_with((), move |_| {
+            // ファイルリスト表示領域の高さを設定
+            set_content_height(&header_ref, &footer_ref);
+            // ウィンドウリサイズ時に再計算するよう設定
+            let window = web_sys::window().unwrap();
+            let resize = EventListener::new(&window, "resize", move |_| {
+                set_content_height(&header_ref, &footer_ref);
+            });
+            // ファイルリストを初期表示
             spawn_local(async move {
                 let path = navigation_history.paths.first().unwrap();
                 let file_infos = read_dir(path, push_toast).await;
@@ -281,7 +297,9 @@ pub fn app() -> Html {
                 display_files.set(file_infos);
             });
 
-            || {}
+            move || {
+                drop(resize);
+            }
         });
     }
 
@@ -730,7 +748,7 @@ pub fn app() -> Html {
                     }
                 })}
             </div>
-            <header>
+            <header ref={header_ref}>
                 <div class="toolbar">
                     <button
                         class="icon"
@@ -827,81 +845,79 @@ pub fn app() -> Html {
                     </div>
                 </div>
             </header>
-            <main class="flex-1 overflow-auto">
-                <div class="overflow-auto max-h-[80vh] w-full">
-                    <table class="file-list">
-                        <thead>
-                            <tr>
-                                <th>
-                                    <input
-                                        type="checkbox"
-                                        checked=false
-                                        aria-label="select all"
-                                    />
-                                </th>
-                                <th>{"name"}</th>
-                                <th>{"size"}</th>
-                                <th>{"created at"}</th>
-                                <th>{"modified at"}</th>
-                                <th>{"accessed at"}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {for display_files.iter().map(|f| {
-                                html! {
-                                    <tr class={if f.is_dir {"dir"} else {"file"}}>
-                                        <td class="select-file">
-                                            <input
-                                                type="checkbox"
-                                                checked={(*selected_files).contains(&f.path)}
-                                                onchange={handle_checkbox_click.clone()}
-                                                data-path={f.path.clone()}
-                                                aria-label="select file"
-                                            />
-                                        </td>
-                                        <td class="name">
-                                            {if f.is_dir {
-                                                html! {<i class="line-start folder nf nf-fa-folder" />}
-                                            } else {
-                                                html! {<i class="line-start file nf nf-fa-file" />}
-                                            }}
-                                            {if (*renaming_file).as_ref().map(|v| v == &f.path).unwrap_or(false) {
-                                                html! {
-                                                    <input
-                                                        id="renaming_file"
-                                                        type="text"
-                                                        value={f.name.clone()}
-                                                        onblur={handle_file_rename_blur.clone()}
-                                                        onkeypress={handle_file_rename_keypress.clone()}
-                                                        data-path={f.path.clone()}
-                                                    />
-                                                }
-                                            } else {
-                                                html! {
-                                                    <a
-                                                        href="#"
-                                                        onclick={handle_file_click.clone()}
-                                                        ondblclick={handle_file_double_click.clone()}
-                                                        data-is-dir={f.is_dir.to_string()}
-                                                        data-path={f.path.clone()}
-                                                    >
-                                                        {&f.name}
-                                                    </a>
-                                                }
-                                            }}
-                                        </td>
-                                        <td class="size">{convert_file_size(f.size)}</td>
-                                        <td class="datetime">{&f.created}</td>
-                                        <td class="datetime">{&f.modified}</td>
-                                        <td class="datetime">{&f.accessed}</td>
-                                    </tr>
-                                }
-                            })}
-                        </tbody>
-                    </table>
-                </div>
+            <main>
+                <table class="file-list">
+                    <thead>
+                        <tr>
+                            <th>
+                                <input
+                                    type="checkbox"
+                                    checked=false
+                                    aria-label="select all"
+                                />
+                            </th>
+                            <th>{"name"}</th>
+                            <th>{"size"}</th>
+                            <th>{"created at"}</th>
+                            <th>{"modified at"}</th>
+                            <th>{"accessed at"}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {for display_files.iter().map(|f| {
+                            html! {
+                                <tr class={if f.is_dir {"dir"} else {"file"}}>
+                                    <td class="select-file">
+                                        <input
+                                            type="checkbox"
+                                            checked={(*selected_files).contains(&f.path)}
+                                            onchange={handle_checkbox_click.clone()}
+                                            data-path={f.path.clone()}
+                                            aria-label="select file"
+                                        />
+                                    </td>
+                                    <td class="name">
+                                        {if f.is_dir {
+                                            html! {<i class="line-start folder nf nf-fa-folder" />}
+                                        } else {
+                                            html! {<i class="line-start file nf nf-fa-file" />}
+                                        }}
+                                        {if (*renaming_file).as_ref().map(|v| v == &f.path).unwrap_or(false) {
+                                            html! {
+                                                <input
+                                                    id="renaming_file"
+                                                    type="text"
+                                                    value={f.name.clone()}
+                                                    onblur={handle_file_rename_blur.clone()}
+                                                    onkeypress={handle_file_rename_keypress.clone()}
+                                                    data-path={f.path.clone()}
+                                                />
+                                            }
+                                        } else {
+                                            html! {
+                                                <a
+                                                    href="#"
+                                                    onclick={handle_file_click.clone()}
+                                                    ondblclick={handle_file_double_click.clone()}
+                                                    data-is-dir={f.is_dir.to_string()}
+                                                    data-path={f.path.clone()}
+                                                >
+                                                    {&f.name}
+                                                </a>
+                                            }
+                                        }}
+                                    </td>
+                                    <td class="size">{convert_file_size(f.size)}</td>
+                                    <td class="datetime">{&f.created}</td>
+                                    <td class="datetime">{&f.modified}</td>
+                                    <td class="datetime">{&f.accessed}</td>
+                                </tr>
+                            }
+                        })}
+                    </tbody>
+                </table>
             </main>
-            <footer>
+            <footer ref={footer_ref.clone()}>
                 <div>{navigation_history.current()}</div>
             </footer>
         </div>
@@ -1141,4 +1157,84 @@ where
         push_toast.emit((ToastKind::Error, format!("{error_message}")));
         None
     })
+}
+
+/// # Summary
+///
+/// 指定したエレメントの高さ(padding, border, margin を含む)を取得する
+///
+/// # Arguments
+///
+/// - `node_ref`: 対象エレメントの NodeRef
+///
+/// # Returns
+///
+/// - `f64`: エレメントの高さ
+fn get_element_height(node_ref: &NodeRef) -> f64 {
+    match node_ref.cast::<Element>() {
+        Some(element) => {
+            // padding と border を含むエレメントの高さを取得
+            let rect_height = element.get_bounding_client_rect().height();
+            console::debug_1(&format!("rect height: {rect_height}").into());
+
+            // margin の高さ
+            let mut margin_height: f64 = Default::default();
+
+            if let Some(v) =
+                web_sys::window().and_then(|v| v.get_computed_style(&element).ok().flatten())
+            {
+                let margin_top = v.get_property_value("margin-top").unwrap_or_default();
+                console::debug_1(&format!("margin-top: {margin_top}").into());
+                let margin_bottom = v.get_property_value("margin-bottom").unwrap_or_default();
+                console::debug_1(&format!("margin-bottom: {margin_bottom}").into());
+                let parse_margin = |v: String| {
+                    v.trim()
+                        .trim_end_matches("px")
+                        .parse::<f64>()
+                        .unwrap_or_default()
+                };
+                margin_height = parse_margin(margin_top) + parse_margin(margin_bottom);
+            }
+
+            rect_height + margin_height
+        }
+        None => Default::default(),
+    }
+}
+
+/// # Summary
+///
+/// ファイルリスト表示領域の高さを計算し、設定する
+///
+/// # Arguments
+///
+/// - `header_ref`: <header> の NodeRef
+/// - `footer_ref`: <footer> の NodeRef
+fn set_content_height(header_ref: &NodeRef, footer_ref: &NodeRef) {
+    let viewport_height = web_sys::window()
+        .and_then(|v| v.visual_viewport().map(|v| v.height()))
+        .or_else(|| {
+            web_sys::window()
+                .and_then(|v| v.inner_height().ok())
+                .and_then(|v| v.as_f64())
+        })
+        .unwrap_or_default();
+    console::debug_1(&format!("viewport height: {viewport_height}").into());
+
+    // ファイルリスト表示領域の高さ
+    let content_height =
+        viewport_height - get_element_height(&header_ref) - get_element_height(&footer_ref);
+    console::debug_1(&format!("content height: {content_height}").into());
+
+    // <html> の style 属性にファイルリスト表示領域の高さをセット
+    if let Some(v) = web_sys::window()
+        .and_then(|v| v.document())
+        .and_then(|v| v.document_element())
+    {
+        if let Some(html) = v.dyn_into::<HtmlElement>().ok() {
+            let _ = html
+                .style()
+                .set_property("--content-height", &format!("{content_height}px"));
+        }
+    }
 }

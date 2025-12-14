@@ -199,14 +199,8 @@
   .flex {
     display: flex;
   }
-  .max-h-\[80vh\] {
-    max-height: 80vh;
-  }
   .min-h-screen {
     min-height: 100vh;
-  }
-  .w-full {
-    width: 100%;
   }
   .min-w-screen {
     min-width: 100vw;
@@ -214,11 +208,15 @@
   .flex-1 {
     flex: 1;
   }
+  .resize {
+    resize: both;
+  }
   .flex-col {
     flex-direction: column;
   }
-  .overflow-auto {
-    overflow: auto;
+  .border {
+    border-style: var(--tw-border-style);
+    border-width: 1px;
   }
   .text-base {
     font-size: var(--text-base);
@@ -271,6 +269,13 @@
   }
   header {
     margin: calc(var(--spacing) * 2);
+  }
+  main {
+    max-height: var(--content-height);
+    min-height: calc(var(--spacing) * 0);
+    width: 100%;
+    flex: 1;
+    overflow: auto;
   }
   footer {
     margin: calc(var(--spacing) * 2);
@@ -436,6 +441,11 @@
     color: var(--color-dark-neutral-300);
   }
 }
+@property --tw-border-style {
+  syntax: "*";
+  inherits: false;
+  initial-value: solid;
+}
 @property --tw-blur {
   syntax: "*";
   inherits: false;
@@ -558,11 +568,6 @@
   inherits: false;
   initial-value: 0 0 #0000;
 }
-@property --tw-border-style {
-  syntax: "*";
-  inherits: false;
-  initial-value: solid;
-}
 @property --tw-backdrop-blur {
   syntax: "*";
   inherits: false;
@@ -602,6 +607,7 @@
 @layer properties {
   @supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {
     *, ::before, ::after, ::backdrop {
+      --tw-border-style: solid;
       --tw-blur: initial;
       --tw-brightness: initial;
       --tw-contrast: initial;
@@ -630,7 +636,6 @@
       --tw-ring-offset-width: 0px;
       --tw-ring-offset-color: #fff;
       --tw-ring-offset-shadow: 0 0 #0000;
-      --tw-border-style: solid;
       --tw-backdrop-blur: initial;
       --tw-backdrop-brightness: initial;
       --tw-backdrop-contrast: initial;

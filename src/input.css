@@ -132,6 +132,9 @@
   header {
     @apply m-2;
   }
+  main {
+    @apply flex-1 max-h-[var(--content-height)] min-h-0 overflow-auto w-full;
+  }
   footer {
     @apply bg-dark-neutral-950 m-2 text-center text-sm;
   }

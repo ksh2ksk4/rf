@@ -6,7 +6,8 @@ version = "0.1.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
 console_error_panic_hook = "0.1.7"
-gloo-timers = {version = "0.3.0", features = ["futures"]}
+gloo = "0.11.0"
+gloo-timers = { version = "0.3.0", features = ["futures"] }
 gloo-utils = "0.2.0"
 js-sys = "0.3"
 serde = { version = "1", features = ["derive"] }
@@ -14,7 +15,11 @@ serde_json = "1.0.145"
 serde-wasm-bindgen = "0.6"
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
-web-sys = "0.3"
+web-sys = { version = "0.3", features = [
+    "CssStyleDeclaration",
+    "VisualViewport",
+    "DomRect",
+] }
 yew = { version = "0.21", features = ["csr"] }
 
 [workspace]
