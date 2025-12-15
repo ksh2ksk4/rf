@@ -10,6 +10,13 @@ use wasm_bindgen_futures::spawn_local;
 use web_sys::{console, Element, HtmlElement, HtmlInputElement, InputEvent};
 use yew::prelude::*;
 
+#[cfg(debug_assertions)]
+macro_rules! debug {
+    ($var:expr) => {
+        console::debug_1(&format!("{}: {:?}", stringify!($var), &$var).into());
+    };
+}
+
 // トーストを表示する時間(ms)
 const TOAST_DURATION: u32 = 5000;
 // 初期表示パス
@@ -329,12 +336,13 @@ pub fn app() -> Html {
                 renaming_file,
                 selected_files,
             )| {
-                //console::info_1(&format!("all_files: {all_files:?}").into());
-                //console::info_1(&format!("display_files: {display_files:?}").into());
-                //console::info_1(&format!("filter: {filter:?}").into());
-                //console::info_1(&format!("navigation_history: {navigation_history:?}").into());
-                console::info_1(&format!("renaming_file: {renaming_file:?}").into());
-                console::info_1(&format!("selected_files: {selected_files:?}").into());
+                //debug!(all_files);
+                //debug!(display_files);
+                //debug!(filter);
+                //debug!(navigation_history);
+                //debug!(renaming_file);
+                debug!(renaming_file);
+                debug!(selected_files);
 
                 || {}
             },
@@ -1175,7 +1183,7 @@ fn get_element_height(node_ref: &NodeRef) -> f64 {
         Some(element) => {
             // padding と border を含むエレメントの高さを取得
             let rect_height = element.get_bounding_client_rect().height();
-            console::debug_1(&format!("rect height: {rect_height}").into());
+            debug!(rect_height);
 
             // margin の高さ
             let mut margin_height: f64 = Default::default();
@@ -1184,9 +1192,9 @@ fn get_element_height(node_ref: &NodeRef) -> f64 {
                 web_sys::window().and_then(|v| v.get_computed_style(&element).ok().flatten())
             {
                 let margin_top = v.get_property_value("margin-top").unwrap_or_default();
-                console::debug_1(&format!("margin-top: {margin_top}").into());
+                debug!(margin_top);
                 let margin_bottom = v.get_property_value("margin-bottom").unwrap_or_default();
-                console::debug_1(&format!("margin-bottom: {margin_bottom}").into());
+                debug!(margin_bottom);
                 let parse_margin = |v: String| {
                     v.trim()
                         .trim_end_matches("px")
@@ -1219,12 +1227,12 @@ fn set_content_height(header_ref: &NodeRef, footer_ref: &NodeRef) {
                 .and_then(|v| v.as_f64())
         })
         .unwrap_or_default();
-    console::debug_1(&format!("viewport height: {viewport_height}").into());
+    debug!(viewport_height);
 
     // ファイルリスト表示領域の高さ
     let content_height =
         viewport_height - get_element_height(&header_ref) - get_element_height(&footer_ref);
-    console::debug_1(&format!("content height: {content_height}").into());
+    debug!(content_height);
 
     // <html> の style 属性にファイルリスト表示領域の高さをセット
     if let Some(v) = web_sys::window()
