@@ -15,6 +15,7 @@ const TOAST_DURATION: u32 = 5000;
 // 初期表示パス
 const INIT_PATH: &str = "/Users/ksh2ksk4/Downloads";
 // TAURI コマンド
+const TAURI_COMMAND_COPY_FILES: &str = "copy_files";
 const TAURI_COMMAND_DELETE_FILES: &str = "delete_files";
 const TAURI_COMMAND_GET_PARENT_DIR: &str = "get_parent_dir";
 const TAURI_COMMAND_OPEN_FILE: &str = "open_file";
@@ -229,6 +230,13 @@ macro_rules! debug {
     };
 }
 
+macro_rules! error {
+    ($e:expr, $push_toast:expr) => {
+        console::error_1(&format!("{:?}", &$e).into());
+        ($push_toast).emit((ToastKind::Error, format!("{:?}", &$e)));
+    };
+}
+
 /// # Summary
 ///
 /// メインコンテンツを表示する
@@ -242,6 +250,8 @@ pub fn app() -> Html {
     let all_files = use_state(|| Vec::<FileInfo>::new());
     // シングルクリック処理用のキャンセラブルタイマー
     let click_timeout = use_mut_ref(|| None::<Timeout>);
+    // コピー対象のファイル
+    let copy_files = use_state(|| HashSet::<String>::new());
     // ファイルリストに表示するファイル(カレントディレクトリのファイルをフィルタリングしたもの)
     let display_files = use_state(|| Vec::<FileInfo>::new());
     // ファイル名に対するフィルタ
@@ -313,6 +323,7 @@ pub fn app() -> Html {
     // ステート更新時にログを出力するフック
     {
         let all_files = all_files.clone();
+        let copy_files = copy_files.clone();
         let display_files = display_files.clone();
         let filter = filter.clone();
         let navigation_history = navigation_history.clone();
@@ -322,6 +333,7 @@ pub fn app() -> Html {
         use_effect_with(
             (
                 all_files,
+                copy_files,
                 display_files,
                 filter,
                 navigation_history,
@@ -330,6 +342,7 @@ pub fn app() -> Html {
             ),
             move |(
                 all_files,
+                copy_files,
                 display_files,
                 filter,
                 navigation_history,
@@ -337,6 +350,7 @@ pub fn app() -> Html {
                 selected_files,
             )| {
                 //debug!(all_files);
+                debug!(copy_files);
                 //debug!(display_files);
                 //debug!(filter);
                 //debug!(navigation_history);
@@ -482,6 +496,39 @@ pub fn app() -> Html {
             let push_toast = push_toast.clone();
             spawn_local(async move {
                 display_files.set(tc_read_dir(&current_path, push_toast).await);
+            });
+        })
+    };
+
+    // copy ボタンクリックのイベントハンドラ
+    let handle_copy_click = {
+        let copy_files = copy_files.clone();
+        let selected_files = selected_files.clone();
+        Callback::from(move |_| {
+            copy_files.set((*selected_files).clone());
+        })
+    };
+
+    // paste ボタンクリックのイベントハンドラ
+    let handle_paste_click = {
+        let copy_files = copy_files.clone();
+        let display_files = display_files.clone();
+        let navigation_history = navigation_history.clone();
+        let push_toast = push_toast.clone();
+        let selected_files = selected_files.clone();
+        Callback::from(move |_| {
+            let copy_files = copy_files.clone();
+            let display_files = display_files.clone();
+            let nh = (*navigation_history).clone();
+            let current_path = nh.current().to_string();
+            let push_toast = push_toast.clone();
+            let selected_files = selected_files.clone();
+            let paths: Vec<String> = (*copy_files).iter().cloned().collect();
+            spawn_local(async move {
+                tc_copy_files(paths, &current_path, push_toast.clone()).await;
+                display_files.set(tc_read_dir(&current_path, push_toast).await);
+                copy_files.set(Default::default());
+                selected_files.set(Default::default());
             });
         })
     };
@@ -818,6 +865,30 @@ pub fn app() -> Html {
                     </button>
                     <button
                         class="icon"
+                        title="copy"
+                        aria-label="copy"
+                        onclick={handle_copy_click}
+                        disabled={selected_files.is_empty()}
+                    >
+                        <i
+                            class="nf nf-fa-copy"
+                            aria-hidden="true"
+                        />
+                    </button>
+                    <button
+                        class="icon"
+                        title="paste"
+                        aria-label="paste"
+                        onclick={handle_paste_click}
+                        disabled={copy_files.is_empty()}
+                    >
+                        <i
+                            class="nf nf-fa-paste"
+                            aria-hidden="true"
+                        />
+                    </button>
+                    <button
+                        class="icon"
                         title="delete files"
                         aria-label="delete files"
                         onclick={handle_delete_files_click}
@@ -931,6 +1002,40 @@ pub fn app() -> Html {
             </footer>
         </div>
     }
+}
+
+/// # Summary
+///
+/// 指定したファイルを指定したディレクトリにコピーする
+///
+/// # Arguments
+///
+/// - `paths`: 対象ファイルのパス
+/// - `to`: 対象ディレクトリ
+/// - `push_toast`: エラーメッセージ表示用のトースト
+///
+/// # Returns
+///
+/// - `bool`: 正常にコピーしたかどうか
+async fn tc_copy_files(
+    paths: Vec<String>,
+    to: &String,
+    push_toast: Callback<(ToastKind, String)>,
+) -> bool {
+    let args = match JsValue::from_serde(&serde_json::json!({"paths": paths, "to": to})) {
+        Ok(v) => v,
+        Err(e) => {
+            error!(e, push_toast);
+            return false;
+        }
+    };
+    invoke_r(TAURI_COMMAND_COPY_FILES, args)
+        .await
+        .map(|_| true)
+        .unwrap_or_else(|e| {
+            error!(e, push_toast);
+            false
+        })
 }
 
 /// # Summary

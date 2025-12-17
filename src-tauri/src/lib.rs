@@ -1,5 +1,6 @@
 use chrono::{DateTime, Local};
 use serde::Serialize;
+use std::ffi::OsString;
 use std::fs;
 use std::os::unix::fs::{FileTypeExt, PermissionsExt};
 use std::os::unix::process::ExitStatusExt;
@@ -55,6 +56,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
+            copy_files,
             delete_files,
             get_parent_dir,
             open_file,
@@ -64,6 +66,98 @@ pub fn run() {
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+/// # Summary
+///
+/// 指定したファイルを指定したディレクトリにコピーする
+///
+/// # Arguments
+///
+/// - `paths`: 対象ファイルのパス
+/// - `to`: 対象ディレクトリ
+///
+/// # Returns
+///
+/// - `Ok(())`: `()`
+/// - `Err(String)`: エラーメッセージ
+#[tauri::command(rename_all = "snake_case")]
+fn copy_files(paths: Vec<String>, to: String) -> Result<(), String> {
+    let to_path = Path::new(&to);
+
+    if !to_path.exists() {
+        return Err(format!("Destination directory does not exist: {to}"));
+    }
+
+    if !to_path.is_dir() {
+        return Err(format!("Destination does not a directory: {to}"));
+    }
+
+    for p in paths {
+        let source = Path::new(&p);
+        let file_name = source
+            .file_name()
+            .ok_or_else(|| format!("Source path is invalid: {p}"))?;
+        let mut destination = to_path.join(file_name);
+
+        if destination.exists() {
+            // コピー先に同名のファイル・ディレクトリが存在する場合、プレフィックスを付与してコピー
+            let mut new_file_name = OsString::from("_copied_");
+            new_file_name.push(file_name);
+            destination = to_path.join(&new_file_name);
+        }
+
+        if source.is_dir() {
+            copy_dir_all(source, &destination)?;
+        } else if source.is_file() {
+            fs::copy(source, &destination).map_err(|e| e.to_string())?;
+        } else {
+            return Err(format!("Unsupported source file: {p}"));
+        }
+    }
+
+    Ok(())
+}
+
+/// # Summary
+///
+/// 指定したディレクトリを指定したディレクトリにコピーする
+///
+/// # Arguments
+///
+/// - `from`: 対象ディレクトリのパス
+/// - `to`: 対象ディレクトリ
+///
+/// # Returns
+///
+/// - `Ok(())`: `()`
+/// - `Err(String)`: エラーメッセージ
+fn copy_dir_all(from: &Path, to: &Path) -> Result<(), String> {
+    fs::create_dir_all(to).map_err(|e| e.to_string())?;
+
+    for v in fs::read_dir(from).map_err(|e| e.to_string())? {
+        let entry = v.map_err(|e| e.to_string())?;
+        let file_type = entry.file_type().map_err(|e| e.to_string())?;
+        let file_name = entry.file_name();
+        let mut destination = to.join(&file_name);
+
+        if destination.exists() {
+            // コピー先に同名のファイル・ディレクトリが存在する場合、プレフィックスを付与してコピー
+            let mut new_file_name = OsString::from("_copied_");
+            new_file_name.push(&file_name);
+            destination = to.join(&new_file_name);
+        }
+
+        let path = entry.path();
+
+        if file_type.is_dir() {
+            copy_dir_all(&path, &destination)?;
+        } else {
+            fs::copy(&path, &destination).map_err(|e| e.to_string())?;
+        }
+    }
+
+    Ok(())
 }
 
 /// # Summary
