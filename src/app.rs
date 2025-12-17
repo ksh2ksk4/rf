@@ -10,13 +10,6 @@ use wasm_bindgen_futures::spawn_local;
 use web_sys::{console, Element, HtmlElement, HtmlInputElement, InputEvent};
 use yew::prelude::*;
 
-#[cfg(debug_assertions)]
-macro_rules! debug {
-    ($var:expr) => {
-        console::debug_1(&format!("{}: {:?}", stringify!($var), &$var).into());
-    };
-}
-
 // トーストを表示する時間(ms)
 const TOAST_DURATION: u32 = 5000;
 // 初期表示パス
@@ -229,6 +222,13 @@ struct Toast {
     message: String,
 }
 
+#[cfg(debug_assertions)]
+macro_rules! debug {
+    ($var:expr) => {
+        console::debug_1(&format!("{}: {:?}", stringify!($var), &$var).into());
+    };
+}
+
 /// # Summary
 ///
 /// メインコンテンツを表示する
@@ -299,7 +299,7 @@ pub fn app() -> Html {
             // ファイルリストを初期表示
             spawn_local(async move {
                 let path = navigation_history.paths.first().unwrap();
-                let file_infos = read_dir(path, push_toast).await;
+                let file_infos = tc_read_dir(path, push_toast).await;
                 all_files.set(file_infos.clone());
                 display_files.set(file_infos);
             });
@@ -409,7 +409,7 @@ pub fn app() -> Html {
             navigation_history.set(nh);
             let push_toast = push_toast.clone();
             spawn_local(async move {
-                display_files.set(read_dir(&path, push_toast).await);
+                display_files.set(tc_read_dir(&path, push_toast).await);
             });
         })
     };
@@ -426,7 +426,7 @@ pub fn app() -> Html {
             navigation_history.set(nh);
             let push_toast = push_toast.clone();
             spawn_local(async move {
-                display_files.set(read_dir(&path, push_toast).await);
+                display_files.set(tc_read_dir(&path, push_toast).await);
             });
         })
     };
@@ -441,8 +441,9 @@ pub fn app() -> Html {
             let navigation_history = navigation_history.clone();
             let push_toast = push_toast.clone();
             spawn_local(async move {
-                let path = get_parent_dir(navigation_history.current(), push_toast.clone()).await;
-                display_files.set(read_dir(&path, push_toast).await);
+                let path =
+                    tc_get_parent_dir(navigation_history.current(), push_toast.clone()).await;
+                display_files.set(tc_read_dir(&path, push_toast).await);
                 let mut nh = (*navigation_history).clone();
                 nh.push(&path);
                 navigation_history.set(nh);
@@ -460,8 +461,8 @@ pub fn app() -> Html {
             let navigation_history = navigation_history.clone();
             let push_toast = push_toast.clone();
             spawn_local(async move {
-                let path = select_dir().await;
-                display_files.set(read_dir(&path, push_toast).await);
+                let path = tc_select_dir().await;
+                display_files.set(tc_read_dir(&path, push_toast).await);
                 let mut nh = (*navigation_history).clone();
                 nh.push(&path);
                 navigation_history.set(nh);
@@ -480,7 +481,7 @@ pub fn app() -> Html {
             let current_path = nh.current().to_string();
             let push_toast = push_toast.clone();
             spawn_local(async move {
-                display_files.set(read_dir(&current_path, push_toast).await);
+                display_files.set(tc_read_dir(&current_path, push_toast).await);
             });
         })
     };
@@ -499,8 +500,8 @@ pub fn app() -> Html {
             let selected_files = selected_files.clone();
             let paths: Vec<String> = (*selected_files).iter().cloned().collect();
             spawn_local(async move {
-                if delete_files(paths, push_toast.clone()).await {
-                    display_files.set(read_dir(&current_path, push_toast).await);
+                if tc_delete_files(paths, push_toast.clone()).await {
+                    display_files.set(tc_read_dir(&current_path, push_toast).await);
                     // 選択状態をクリア
                     selected_files.set(HashSet::new());
                 }
@@ -626,8 +627,8 @@ pub fn app() -> Html {
             let push_toast = push_toast.clone();
             let selected_files = selected_files.clone();
             spawn_local(async move {
-                if rename_file(&path, &new_name, push_toast.clone()).await {
-                    display_files.set(read_dir(&current_path, push_toast).await);
+                if tc_rename_file(&path, &new_name, push_toast.clone()).await {
+                    display_files.set(tc_read_dir(&current_path, push_toast).await);
 
                     let mut new_value = HashSet::<String>::new();
                     new_value.insert(
@@ -692,7 +693,7 @@ pub fn app() -> Html {
                 let path = path.clone();
                 let push_toast = push_toast.clone();
                 spawn_local(async move {
-                    open_file(path, push_toast).await;
+                    tc_open_file(path, push_toast).await;
                 });
                 return;
             }
@@ -704,7 +705,7 @@ pub fn app() -> Html {
             let path = path.clone();
             let push_toast = push_toast.clone();
             spawn_local(async move {
-                display_files.set(read_dir(&path, push_toast).await);
+                display_files.set(tc_read_dir(&path, push_toast).await);
             });
         })
     };
@@ -944,7 +945,7 @@ pub fn app() -> Html {
 /// # Returns
 ///
 /// - `bool`: 正常に削除したかどうか
-async fn delete_files(paths: Vec<String>, push_toast: Callback<(ToastKind, String)>) -> bool {
+async fn tc_delete_files(paths: Vec<String>, push_toast: Callback<(ToastKind, String)>) -> bool {
     let args = match JsValue::from_serde(&serde_json::json!({"paths": paths})) {
         Ok(v) => v,
         Err(e) => {
@@ -975,7 +976,7 @@ async fn delete_files(paths: Vec<String>, push_toast: Callback<(ToastKind, Strin
 /// # Returns
 ///
 /// - `String`: 親ディレクトリのパス(エラーの場合は空文字)
-async fn get_parent_dir(path: &str, push_toast: Callback<(ToastKind, String)>) -> String {
+async fn tc_get_parent_dir(path: &str, push_toast: Callback<(ToastKind, String)>) -> String {
     let args = match JsValue::from_serde(&serde_json::json!({"path": path})) {
         Ok(v) => v,
         Err(e) => {
@@ -998,7 +999,7 @@ async fn get_parent_dir(path: &str, push_toast: Callback<(ToastKind, String)>) -
 ///
 /// - `path`: 対象ファイルのパス
 /// - `push_toast`: エラーメッセージ表示用のトースト
-async fn open_file(path: String, push_toast: Callback<(ToastKind, String)>) {
+async fn tc_open_file(path: String, push_toast: Callback<(ToastKind, String)>) {
     let args = match JsValue::from_serde(&serde_json::json!({"path": path})) {
         Ok(v) => v,
         Err(e) => {
@@ -1027,7 +1028,7 @@ async fn open_file(path: String, push_toast: Callback<(ToastKind, String)>) {
 /// # Returns
 ///
 /// - `Vec<FileInfo>`: ファイルリスト(エラーの場合は空のリスト)
-async fn read_dir(path: &String, push_toast: Callback<(ToastKind, String)>) -> Vec<FileInfo> {
+async fn tc_read_dir(path: &String, push_toast: Callback<(ToastKind, String)>) -> Vec<FileInfo> {
     let args = match JsValue::from_serde(&serde_json::json!({"path": path})) {
         Ok(v) => v,
         Err(e) => {
@@ -1066,7 +1067,7 @@ async fn read_dir(path: &String, push_toast: Callback<(ToastKind, String)>) -> V
 /// # Returns
 ///
 /// - `bool`: リネームできたかどうか
-async fn rename_file(
+async fn tc_rename_file(
     path: &String,
     new_name: &String,
     push_toast: Callback<(ToastKind, String)>,
@@ -1096,7 +1097,7 @@ async fn rename_file(
 /// # Returns
 ///
 /// - `String`: 選択したディレクトリのパス
-async fn select_dir() -> String {
+async fn tc_select_dir() -> String {
     invoke_no_args(TAURI_COMMAND_SELECT_DIR)
         .await
         .as_string()
