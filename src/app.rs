@@ -2,7 +2,6 @@ use gloo::events::EventListener;
 use gloo_timers::callback::Timeout;
 use gloo_timers::future::TimeoutFuture;
 use gloo_utils::format::JsValueSerdeExt;
-use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::path::Path;
 use wasm_bindgen::prelude::*;
@@ -10,10 +9,8 @@ use wasm_bindgen_futures::spawn_local;
 use web_sys::{console, Element, HtmlElement, HtmlInputElement, InputEvent};
 use yew::prelude::*;
 
-// トーストを表示する時間(ms)
-const TOAST_DURATION: u32 = 5000;
-// 初期表示パス
-const INIT_PATH: &str = "/Users/ksh2ksk4/Downloads";
+use crate::models::*;
+
 // TAURI コマンド
 const TAURI_COMMAND_COPY_FILES: &str = "copy_files";
 const TAURI_COMMAND_DELETE_FILES: &str = "delete_files";
@@ -39,188 +36,6 @@ extern "C" {
     async fn invoke_r(cmd: &str, args: JsValue) -> Result<JsValue, JsValue>;
     #[wasm_bindgen(catch, js_name = invoke, js_namespace = ["window", "__TAURI__", "core"])]
     async fn invoke_r_no_args(cmd: &str) -> Result<JsValue, JsValue>;
-}
-
-/// # Summary
-///
-/// ファイルに関するデータ
-///
-/// # Fields
-///
-/// - `name`: 名前
-/// - `path`: パス(フルパス)
-/// - `is_dir`: ディレクトリかどうかを表すフラグ
-/// - `is_file`: ファイルかどうかを表すフラグ
-/// - `is_symlink`: シンボリックリンクかどうかを表すフラグ
-/// - `is_block_device`: ブロックデバイスかどうかを表すフラグ(UNIX only)
-/// - `is_char_device`: キャラクタデバイスかどうかを表すフラグ(UNIX only)
-/// - `is_fifo`: FIFO かどうかを表すフラグ(UNIX only)
-/// - `is_socket`: ソケットかどうかを表すフラグ(UNIX only)
-/// - `size`: サイズ
-/// - `readonly`: 読取専用かどうかを表すフラグ
-/// - `mode`: モード(UNIX only)
-/// - `accessed`: アクセス日時
-/// - `created`: 作成日時
-/// - `modified`: 更新日時
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-struct FileInfo {
-    name: String,
-    path: String,
-    is_dir: bool,
-    is_file: bool,
-    is_symlink: bool,
-    is_block_device: bool,
-    is_char_device: bool,
-    is_fifo: bool,
-    is_socket: bool,
-    size: u64,
-    readonly: bool,
-    mode: u32,
-    accessed: String,
-    created: String,
-    modified: String,
-}
-
-/// # Summary
-///
-/// 表示履歴に関するデータ
-///
-/// # Fields
-///
-/// - `index`: 表示中のパスを指し示すインデックス
-/// - `paths`: 表示したパスのリスト
-#[derive(Clone, Debug, PartialEq)]
-struct NavigationHistory {
-    index: usize,
-    paths: Vec<String>,
-}
-
-impl NavigationHistory {
-    /// # Summary
-    ///
-    /// インスタンスを生成
-    ///
-    /// # Returns
-    ///
-    /// - `Self`: インスタンス
-    pub fn new() -> Self {
-        Self {
-            index: 0,
-            paths: vec![INIT_PATH.to_string()],
-        }
-    }
-
-    /// # Summary
-    ///
-    /// 一つ前のパスに戻れるかチェック
-    ///
-    /// # Returns
-    ///
-    /// - `bool`: 一つ前のパスに戻れるかどうか
-    pub fn can_back(&self) -> bool {
-        self.index > 0
-    }
-
-    /// # Summary
-    ///
-    /// 一つ後のパスに進めるかチェック
-    ///
-    /// # Returns
-    ///
-    /// - `bool`: 一つ後のパスに進めるかどうか
-    pub fn can_forward(&self) -> bool {
-        self.index + 1 < self.paths.len()
-    }
-
-    /// # Summary
-    ///
-    /// 現在のパスを返す
-    ///
-    /// # Returns
-    ///
-    /// - `&str`: パス
-    pub fn current(&self) -> &str {
-        &self.paths[self.index]
-    }
-
-    /// # Summary
-    ///
-    /// 一つ前のパスに戻る
-    ///
-    /// # Returns
-    ///
-    /// - `Some(String)`: 一つ前のパス
-    /// - `None`: 前のパスがない場合
-    pub fn back(&mut self) -> Option<String> {
-        if !self.can_back() {
-            None
-        } else {
-            self.index -= 1;
-            Some(self.current().to_string())
-        }
-    }
-
-    /// # Summary
-    ///
-    /// 一つ後のパスに進む
-    ///
-    /// # Returns
-    ///
-    /// - `Some(String)`: 一つ後のパス
-    /// - `None`: 後のパスがない場合
-    pub fn forward(&mut self) -> Option<String> {
-        if !self.can_forward() {
-            None
-        } else {
-            self.index += 1;
-            Some(self.current().to_string())
-        }
-    }
-
-    /// # Summary
-    ///
-    /// 履歴にパスを追加
-    ///
-    /// # Arguments
-    ///
-    /// - `path`: パス
-    pub fn push(&mut self, path: &str) {
-        if self.index + 1 < self.paths.len() {
-            // 最新の移動履歴ではない場合
-            self.paths.truncate(self.index + 1);
-        }
-
-        self.paths.push(path.to_string());
-        self.index = self.paths.len() - 1;
-    }
-}
-
-/// # Summary
-///
-/// トーストの種類
-#[allow(dead_code)]
-#[derive(Clone, Copy, Debug, PartialEq)]
-enum ToastKind {
-    Success,
-    Info,
-    Warning,
-    Error,
-}
-
-/// # Summary
-///
-/// 個々のトーストに関するデータ
-///
-/// # Fields
-///
-/// - `id`: ID
-/// - `kind`: 種類
-/// - `message`: メッセージ
-#[derive(Clone, Debug, PartialEq)]
-struct Toast {
-    id: usize,
-    kind: ToastKind,
-    message: String,
 }
 
 #[cfg(debug_assertions)]
@@ -262,25 +77,26 @@ pub fn app() -> Html {
     let renaming_file = use_state(|| Option::<String>::None);
     // 選択されたファイル
     let selected_files = use_state(|| HashSet::<String>::new());
-
+    // 表示待ちのトースト
     let toasts = use_state(|| Vec::<Toast>::new());
-    let next_toast_id = use_state(|| 1_usize);
+
+    // トーストを表示するコールバック
     let push_toast = {
         let toasts = toasts.clone();
-        let next_toast_id = next_toast_id.clone();
         Callback::from(move |(kind, message): (ToastKind, String)| {
+            let new_toast = Toast::new(kind, message);
+            let next_id = Toast::next_id();
+            // トーストを追加して再設定
             let mut v = (*toasts).clone();
-            let id = *next_toast_id;
-            v.push(Toast { id, kind, message });
+            v.push(new_toast);
             toasts.set(v);
-            next_toast_id.set(id + 1);
-
             let toasts = toasts.clone();
             spawn_local(async move {
-                TimeoutFuture::new(TOAST_DURATION).await;
-                let mut new_value = (*toasts).clone();
-                new_value.retain(|v| v.id != id);
-                toasts.set(new_value);
+                TimeoutFuture::new(Toast::DURATION).await;
+                // 表示済のトーストを除去して再設定
+                let mut rest = (*toasts).clone();
+                rest.retain(|v| v.id() < next_id);
+                toasts.set(rest);
             });
         })
     };
@@ -308,7 +124,10 @@ pub fn app() -> Html {
             });
             // ファイルリストを初期表示
             spawn_local(async move {
-                let path = navigation_history.paths.first().unwrap();
+                //note これは "temporary value dropped while borrowed" エラーになる
+                //let path = navigation_history.paths().first().unwrap();
+                let paths = navigation_history.paths();
+                let path = paths.first().unwrap();
                 let file_infos = tc_read_dir(path, push_toast).await;
                 all_files.set(file_infos.clone());
                 display_files.set(file_infos);
@@ -377,7 +196,7 @@ pub fn app() -> Html {
                 display_files.set(
                     (*all_files)
                         .iter()
-                        .filter(|f| f.name.to_lowercase().contains(&query))
+                        .filter(|f| f.name().to_lowercase().contains(&query))
                         .cloned()
                         .collect::<Vec<FileInfo>>(),
                 );
@@ -419,7 +238,7 @@ pub fn app() -> Html {
         Callback::from(move |_| {
             let display_files = display_files.clone();
             let mut nh = (*navigation_history).clone();
-            let path = nh.back().unwrap_or(INIT_PATH.to_string());
+            let path = nh.back();
             navigation_history.set(nh);
             let push_toast = push_toast.clone();
             spawn_local(async move {
@@ -436,7 +255,7 @@ pub fn app() -> Html {
         Callback::from(move |_| {
             let display_files = display_files.clone();
             let mut nh = (*navigation_history).clone();
-            let path = nh.forward().unwrap_or(nh.current().to_string());
+            let path = nh.forward();
             navigation_history.set(nh);
             let push_toast = push_toast.clone();
             spawn_local(async move {
@@ -762,16 +581,16 @@ pub fn app() -> Html {
             <div class="toast-area">
                 {for toasts.iter().map(|t| {
                     let toasts = toasts.clone();
-                    let id = t.id;
+                    let id = t.id();
                     let handle_close_click = Callback::from(move |_| {
                         let mut new_value = (*toasts).clone();
-                        new_value.retain(|v| v.id != id);
+                        new_value.retain(|v| v.id() < id);
                         toasts.set(new_value);
                     });
                     html! {
                         <div class={classes!(
                             "toast-base",
-                            match t.kind {
+                            match t.kind() {
                                 ToastKind::Success => "toast-success",
                                 ToastKind::Info => "toast-info",
                                 ToastKind::Warning => "toast-warning",
@@ -783,7 +602,7 @@ pub fn app() -> Html {
                                     "mr-2",
                                     "select-none",
                                     "nf",
-                                    match t.kind {
+                                    match t.kind() {
                                         ToastKind::Success => "nf-fa-ok_sign",
                                         ToastKind::Info => "nf-fa-circle_info",
                                         ToastKind::Warning => "nf-fa-warning",
@@ -792,7 +611,7 @@ pub fn app() -> Html {
                                 )}
                                 aria-hidden="true"
                             />
-                            <span class="flex-1">{t.message.clone()}</span>
+                            <span class="flex-1">{t.message().clone()}</span>
                             <button
                                 class="ml-3 opacity-80 hover:opacity-100"
                                 onclick={handle_close_click}
@@ -946,31 +765,31 @@ pub fn app() -> Html {
                     <tbody>
                         {for display_files.iter().map(|f| {
                             html! {
-                                <tr class={if f.is_dir {"dir"} else {"file"}}>
+                                <tr class={if f.is_dir() {"dir"} else {"file"}}>
                                     <td class="select-file">
                                         <input
                                             type="checkbox"
-                                            checked={(*selected_files).contains(&f.path)}
+                                            checked={(*selected_files).contains(&f.path())}
                                             onchange={handle_checkbox_click.clone()}
-                                            data-path={f.path.clone()}
+                                            data-path={f.path().clone()}
                                             aria-label="select file"
                                         />
                                     </td>
                                     <td class="name">
-                                        {if f.is_dir {
+                                        {if f.is_dir() {
                                             html! {<i class="line-start folder nf nf-fa-folder" />}
                                         } else {
                                             html! {<i class="line-start file nf nf-fa-file" />}
                                         }}
-                                        {if (*renaming_file).as_ref().map(|v| v == &f.path).unwrap_or(false) {
+                                        {if (*renaming_file).as_ref().map(|v| v == &f.path()).unwrap_or(false) {
                                             html! {
                                                 <input
                                                     id="renaming_file"
                                                     type="text"
-                                                    value={f.name.clone()}
+                                                    value={f.name().clone()}
                                                     onblur={handle_file_rename_blur.clone()}
                                                     onkeypress={handle_file_rename_keypress.clone()}
-                                                    data-path={f.path.clone()}
+                                                    data-path={f.path().clone()}
                                                 />
                                             }
                                         } else {
@@ -979,18 +798,18 @@ pub fn app() -> Html {
                                                     href="#"
                                                     onclick={handle_file_click.clone()}
                                                     ondblclick={handle_file_double_click.clone()}
-                                                    data-is-dir={f.is_dir.to_string()}
-                                                    data-path={f.path.clone()}
+                                                    data-is-dir={f.is_dir().to_string()}
+                                                    data-path={f.path().clone()}
                                                 >
-                                                    {&f.name}
+                                                    {&f.name()}
                                                 </a>
                                             }
                                         }}
                                     </td>
-                                    <td class="size">{convert_file_size(f.size)}</td>
-                                    <td class="datetime">{&f.created}</td>
-                                    <td class="datetime">{&f.modified}</td>
-                                    <td class="datetime">{&f.accessed}</td>
+                                    <td class="size">{convert_file_size(f.size())}</td>
+                                    <td class="datetime">{&f.created()}</td>
+                                    <td class="datetime">{&f.modified()}</td>
+                                    <td class="datetime">{&f.accessed()}</td>
                                 </tr>
                             }
                         })}
