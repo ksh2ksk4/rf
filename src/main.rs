@@ -1,5 +1,6 @@
 mod app;
 mod models;
+mod utils;
 
 use app::App;
 
