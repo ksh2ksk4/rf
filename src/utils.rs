@@ -2,23 +2,8 @@ use wasm_bindgen::prelude::*;
 use web_sys::{console, Element, HtmlElement};
 use yew::prelude::*;
 
+use crate::debug;
 use crate::models::ToastKind;
-
-#[cfg(debug_assertions)]
-#[macro_export]
-macro_rules! debug {
-    ($var:expr) => {
-        console::debug_1(&format!("{}: {:?}", stringify!($var), &$var).into());
-    };
-}
-
-#[macro_export]
-macro_rules! error {
-    ($e:expr, $push_toast:expr) => {
-        console::error_1(&format!("{:?}", &$e).into());
-        ($push_toast).emit((ToastKind::Error, format!("{:?}", &$e)));
-    };
-}
 
 /// # Summary
 ///
