@@ -1,6 +1,7 @@
 mod app;
 mod macros;
 mod models;
+mod tauri_api;
 mod utils;
 
 use app::App;
