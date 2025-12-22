@@ -11,6 +11,7 @@ gloo-timers = { version = "0.3.0", features = ["futures"] }
 gloo-utils = "0.2.0"
 js-sys = "0.3"
 once_cell = "1.21.3"
+rf-common = { path = "rf-common" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1.0.145"
 serde-wasm-bindgen = "0.6"
@@ -24,4 +25,4 @@ web-sys = { version = "0.3", features = [
 yew = { version = "0.21", features = ["csr"] }
 
 [workspace]
-members = ["src-tauri"]
+members = ["rf-common","src-tauri"]

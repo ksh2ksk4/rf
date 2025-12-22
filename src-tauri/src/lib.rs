@@ -1,5 +1,5 @@
 use chrono::{DateTime, Local};
-use serde::Serialize;
+use rf_common::FileInfo;
 use std::ffi::OsString;
 use std::fs;
 use std::os::unix::fs::{FileTypeExt, PermissionsExt};
@@ -7,46 +7,6 @@ use std::os::unix::process::ExitStatusExt;
 use std::path::Path;
 use std::process::Command;
 use trash;
-
-/// # Summary
-///
-/// ファイルに関するデータ
-///
-/// # Fields
-///
-/// - `name`: 名前
-/// - `path`: パス(フルパス)
-/// - `is_dir`: ディレクトリかどうかを表すフラグ
-/// - `is_file`: ファイルかどうかを表すフラグ
-/// - `is_symlink`: シンボリックリンクかどうかを表すフラグ
-/// - `is_block_device`: ブロックデバイスかどうかを表すフラグ(UNIX only)
-/// - `is_char_device`: キャラクタデバイスかどうかを表すフラグ(UNIX only)
-/// - `is_fifo`: FIFO かどうかを表すフラグ(UNIX only)
-/// - `is_socket`: ソケットかどうかを表すフラグ(UNIX only)
-/// - `size`: サイズ
-/// - `readonly`: 読取専用かどうかを表すフラグ
-/// - `mode`: モード(UNIX only)
-/// - `accessed`: アクセス日時
-/// - `created`: 作成日時
-/// - `modified`: 更新日時
-#[derive(Debug, Eq, Ord, PartialEq, PartialOrd, Serialize)]
-struct FileInfo {
-    name: String,
-    path: String,
-    is_dir: bool,
-    is_file: bool,
-    is_symlink: bool,
-    is_block_device: bool,
-    is_char_device: bool,
-    is_fifo: bool,
-    is_socket: bool,
-    size: u64,
-    readonly: bool,
-    mode: u32,
-    accessed: String,
-    created: String,
-    modified: String,
-}
 
 /// # Summary
 ///
@@ -288,38 +248,42 @@ fn read_dir(path: String) -> Result<Vec<FileInfo>, String> {
         let metadata = de.metadata().map_err(|e| e.to_string())?;
         let file_type = metadata.file_type();
         let permissions = metadata.permissions();
-        entries.push(FileInfo {
-            name: de.file_name().to_string_lossy().to_string(),
-            path: de.path().to_string_lossy().to_string(),
-            is_dir: metadata.is_dir(),
-            is_file: metadata.is_file(),
-            is_symlink: metadata.is_symlink(),
-            is_block_device: file_type.is_block_device(),
-            is_char_device: file_type.is_char_device(),
-            is_fifo: file_type.is_fifo(),
-            is_socket: file_type.is_socket(),
-            size: metadata.len(),
-            readonly: permissions.readonly(),
-            mode: permissions.mode(),
-            accessed: metadata.accessed().map_err(|e| e.to_string()).map(|st| {
+        entries.push(FileInfo::new(
+            de.file_name().to_string_lossy().to_string(),
+            de.path().to_string_lossy().to_string(),
+            metadata.is_dir(),
+            metadata.is_file(),
+            metadata.is_symlink(),
+            file_type.is_block_device(),
+            file_type.is_char_device(),
+            file_type.is_fifo(),
+            file_type.is_socket(),
+            metadata.len(),
+            permissions.readonly(),
+            permissions.mode(),
+            metadata.accessed().map_err(|e| e.to_string()).map(|st| {
                 DateTime::<Local>::from(st)
                     .format("%Y-%m-%d %H:%M:%S")
                     .to_string()
             })?,
-            created: metadata.created().map_err(|e| e.to_string()).map(|st| {
+            metadata.created().map_err(|e| e.to_string()).map(|st| {
                 DateTime::<Local>::from(st)
                     .format("%Y-%m-%d %H:%M:%S")
                     .to_string()
             })?,
-            modified: metadata.modified().map_err(|e| e.to_string()).map(|st| {
+            metadata.modified().map_err(|e| e.to_string()).map(|st| {
                 DateTime::<Local>::from(st)
                     .format("%Y-%m-%d %H:%M:%S")
                     .to_string()
             })?,
-        });
+        ));
     }
 
-    entries.sort_by(|a, b| a.is_file.cmp(&b.is_file).then_with(|| a.name.cmp(&b.name)));
+    entries.sort_by(|a, b| {
+        a.is_file()
+            .cmp(&b.is_file())
+            .then_with(|| a.name().cmp(&b.name()))
+    });
 
     Ok(entries)
 }

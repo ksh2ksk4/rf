@@ -1,11 +1,12 @@
 use gloo::events::EventListener;
 use gloo_timers::callback::Timeout;
 use gloo_timers::future::TimeoutFuture;
+use rf_common::FileInfo;
 use std::collections::HashSet;
 use std::path::Path;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::spawn_local;
-use web_sys::{console, Element, HtmlInputElement, InputEvent};
+use web_sys::{Element, HtmlInputElement, InputEvent, console};
 use yew::prelude::*;
 
 use crate::debug;

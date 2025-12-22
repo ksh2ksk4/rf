@@ -1,4 +1,5 @@
 use gloo_utils::format::JsValueSerdeExt;
+use rf_common::*;
 use wasm_bindgen::prelude::*;
 use web_sys::console;
 use yew::prelude::*;
@@ -23,15 +24,6 @@ extern "C" {
     #[wasm_bindgen(catch, js_name = invoke, js_namespace = ["window", "__TAURI__", "core"])]
     async fn invoke_r_no_args(cmd: &str) -> Result<JsValue, JsValue>;
 }
-
-// TAURI コマンド
-const TAURI_COMMAND_COPY_FILES: &str = "copy_files";
-const TAURI_COMMAND_DELETE_FILES: &str = "delete_files";
-const TAURI_COMMAND_GET_PARENT_DIR: &str = "get_parent_dir";
-const TAURI_COMMAND_OPEN_FILE: &str = "open_file";
-const TAURI_COMMAND_READ_DIR: &str = "read_dir";
-const TAURI_COMMAND_RENAME_FILE: &str = "rename_file";
-const TAURI_COMMAND_SELECT_DIR: &str = "select_dir";
 
 /// # Summary
 ///
