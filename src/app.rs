@@ -6,13 +6,13 @@ use std::collections::HashSet;
 use std::path::Path;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::spawn_local;
-use web_sys::{Element, HtmlInputElement, InputEvent, console};
+use web_sys::{Element, HtmlInputElement, InputEvent};
 use yew::prelude::*;
 
-use crate::debug;
 use crate::models::*;
 use crate::tauri_api::*;
 use crate::utils::*;
+use crate::{debug, user_error, user_warning};
 
 /// # Summary
 ///
@@ -437,15 +437,12 @@ pub fn app() -> Html {
             let path = element.get_attribute("data-path").unwrap_or_default();
 
             if new_name.trim().is_empty() {
-                let error_message = "ファイル名を入力してください";
-                console::error_1(&error_message.into());
-                push_toast.emit((ToastKind::Error, format!("{error_message}")));
+                user_error!("ファイル名を入力してください", push_toast);
                 return;
             }
 
             if current_name == new_name {
-                let warning_message = "ファイル名が変更されていません";
-                console::warn_1(&warning_message.into());
+                user_warning!("ファイル名が変更されていません");
                 return;
             }
 

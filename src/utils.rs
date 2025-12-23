@@ -1,9 +1,9 @@
 use wasm_bindgen::prelude::*;
-use web_sys::{console, Element, HtmlElement};
+use web_sys::{Element, HtmlElement};
 use yew::prelude::*;
 
-use crate::debug;
 use crate::models::ToastKind;
+use crate::{debug, system_error};
 
 /// # Summary
 ///
@@ -62,9 +62,10 @@ where
     let type_name_short = type_name_full.rsplit("::").next().unwrap_or(type_name_full);
 
     e.target().and_then(|v| v.dyn_into::<T>().ok()).or_else(|| {
-        let error_message = format!("Target element is not {type_name_short}");
-        console::error_1(&error_message.clone().into());
-        push_toast.emit((ToastKind::Error, format!("{error_message}")));
+        system_error!(
+            format!("Target element is not {type_name_short}"),
+            push_toast
+        );
         None
     })
 }
