@@ -243,40 +243,57 @@ fn open_with_default(path: &str) -> std::io::Result<()> {
 fn read_dir(path: String) -> Result<Vec<FileInfo>, String> {
     let mut entries = Vec::<FileInfo>::new();
 
-    for d in fs::read_dir(&path).map_err(|e| e.to_string())? {
-        let de = d.map_err(|e| e.to_string())?;
-        let metadata = de.metadata().map_err(|e| e.to_string())?;
+    for result in fs::read_dir(&path).map_err(|e| e.to_string())? {
+        let dir_entry = result.map_err(|e| e.to_string())?;
+        let metadata = dir_entry.metadata().map_err(|e| e.to_string())?;
         let file_type = metadata.file_type();
         let permissions = metadata.permissions();
-        entries.push(FileInfo::new(
-            de.file_name().to_string_lossy().to_string(),
-            de.path().to_string_lossy().to_string(),
-            metadata.is_dir(),
-            metadata.is_file(),
-            metadata.is_symlink(),
-            file_type.is_block_device(),
-            file_type.is_char_device(),
-            file_type.is_fifo(),
-            file_type.is_socket(),
-            metadata.len(),
-            permissions.readonly(),
-            permissions.mode(),
-            metadata.accessed().map_err(|e| e.to_string()).map(|st| {
-                DateTime::<Local>::from(st)
-                    .format("%Y-%m-%d %H:%M:%S")
-                    .to_string()
-            })?,
-            metadata.created().map_err(|e| e.to_string()).map(|st| {
-                DateTime::<Local>::from(st)
-                    .format("%Y-%m-%d %H:%M:%S")
-                    .to_string()
-            })?,
-            metadata.modified().map_err(|e| e.to_string()).map(|st| {
-                DateTime::<Local>::from(st)
-                    .format("%Y-%m-%d %H:%M:%S")
-                    .to_string()
-            })?,
-        ));
+        entries.push(
+            FileInfo::builder()
+                .name(dir_entry.file_name().to_string_lossy().to_string())
+                .path(dir_entry.path().to_string_lossy().to_string())
+                .is_dir(metadata.is_dir())
+                .is_file(metadata.is_file())
+                .is_symlink(metadata.is_symlink())
+                .is_block_device(file_type.is_block_device())
+                .is_char_device(file_type.is_char_device())
+                .is_fifo(file_type.is_fifo())
+                .is_socket(file_type.is_socket())
+                .size(metadata.len())
+                .readonly(permissions.readonly())
+                .mode(permissions.mode())
+                .accessed(
+                    metadata
+                        .accessed()
+                        .map(|st| {
+                            DateTime::<Local>::from(st)
+                                .format("%Y-%m-%d %H:%M:%S")
+                                .to_string()
+                        })
+                        .map_err(|e| e.to_string())?,
+                )
+                .created(
+                    metadata
+                        .created()
+                        .map(|st| {
+                            DateTime::<Local>::from(st)
+                                .format("%Y-%m-%d %H:%M:%S")
+                                .to_string()
+                        })
+                        .map_err(|e| e.to_string())?,
+                )
+                .modified(
+                    metadata
+                        .modified()
+                        .map(|st| {
+                            DateTime::<Local>::from(st)
+                                .format("%Y-%m-%d %H:%M:%S")
+                                .to_string()
+                        })
+                        .map_err(|e| e.to_string())?,
+                )
+                .build(),
+        );
     }
 
     entries.sort_by(|a, b| {
