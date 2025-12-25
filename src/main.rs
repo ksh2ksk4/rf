@@ -1,4 +1,5 @@
 mod app;
+mod hooks;
 mod macros;
 mod models;
 mod tauri_api;

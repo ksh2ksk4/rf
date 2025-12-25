@@ -1,18 +1,17 @@
-use gloo::events::EventListener;
 use gloo_timers::callback::Timeout;
 use gloo_timers::future::TimeoutFuture;
 use rf_common::FileInfo;
 use std::collections::HashSet;
 use std::path::Path;
-use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::spawn_local;
 use web_sys::{Element, HtmlInputElement, InputEvent};
 use yew::prelude::*;
 
+use crate::hooks::*;
 use crate::models::*;
 use crate::tauri_api::*;
 use crate::utils::*;
-use crate::{debug, user_error, user_warning};
+use crate::{user_error, user_warning};
 
 /// # Summary
 ///
@@ -25,8 +24,6 @@ use crate::{debug, user_error, user_warning};
 pub fn app() -> Html {
     // カレントディレクトリのすべてのファイル
     let all_files = use_state(|| Vec::<FileInfo>::new());
-    // シングルクリック処理用のキャンセラブルタイマー
-    let click_timeout = use_mut_ref(|| None::<Timeout>);
     // コピー対象のファイル
     let copy_files = use_state(|| HashSet::<String>::new());
     // ファイルリストに表示するファイル(カレントディレクトリのファイルをフィルタリングしたもの)
@@ -41,6 +38,14 @@ pub fn app() -> Html {
     let selected_files = use_state(|| HashSet::<String>::new());
     // 表示待ちのトースト
     let toasts = use_state(|| Vec::<Toast>::new());
+
+    // シングルクリック処理用のキャンセラブルタイマー
+    let click_timeout = use_mut_ref(|| None::<Timeout>);
+
+    // <header> を参照する NodeRef
+    let header_ref = use_node_ref();
+    // <footer> を参照する NodeRef
+    let footer_ref = use_node_ref();
 
     // トーストを表示するコールバック
     let push_toast = {
@@ -63,134 +68,29 @@ pub fn app() -> Html {
         })
     };
 
-    // <header> を参照する NodeRef
-    let header_ref = use_node_ref();
-    // <footer> を参照する NodeRef
-    let footer_ref = use_node_ref();
-
-    // 初回マウント時に実行されるフック
-    {
-        let all_files = all_files.clone();
-        let display_files = display_files.clone();
-        let navigation_history = navigation_history.clone();
-        let push_toast = push_toast.clone();
-        let header_ref = header_ref.clone();
-        let footer_ref = footer_ref.clone();
-        use_effect_with((), move |_| {
-            // ファイルリスト表示領域の高さを設定
-            set_content_height(&header_ref, &footer_ref);
-            // ウィンドウリサイズ時に再計算するよう設定
-            let window = web_sys::window().unwrap();
-            let resize = EventListener::new(&window, "resize", move |_| {
-                set_content_height(&header_ref, &footer_ref);
-            });
-            // ファイルリストを初期表示
-            spawn_local(async move {
-                //note これは "temporary value dropped while borrowed" エラーになる
-                //let path = navigation_history.paths().first().unwrap();
-                let paths = navigation_history.paths();
-                let path = paths.first().unwrap();
-                let file_infos = tc_read_dir(path, push_toast).await;
-                all_files.set(file_infos.clone());
-                display_files.set(file_infos);
-            });
-
-            move || {
-                drop(resize);
-            }
-        });
-    }
-
-    // ステート更新時にログを出力するフック
-    {
-        let all_files = all_files.clone();
-        let copy_files = copy_files.clone();
-        let display_files = display_files.clone();
-        let filter = filter.clone();
-        let navigation_history = navigation_history.clone();
-        let renaming_file = renaming_file.clone();
-        let selected_files = selected_files.clone();
-        #[allow(unused_variables)]
-        use_effect_with(
-            (
-                all_files,
-                copy_files,
-                display_files,
-                filter,
-                navigation_history,
-                renaming_file,
-                selected_files,
-            ),
-            move |(
-                all_files,
-                copy_files,
-                display_files,
-                filter,
-                navigation_history,
-                renaming_file,
-                selected_files,
-            )| {
-                //debug!(all_files);
-                debug!(copy_files);
-                //debug!(display_files);
-                //debug!(filter);
-                //debug!(navigation_history);
-                //debug!(renaming_file);
-                debug!(renaming_file);
-                debug!(selected_files);
-
-                || {}
-            },
-        );
-    }
-
-    // フィルタ更新時にフィルタリングを実行するフック
-    {
-        let all_files = all_files.clone();
-        let display_files = display_files.clone();
-        let filter = filter.clone();
-        use_effect_with(filter, move |filter| {
-            let query = (*filter).to_lowercase();
-
-            if query.is_empty() {
-                display_files.set((*all_files).clone());
-            } else {
-                display_files.set(
-                    (*all_files)
-                        .iter()
-                        .filter(|f| f.name().to_lowercase().contains(&query))
-                        .cloned()
-                        .collect::<Vec<FileInfo>>(),
-                );
-            }
-
-            || {}
-        });
-    }
-
-    // ファイル名変更時にテキストボックスを focus & select するフック
-    {
-        let renaming_file = renaming_file.clone();
-        use_effect_with(renaming_file, move |renaming_file| {
-            if let Some(_) = (*renaming_file).as_ref() {
-                spawn_local(async move {
-                    // DOM が確実に更新されるのを待機
-                    TimeoutFuture::new(0).await;
-
-                    web_sys::window()
-                        .and_then(|v| v.document())
-                        .and_then(|v| v.get_element_by_id("renaming_file"))
-                        .and_then(|v| v.dyn_into::<HtmlInputElement>().ok())
-                        .map(|v| {
-                            let _ = v.focus();
-                            v.select();
-                        });
-                });
-            }
-
-            || {}
-        });
-    }
+    // 初回マウント時に実行されるカスタムフック
+    use_init(
+        all_files.clone(),
+        display_files.clone(),
+        navigation_history.clone(),
+        push_toast.clone(),
+        header_ref.clone(),
+        footer_ref.clone(),
+    );
+    // ステート更新時にログを出力するカスタムフック
+    use_state_logger(
+        all_files.clone(),
+        copy_files.clone(),
+        display_files.clone(),
+        filter.clone(),
+        navigation_history.clone(),
+        renaming_file.clone(),
+        selected_files.clone(),
+    );
+    // フィルタ更新時にフィルタリングを実行するカスタムフック
+    use_filter_effect(all_files.clone(), display_files.clone(), filter.clone());
+    // ファイル名変更時にテキストボックスを focus & select するカスタムフック
+    use_rename_focus(renaming_file.clone());
 
     // back ボタンクリックのイベントハンドラ
     let handle_back_click = {
