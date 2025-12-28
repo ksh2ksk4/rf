@@ -47,7 +47,9 @@ pub fn app() -> Html {
     //
     let push_toast = create_push_toast(toasts.clone());
 
-    // 初回マウント時に実行されるカスタムフック
+    //
+    // カスタムフック
+    //
     use_init(
         all_files.clone(),
         display_files.clone(),
@@ -56,7 +58,6 @@ pub fn app() -> Html {
         header_ref.clone(),
         footer_ref.clone(),
     );
-    // ステート更新時にログを出力するカスタムフック
     use_state_logger(
         all_files.clone(),
         copy_files.clone(),
@@ -66,9 +67,7 @@ pub fn app() -> Html {
         renaming_file.clone(),
         selected_files.clone(),
     );
-    // フィルタ更新時にフィルタリングを実行するカスタムフック
     use_filter_effect(all_files.clone(), display_files.clone(), filter.clone());
-    // ファイル名変更時にテキストボックスを focus & select するカスタムフック
     use_rename_focus(renaming_file.clone());
 
     //
