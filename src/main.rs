@@ -1,4 +1,5 @@
 mod app;
+mod handlers;
 mod hooks;
 mod macros;
 mod models;

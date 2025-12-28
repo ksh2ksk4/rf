@@ -2,16 +2,13 @@ use gloo_timers::callback::Timeout;
 use gloo_timers::future::TimeoutFuture;
 use rf_common::FileInfo;
 use std::collections::HashSet;
-use std::path::Path;
 use wasm_bindgen_futures::spawn_local;
-use web_sys::{Element, HtmlInputElement, InputEvent};
 use yew::prelude::*;
 
+use crate::handlers::*;
 use crate::hooks::*;
 use crate::models::*;
-use crate::tauri_api::*;
 use crate::utils::*;
-use crate::{user_error, user_warning};
 
 /// # Summary
 ///
@@ -92,348 +89,74 @@ pub fn app() -> Html {
     // ファイル名変更時にテキストボックスを focus & select するカスタムフック
     use_rename_focus(renaming_file.clone());
 
-    // back ボタンクリックのイベントハンドラ
-    let handle_back_click = {
-        let display_files = display_files.clone();
-        let navigation_history = navigation_history.clone();
-        let push_toast = push_toast.clone();
-        Callback::from(move |_| {
-            let display_files = display_files.clone();
-            let mut nh = (*navigation_history).clone();
-            let path = nh.back();
-            navigation_history.set(nh);
-            let push_toast = push_toast.clone();
-            spawn_local(async move {
-                display_files.set(tc_read_dir(&path, push_toast).await);
-            });
-        })
-    };
-
-    // forward ボタンクリックのイベントハンドラ
-    let handle_forward_click = {
-        let display_files = display_files.clone();
-        let navigation_history = navigation_history.clone();
-        let push_toast = push_toast.clone();
-        Callback::from(move |_| {
-            let display_files = display_files.clone();
-            let mut nh = (*navigation_history).clone();
-            let path = nh.forward();
-            navigation_history.set(nh);
-            let push_toast = push_toast.clone();
-            spawn_local(async move {
-                display_files.set(tc_read_dir(&path, push_toast).await);
-            });
-        })
-    };
-
-    // "go to parent dir" ボタンクリックのイベントハンドラ
-    let handle_go_to_parent_dir_click = {
-        let display_files = display_files.clone();
-        let navigation_history = navigation_history.clone();
-        let push_toast = push_toast.clone();
-        Callback::from(move |_| {
-            let display_files = display_files.clone();
-            let navigation_history = navigation_history.clone();
-            let push_toast = push_toast.clone();
-            spawn_local(async move {
-                let path =
-                    tc_get_parent_dir(navigation_history.current(), push_toast.clone()).await;
-                display_files.set(tc_read_dir(&path, push_toast).await);
-                let mut nh = (*navigation_history).clone();
-                nh.push(&path);
-                navigation_history.set(nh);
-            });
-        })
-    };
-
-    // "select dir" ボタンクリックのイベントハンドラ
-    let handle_select_dir_click = {
-        let display_files = display_files.clone();
-        let navigation_history = navigation_history.clone();
-        let push_toast = push_toast.clone();
-        Callback::from(move |_| {
-            let display_files = display_files.clone();
-            let navigation_history = navigation_history.clone();
-            let push_toast = push_toast.clone();
-            spawn_local(async move {
-                let path = tc_select_dir().await;
-                display_files.set(tc_read_dir(&path, push_toast).await);
-                let mut nh = (*navigation_history).clone();
-                nh.push(&path);
-                navigation_history.set(nh);
-            });
-        })
-    };
-
-    // reload ボタンクリックのイベントハンドラ
-    let handle_reload_click = {
-        let display_files = display_files.clone();
-        let navigation_history = navigation_history.clone();
-        let push_toast = push_toast.clone();
-        Callback::from(move |_| {
-            let display_files = display_files.clone();
-            let nh = (*navigation_history).clone();
-            let current_path = nh.current().to_string();
-            let push_toast = push_toast.clone();
-            spawn_local(async move {
-                display_files.set(tc_read_dir(&current_path, push_toast).await);
-            });
-        })
-    };
-
-    // copy ボタンクリックのイベントハンドラ
-    let handle_copy_click = {
-        let copy_files = copy_files.clone();
-        let selected_files = selected_files.clone();
-        Callback::from(move |_| {
-            copy_files.set((*selected_files).clone());
-        })
-    };
-
-    // paste ボタンクリックのイベントハンドラ
-    let handle_paste_click = {
-        let copy_files = copy_files.clone();
-        let display_files = display_files.clone();
-        let navigation_history = navigation_history.clone();
-        let push_toast = push_toast.clone();
-        let selected_files = selected_files.clone();
-        Callback::from(move |_| {
-            let copy_files = copy_files.clone();
-            let display_files = display_files.clone();
-            let nh = (*navigation_history).clone();
-            let current_path = nh.current().to_string();
-            let push_toast = push_toast.clone();
-            let selected_files = selected_files.clone();
-            let paths: Vec<String> = (*copy_files).iter().cloned().collect();
-            spawn_local(async move {
-                tc_copy_files(paths, &current_path, push_toast.clone()).await;
-                display_files.set(tc_read_dir(&current_path, push_toast).await);
-                copy_files.set(Default::default());
-                selected_files.set(Default::default());
-            });
-        })
-    };
-
-    // "delete files" ボタンクリックのイベントハンドラ
-    let handle_delete_files_click = {
-        let display_files = display_files.clone();
-        let navigation_history = navigation_history.clone();
-        let push_toast = push_toast.clone();
-        let selected_files = selected_files.clone();
-        Callback::from(move |_| {
-            let display_files = display_files.clone();
-            let nh = (*navigation_history).clone();
-            let current_path = nh.current().to_string();
-            let push_toast = push_toast.clone();
-            let selected_files = selected_files.clone();
-            let paths: Vec<String> = (*selected_files).iter().cloned().collect();
-            spawn_local(async move {
-                if tc_delete_files(paths, push_toast.clone()).await {
-                    display_files.set(tc_read_dir(&current_path, push_toast).await);
-                    // 選択状態をクリア
-                    selected_files.set(HashSet::new());
-                }
-            });
-        })
-    };
-
-    // フィルタ設定のイベントハンドラ
-    let handle_filter_input = {
-        let filter = filter.clone();
-        let push_toast = push_toast.clone();
-        Callback::from(move |e: InputEvent| {
-            downcast::<HtmlInputElement>(&e, &push_toast).inspect(|v| {
-                filter.set(v.value());
-            });
-        })
-    };
-
-    // チェックボックスクリックのイベントハンドラ
-    let handle_checkbox_click = {
-        let push_toast = push_toast.clone();
-        let selected_files = selected_files.clone();
-        Callback::from(move |e: Event| {
-            // イベントエレメントから必要なデータを取得
-            let Some(element) = downcast::<HtmlInputElement>(&e, &push_toast) else {
-                return;
-            };
-            let checked = element.checked();
-            let path = element.get_attribute("data-path").unwrap_or_default();
-
-            let mut new_value = (*selected_files).clone();
-
-            if checked {
-                new_value.insert(path);
-            } else {
-                new_value.remove(&path);
-            }
-
-            selected_files.set(new_value);
-        })
-    };
-
-    // ファイルクリックのイベントハンドラ
-    let handle_file_click = {
-        let click_timeout = click_timeout.clone();
-        let push_toast = push_toast.clone();
-        let renaming_file = renaming_file.clone();
-        let selected_files = selected_files.clone();
-        Callback::from(move |e: MouseEvent| {
-            e.prevent_default();
-
-            // イベントエレメントから必要なデータを取得
-            let Some(element) = downcast::<Element>(&e, &push_toast) else {
-                return;
-            };
-            let path = element.get_attribute("data-path").unwrap_or_default();
-
-            if let Some(v) = click_timeout.borrow_mut().take() {
-                // 既にタイマーがある場合
-                v.cancel();
-            }
-
-            let renaming_file = renaming_file.clone();
-            let selected_files = selected_files.clone();
-            // シングルクリックの処理を 250ms 保留
-            *click_timeout.borrow_mut() = Some(Timeout::new(250, move || {
-                let mut new_value = HashSet::<String>::new();
-                new_value.insert(path.clone());
-
-                if (*selected_files).clone() == new_value {
-                    // 選択しているファイルを再度クリックした場合
-                    renaming_file.set(Some(path));
-                }
-
-                selected_files.set(new_value);
-            }));
-        })
-    };
-
-    // ファイル名変更(マウス操作)のイベントハンドラ
-    let handle_file_rename_blur = {
-        let display_files = display_files.clone();
-        let navigation_history = navigation_history.clone();
-        let push_toast = push_toast.clone();
-        let renaming_file = renaming_file.clone();
-        let selected_files = selected_files.clone();
-        Callback::from(move |e: FocusEvent| {
-            let mut current_name: String = Default::default();
-
-            if let Some(v) = (*renaming_file).clone() {
-                current_name = Path::new(&v)
-                    .file_name()
-                    .and_then(|v| v.to_str())
-                    .unwrap_or_default()
-                    .to_string();
-            }
-
-            // 後続処理の成否に関わらず名称変更状態は解除
-            renaming_file.set(None);
-            // イベントエレメントから必要なデータを取得
-            let Some(element) = downcast::<HtmlInputElement>(&e, &push_toast) else {
-                return;
-            };
-            let new_name = element.value();
-            let path = element.get_attribute("data-path").unwrap_or_default();
-
-            if new_name.trim().is_empty() {
-                user_error!("ファイル名を入力してください", push_toast);
-                return;
-            }
-
-            if current_name == new_name {
-                user_warning!("ファイル名が変更されていません");
-                return;
-            }
-
-            let display_files = display_files.clone();
-            let nh = (*navigation_history).clone();
-            let current_path = nh.current().to_string();
-            let push_toast = push_toast.clone();
-            let selected_files = selected_files.clone();
-            spawn_local(async move {
-                if tc_rename_file(&path, &new_name, push_toast.clone()).await {
-                    display_files.set(tc_read_dir(&current_path, push_toast).await);
-
-                    let mut new_value = HashSet::<String>::new();
-                    new_value.insert(
-                        Path::new(&current_path)
-                            .join(&new_name)
-                            .to_string_lossy()
-                            .into_owned(),
-                    );
-                    // 選択しているファイルのファイル名を更新
-                    selected_files.set(new_value);
-                }
-            });
-        })
-    };
-
-    // ファイル名変更(キー操作)のイベントハンドラ
-    let handle_file_rename_keypress = {
-        let push_toast = push_toast.clone();
-        let renaming_file = renaming_file.clone();
-        Callback::from(move |e: KeyboardEvent| {
-            // ファイル名の変更をキャンセル
-            if e.key() == "Escape" {
-                renaming_file.set(None);
-                return;
-            }
-
-            // handle_file_rename_blur で処理
-            if e.key() == "Enter" {
-                downcast::<HtmlInputElement>(&e, &push_toast).inspect(|v| {
-                    let _ = v.blur();
-                });
-            }
-        })
-    };
-
-    // ファイルダブルクリックのイベントハンドラ
-    let handle_file_double_click = {
-        let click_timeout = click_timeout.clone();
-        let display_files = display_files.clone();
-        let navigation_history = navigation_history.clone();
-        let push_toast = push_toast.clone();
-        Callback::from(move |e: MouseEvent| {
-            e.prevent_default();
-
-            // 保留しているシングルクリックの処理をキャンセル
-            if let Some(v) = click_timeout.borrow_mut().take() {
-                v.cancel();
-            }
-
-            //note Yew のイベントハンドラはキャプチャリングが有効なので `current_target()` は <a> ではなく <body> になる
-            // イベントエレメントから必要なデータを取得
-            let Some(element) = downcast::<Element>(&e, &push_toast) else {
-                return;
-            };
-            let is_dir = element
-                .get_attribute("data-is-dir")
-                .map(|v| v == "true")
-                .unwrap_or(false);
-            let path = element.get_attribute("data-path").unwrap_or_default();
-
-            if !is_dir {
-                let path = path.clone();
-                let push_toast = push_toast.clone();
-                spawn_local(async move {
-                    tc_open_file(path, push_toast).await;
-                });
-                return;
-            }
-
-            let display_files = display_files.clone();
-            let mut nh = (*navigation_history).clone();
-            nh.push(&path);
-            navigation_history.set(nh);
-            let path = path.clone();
-            let push_toast = push_toast.clone();
-            spawn_local(async move {
-                display_files.set(tc_read_dir(&path, push_toast).await);
-            });
-        })
-    };
+    //
+    // イベントハンドラ
+    //
+    let handle_back_button_click = create_back_button_click_handler(
+        display_files.clone(),
+        navigation_history.clone(),
+        push_toast.clone(),
+    );
+    let handle_forward_button_click = create_forward_button_click_handler(
+        display_files.clone(),
+        navigation_history.clone(),
+        push_toast.clone(),
+    );
+    let handle_go_to_parent_dir_button_click = create_go_to_parent_dir_button_click_handler(
+        display_files.clone(),
+        navigation_history.clone(),
+        push_toast.clone(),
+    );
+    let handle_select_dir_button_click = create_select_dir_button_click_handler(
+        display_files.clone(),
+        navigation_history.clone(),
+        push_toast.clone(),
+    );
+    let handle_reload_button_click = create_reload_button_click_handler(
+        display_files.clone(),
+        navigation_history.clone(),
+        push_toast.clone(),
+    );
+    let handle_copy_button_click =
+        create_copy_button_click_handler(copy_files.clone(), selected_files.clone());
+    let handle_paste_button_click = create_paste_button_click_handler(
+        copy_files.clone(),
+        display_files.clone(),
+        navigation_history.clone(),
+        push_toast.clone(),
+        selected_files.clone(),
+    );
+    let handle_delete_files_button_click = create_delete_files_button_click_handler(
+        display_files.clone(),
+        navigation_history.clone(),
+        push_toast.clone(),
+        selected_files.clone(),
+    );
+    let handle_filter_textbox_input =
+        create_filter_textbox_input_handler(filter.clone(), push_toast.clone());
+    let handle_file_checkbox_click =
+        create_file_checkbox_click_handler(push_toast.clone(), selected_files.clone());
+    let handle_file_anchor_click = create_file_anchor_click_handler(
+        click_timeout.clone(),
+        push_toast.clone(),
+        renaming_file.clone(),
+        selected_files.clone(),
+    );
+    let handle_file_textbox_blur = create_file_textbox_blur_handler(
+        display_files.clone(),
+        navigation_history.clone(),
+        push_toast.clone(),
+        renaming_file.clone(),
+        selected_files.clone(),
+    );
+    let handle_file_textbox_keypress =
+        create_file_textbox_keypress_handler(push_toast.clone(), renaming_file.clone());
+    let handle_file_anchor_double_click = create_file_anchor_double_click_handler(
+        click_timeout.clone(),
+        display_files.clone(),
+        navigation_history.clone(),
+        push_toast.clone(),
+    );
 
     html! {
         <div class="min-h-screen min-w-screen flex flex-col">
@@ -488,7 +211,7 @@ pub fn app() -> Html {
                         class="icon"
                         title="back"
                         aria-label="back"
-                        onclick={handle_back_click}
+                        onclick={handle_back_button_click}
                         disabled={!navigation_history.can_back()}
                     >
                         <i
@@ -500,7 +223,7 @@ pub fn app() -> Html {
                         class="icon"
                         title="forward"
                         aria-label="forward"
-                        onclick={handle_forward_click}
+                        onclick={handle_forward_button_click}
                         disabled={!navigation_history.can_forward()}
                     >
                         <i
@@ -512,7 +235,7 @@ pub fn app() -> Html {
                         class="icon"
                         title="go to parent dir"
                         aria-label="go to parent dir"
-                        onclick={handle_go_to_parent_dir_click}
+                        onclick={handle_go_to_parent_dir_button_click}
                     >
                         <i
                             class="nf nf-fa-circle_up"
@@ -523,7 +246,7 @@ pub fn app() -> Html {
                         class="icon"
                         title="select dir"
                         aria-label="select dir"
-                        onclick={handle_select_dir_click}
+                        onclick={handle_select_dir_button_click}
                     >
                         <i
                             class="nf nf-fa-folder_open"
@@ -534,7 +257,7 @@ pub fn app() -> Html {
                         class="icon"
                         title="reload"
                         aria-label="reload"
-                        onclick={handle_reload_click}
+                        onclick={handle_reload_button_click}
                     >
                         <i
                             class="nf nf-md-reload"
@@ -545,7 +268,7 @@ pub fn app() -> Html {
                         class="icon"
                         title="copy"
                         aria-label="copy"
-                        onclick={handle_copy_click}
+                        onclick={handle_copy_button_click}
                         disabled={selected_files.is_empty()}
                     >
                         <i
@@ -557,7 +280,7 @@ pub fn app() -> Html {
                         class="icon"
                         title="paste"
                         aria-label="paste"
-                        onclick={handle_paste_click}
+                        onclick={handle_paste_button_click}
                         disabled={copy_files.is_empty()}
                     >
                         <i
@@ -569,7 +292,7 @@ pub fn app() -> Html {
                         class="icon"
                         title="delete files"
                         aria-label="delete files"
-                        onclick={handle_delete_files_click}
+                        onclick={handle_delete_files_button_click}
                         disabled={selected_files.is_empty()}
                     >
                         <i
@@ -584,7 +307,7 @@ pub fn app() -> Html {
                         />
                         <input
                             class="text-base"
-                            oninput={handle_filter_input}
+                            oninput={handle_filter_textbox_input}
                             placeholder="filter files"
                             type="search"
                             value={(*filter).clone()}
@@ -629,7 +352,7 @@ pub fn app() -> Html {
                                         <input
                                             type="checkbox"
                                             checked={(*selected_files).contains(&f.path())}
-                                            onchange={handle_checkbox_click.clone()}
+                                            onchange={handle_file_checkbox_click.clone()}
                                             data-path={f.path().clone()}
                                             aria-label="select file"
                                         />
@@ -646,8 +369,8 @@ pub fn app() -> Html {
                                                     id="renaming_file"
                                                     type="text"
                                                     value={f.name().clone()}
-                                                    onblur={handle_file_rename_blur.clone()}
-                                                    onkeypress={handle_file_rename_keypress.clone()}
+                                                    onblur={handle_file_textbox_blur.clone()}
+                                                    onkeypress={handle_file_textbox_keypress.clone()}
                                                     data-path={f.path().clone()}
                                                 />
                                             }
@@ -655,8 +378,8 @@ pub fn app() -> Html {
                                             html! {
                                                 <a
                                                     href="#"
-                                                    onclick={handle_file_click.clone()}
-                                                    ondblclick={handle_file_double_click.clone()}
+                                                    onclick={handle_file_anchor_click.clone()}
+                                                    ondblclick={handle_file_anchor_double_click.clone()}
                                                     data-is-dir={f.is_dir().to_string()}
                                                     data-path={f.path().clone()}
                                                 >
