@@ -1,8 +1,6 @@
 use gloo_timers::callback::Timeout;
-use gloo_timers::future::TimeoutFuture;
 use rf_common::FileInfo;
 use std::collections::HashSet;
-use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 
 use crate::handlers::*;
@@ -44,26 +42,10 @@ pub fn app() -> Html {
     // <footer> を参照する NodeRef
     let footer_ref = use_node_ref();
 
-    // トーストを表示するコールバック
-    let push_toast = {
-        let toasts = toasts.clone();
-        Callback::from(move |(kind, message): (ToastKind, String)| {
-            let new_toast = Toast::new(kind, message);
-            let next_id = Toast::next_id();
-            // トーストを追加して再設定
-            let mut v = (*toasts).clone();
-            v.push(new_toast);
-            toasts.set(v);
-            let toasts = toasts.clone();
-            spawn_local(async move {
-                TimeoutFuture::new(Toast::DURATION).await;
-                // 表示済のトーストを除去して再設定
-                let mut rest = (*toasts).clone();
-                rest.retain(|v| v.id() < next_id);
-                toasts.set(rest);
-            });
-        })
-    };
+    //
+    // コールバック
+    //
+    let push_toast = create_push_toast(toasts.clone());
 
     // 初回マウント時に実行されるカスタムフック
     use_init(

@@ -1,8 +1,10 @@
+use gloo_timers::future::TimeoutFuture;
 use wasm_bindgen::prelude::*;
+use wasm_bindgen_futures::spawn_local;
 use web_sys::{Element, HtmlElement};
 use yew::prelude::*;
 
-use crate::models::ToastKind;
+use crate::models::*;
 use crate::{debug, system_error};
 
 /// # Summary
@@ -111,6 +113,28 @@ pub fn get_element_height(node_ref: &NodeRef) -> f64 {
         }
         None => Default::default(),
     }
+}
+
+/// # Summary
+///
+/// トーストを表示するコールバックを生成
+pub fn create_push_toast(toasts: UseStateHandle<Vec<Toast>>) -> Callback<(ToastKind, String)> {
+    Callback::from(move |(kind, message): (ToastKind, String)| {
+        let new_toast = Toast::new(kind, message);
+        let next_id = Toast::next_id();
+        // トーストを追加して再設定
+        let mut v = (*toasts).clone();
+        v.push(new_toast);
+        toasts.set(v);
+        let toasts = toasts.clone();
+        spawn_local(async move {
+            TimeoutFuture::new(Toast::DURATION).await;
+            // 表示済のトーストを除去して再設定
+            let mut rest = (*toasts).clone();
+            rest.retain(|v| v.id() < next_id);
+            toasts.set(rest);
+        });
+    })
 }
 
 /// # Summary
