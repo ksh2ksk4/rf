@@ -45,7 +45,7 @@ pub async fn tc_copy_files(
     let args = match JsValue::from_serde(&serde_json::json!({"paths": paths, "to": to})) {
         Ok(v) => v,
         Err(e) => {
-            system_error!(e, push_toast);
+            system_error!(e, &push_toast);
             return false;
         }
     };
@@ -53,7 +53,7 @@ pub async fn tc_copy_files(
         .await
         .map(|_| true)
         .unwrap_or_else(|e| {
-            system_error!(e, push_toast);
+            system_error!(e, &push_toast);
             false
         })
 }
@@ -77,14 +77,14 @@ pub async fn tc_delete_files(
     let args = match JsValue::from_serde(&serde_json::json!({"paths": paths})) {
         Ok(v) => v,
         Err(e) => {
-            system_error!(e, push_toast);
+            system_error!(e, &push_toast);
             return false;
         }
     };
     match invoke_r(TAURI_COMMAND_DELETE_FILES, args).await {
         Ok(_) => true,
         Err(e) => {
-            system_error!(e, push_toast);
+            system_error!(e, &push_toast);
             false
         }
     }
@@ -106,7 +106,7 @@ pub async fn tc_get_parent_dir(path: &str, push_toast: Callback<(ToastKind, Stri
     let args = match JsValue::from_serde(&serde_json::json!({"path": path})) {
         Ok(v) => v,
         Err(e) => {
-            system_error!(e, push_toast);
+            system_error!(e, &push_toast);
             return String::new();
         }
     };
@@ -128,14 +128,14 @@ pub async fn tc_open_file(path: String, push_toast: Callback<(ToastKind, String)
     let args = match JsValue::from_serde(&serde_json::json!({"path": path})) {
         Ok(v) => v,
         Err(e) => {
-            system_error!(e, push_toast);
+            system_error!(e, &push_toast);
             return;
         }
     };
     let _ = invoke_r(TAURI_COMMAND_OPEN_FILE, args)
         .await
         .inspect_err(|e| {
-            system_error!(e, push_toast);
+            system_error!(e, &push_toast);
         });
 }
 
@@ -158,7 +158,7 @@ pub async fn tc_read_dir(
     let args = match JsValue::from_serde(&serde_json::json!({"path": path})) {
         Ok(v) => v,
         Err(e) => {
-            system_error!(e, push_toast);
+            system_error!(e, &push_toast);
             return vec![];
         }
     };
@@ -166,12 +166,12 @@ pub async fn tc_read_dir(
         Ok(v) => match v.into_serde::<Vec<FileInfo>>() {
             Ok(v) => v,
             Err(e) => {
-                system_error!(e, push_toast);
+                system_error!(e, &push_toast);
                 vec![]
             }
         },
         Err(e) => {
-            system_error!(e, push_toast);
+            system_error!(e, &push_toast);
             vec![]
         }
     }
@@ -198,14 +198,14 @@ pub async fn tc_rename_file(
     let args = match JsValue::from_serde(&serde_json::json!({"path": path, "new_name": new_name})) {
         Ok(v) => v,
         Err(e) => {
-            system_error!(e, push_toast);
+            system_error!(e, &push_toast);
             return false;
         }
     };
     match invoke_r(TAURI_COMMAND_RENAME_FILE, args).await {
         Ok(_) => true,
         Err(e) => {
-            system_error!(e, push_toast);
+            system_error!(e, &push_toast);
             false
         }
     }

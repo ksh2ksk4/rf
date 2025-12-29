@@ -11,7 +11,7 @@ use yew::prelude::*;
 use crate::models::*;
 use crate::tauri_api::*;
 use crate::utils::*;
-use crate::{user_error, user_warning};
+use crate::{user_error, warning};
 
 /// # Summary
 ///
@@ -299,12 +299,12 @@ pub fn create_file_textbox_blur_handler(
         let path = element.get_attribute("data-path").unwrap_or_default();
 
         if new_name.trim().is_empty() {
-            user_error!("ファイル名を入力してください", push_toast);
+            user_error!("ファイル名を入力してください", &push_toast);
             return;
         }
 
         if current_name == new_name {
-            user_warning!("ファイル名が変更されていません");
+            warning!("ファイル名が変更されていません");
             return;
         }
 

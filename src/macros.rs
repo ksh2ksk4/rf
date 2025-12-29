@@ -35,57 +35,57 @@ macro_rules! debug {
 
 /// # Summary
 ///
-/// ワーニングメッセージ(ユーザ用)を表示する
-///
-/// - ワーニングデータを開発用ツールのコンソールに出力
+/// ワーニングメッセージを開発用ツールのコンソールに出力する
 ///
 /// # Arguments
 ///
-/// - `$e`: 対象の変数
+/// - `$message`: ワーニングメッセージ
+///   - `String` に変換可能なデータ
 #[macro_export]
-macro_rules! user_warning {
-    ($e:expr) => {
-        let message = format!("{}", &$e);
-        ::web_sys::console::warn_1(&message.clone().into());
+macro_rules! warning {
+    ($message:expr) => {
+        let message: String = ($message).into();
+        ::web_sys::console::warn_1(&message.into());
     };
 }
 
 /// # Summary
 ///
-/// エラーメッセージ(システム用)を表示する
+/// システムエラーを表示する
 ///
-/// - エラーデータを開発用ツールのコンソールに出力
-/// - エラーデータをトーストでユーザに通知
+/// - システムエラーを開発用ツールのコンソールに出力
+/// - システムエラーをトーストでユーザに通知
 ///
 /// # Arguments
 ///
-/// - `$e`: 対象の変数
+/// - `$e`: エラーデータまたはエラーメッセージ
 /// - `$push_toast`: トースト表示用のコールバック関数
 #[macro_export]
 macro_rules! system_error {
     ($e:expr, $push_toast:expr) => {
         let message = format!("{:?}", &$e);
         ::web_sys::console::error_1(&message.clone().into());
-        ($push_toast).emit(($crate::models::ToastKind::Error, message));
+        (&$push_toast).emit(($crate::models::ToastKind::Error, message));
     };
 }
 
 /// # Summary
 ///
-/// エラーメッセージ(ユーザ用)を表示する
+/// ユーザに対してエラーメッセージを表示する
 ///
-/// - エラーデータを開発用ツールのコンソールに出力
-/// - エラーデータをトーストでユーザに通知
+/// - エラーメッセージを開発用ツールのコンソールに出力
+/// - エラーメッセージをトーストでユーザに通知
 ///
 /// # Arguments
 ///
-/// - `$e`: 対象の変数
+/// - `$message`: エラーメッセージ
+///   - `String` に変換可能なデータ
 /// - `$push_toast`: トースト表示用のコールバック関数
 #[macro_export]
 macro_rules! user_error {
-    ($e:expr, $push_toast:expr) => {
-        let message = format!("{}", &$e);
+    ($message:expr, $push_toast:expr) => {
+        let message: String = ($message).into();
         ::web_sys::console::error_1(&message.clone().into());
-        ($push_toast).emit(($crate::models::ToastKind::Error, message));
+        (&$push_toast).emit(($crate::models::ToastKind::Error, message));
     };
 }

@@ -70,7 +70,7 @@ where
     e.target().and_then(|v| v.dyn_into::<T>().ok()).or_else(|| {
         system_error!(
             format!("Target element is not {type_name_short}"),
-            push_toast
+            &push_toast
         );
         None
     })
