@@ -1,44 +1,41 @@
-use gloo_timers::callback::Timeout;
+use gloo::events::EventListener;
 use rf_common::FileInfo;
 use std::collections::HashSet;
+use wasm_bindgen_futures::spawn_local;
+use web_sys::window;
 use yew::prelude::*;
 
-use crate::components::div_toast_area::*;
 use crate::components::footer::*;
 use crate::components::header::*;
 use crate::components::main::*;
-use crate::handlers::*;
-use crate::hooks::*;
+use crate::components::toast_area::*;
+use crate::debug;
 use crate::models::*;
+use crate::tauri_api::*;
+use crate::utils::*;
 
 /// # Summary
 ///
-/// メインコンテンツを表示する
+/// メインコンテンツを生成する
 ///
 /// # Returns
 ///
 /// `Html`: HTML
 #[function_component(App)]
-pub fn app() -> Html {
+pub fn app_component() -> Html {
+    //
+    // アプリ共有のステート
+    //
     // カレントディレクトリのすべてのファイル
     let all_files = use_state(|| Vec::<FileInfo>::new());
-    // コピー対象のファイル
-    let copy_files = use_state(|| HashSet::<String>::new());
     // ファイルリストに表示するファイル(カレントディレクトリのファイルをフィルタリングしたもの)
     let display_files = use_state(|| Vec::<FileInfo>::new());
-    // ファイル名に対するフィルタ
-    let filter = use_state(|| String::new());
     // ディレクトリの移動履歴
     let navigation_history = use_state(|| NavigationHistory::new());
-    // 名称変更中のファイル
-    let renaming_file = use_state(|| Option::<String>::None);
     // 選択されたファイル
     let selected_files = use_state(|| HashSet::<String>::new());
     // 表示待ちのトースト
     let toasts = use_state(|| Vec::<Toast>::new());
-
-    // シングルクリック処理用のキャンセラブルタイマー
-    let click_timeout = use_mut_ref(|| None::<Timeout>);
 
     // <header> を参照する NodeRef
     let header_ref = use_node_ref();
@@ -48,125 +45,88 @@ pub fn app() -> Html {
     //
     // カスタムフック
     //
-    use_init(
-        all_files.clone(),
-        display_files.clone(),
-        navigation_history.clone(),
-        toasts.clone(),
-        header_ref.clone(),
-        footer_ref.clone(),
-    );
-    use_state_logger(
-        all_files.clone(),
-        copy_files.clone(),
-        display_files.clone(),
-        filter.clone(),
-        navigation_history.clone(),
-        renaming_file.clone(),
-        selected_files.clone(),
-    );
-    use_filter_effect(all_files.clone(), display_files.clone(), filter.clone());
-    use_rename_focus(renaming_file.clone());
+    {
+        let all_files = all_files.clone();
+        let display_files = display_files.clone();
+        let navigation_history = navigation_history.clone();
+        let selected_files = selected_files.clone();
+        let toasts = toasts.clone();
+        // ステート更新時にログを出力(デバッグ用)
+        #[allow(unused_variables)]
+        use_effect_with(
+            (
+                all_files,
+                display_files,
+                navigation_history,
+                selected_files,
+                toasts,
+            ),
+            move |(all_files, display_files, navigation_history, selected_files, toasts)| {
+                debug!(all_files);
+                debug!(display_files);
+                debug!(navigation_history);
+                debug!(selected_files);
+                debug!(toasts);
 
-    //
-    // イベントハンドラ
-    //
-    let handle_back_button_click = create_back_button_click_handler(
-        display_files.clone(),
-        navigation_history.clone(),
-        toasts.clone(),
-    );
-    let handle_forward_button_click = create_forward_button_click_handler(
-        display_files.clone(),
-        navigation_history.clone(),
-        toasts.clone(),
-    );
-    let handle_go_to_parent_dir_button_click = create_go_to_parent_dir_button_click_handler(
-        display_files.clone(),
-        navigation_history.clone(),
-        toasts.clone(),
-    );
-    let handle_select_dir_button_click = create_select_dir_button_click_handler(
-        display_files.clone(),
-        navigation_history.clone(),
-        toasts.clone(),
-    );
-    let handle_reload_button_click = create_reload_button_click_handler(
-        display_files.clone(),
-        navigation_history.clone(),
-        toasts.clone(),
-    );
-    let handle_copy_button_click =
-        create_copy_button_click_handler(copy_files.clone(), selected_files.clone());
-    let handle_paste_button_click = create_paste_button_click_handler(
-        copy_files.clone(),
-        display_files.clone(),
-        navigation_history.clone(),
-        selected_files.clone(),
-        toasts.clone(),
-    );
-    let handle_delete_files_button_click = create_delete_files_button_click_handler(
-        display_files.clone(),
-        navigation_history.clone(),
-        selected_files.clone(),
-        toasts.clone(),
-    );
-    let handle_filter_textbox_input =
-        create_filter_textbox_input_handler(filter.clone(), toasts.clone());
-    let handle_file_checkbox_click =
-        create_file_checkbox_click_handler(selected_files.clone(), toasts.clone());
-    let handle_file_anchor_click = create_file_anchor_click_handler(
-        renaming_file.clone(),
-        selected_files.clone(),
-        toasts.clone(),
-        click_timeout.clone(),
-    );
-    let handle_file_textbox_blur = create_file_textbox_blur_handler(
-        display_files.clone(),
-        navigation_history.clone(),
-        renaming_file.clone(),
-        selected_files.clone(),
-        toasts.clone(),
-    );
-    let handle_file_textbox_keypress =
-        create_file_textbox_keypress_handler(renaming_file.clone(), toasts.clone());
-    let handle_file_anchor_double_click = create_file_anchor_double_click_handler(
-        display_files.clone(),
-        navigation_history.clone(),
-        toasts.clone(),
-        click_timeout.clone(),
-    );
+                || {}
+            },
+        );
+    }
+    {
+        let all_files = all_files.clone();
+        let display_files = display_files.clone();
+        let navigation_history = navigation_history.clone();
+        let toasts = toasts.clone();
+        let header_ref = header_ref.clone();
+        let footer_ref = footer_ref.clone();
+        // 初回マウント時に実行する処理
+        use_effect_with((), move |_| {
+            // ファイルリスト表示領域の高さを設定
+            set_content_height(&header_ref, &footer_ref);
+            // ウィンドウリサイズ時に再計算するよう設定
+            let window = window().unwrap();
+            let resize = EventListener::new(&window, "resize", move |_| {
+                set_content_height(&header_ref, &footer_ref);
+            });
+
+            // ファイルリストを初期表示
+            spawn_local(async move {
+                //note これは "temporary value dropped while borrowed" エラーになる
+                //let path = navigation_history.paths().first().unwrap();
+                let paths = navigation_history.paths();
+                let path = paths.first().unwrap();
+                let file_infos = tc_read_dir(path, create_push_toast(toasts)).await;
+                all_files.set(file_infos.clone());
+                display_files.set(file_infos);
+            });
+
+            move || {
+                drop(resize);
+            }
+        });
+    }
 
     html! {
         <div class="min-h-screen min-w-screen flex flex-col">
-            {build_div_toast_area(toasts)}
-            {build_header(
-                header_ref,
-                copy_files,
-                filter,
-                navigation_history.clone(),
-                selected_files.clone(),
-                handle_back_button_click,
-                handle_forward_button_click,
-                handle_go_to_parent_dir_button_click,
-                handle_select_dir_button_click,
-                handle_reload_button_click,
-                handle_copy_button_click,
-                handle_paste_button_click,
-                handle_delete_files_button_click,
-                handle_filter_textbox_input,
-            )}
-            {build_main(
-                display_files,
-                selected_files,
-                renaming_file,
-                handle_file_checkbox_click,
-                handle_file_textbox_blur,
-                handle_file_textbox_keypress,
-                handle_file_anchor_click,
-                handle_file_anchor_double_click,
-            )}
-            {build_footer(footer_ref, navigation_history)}
+            <Header
+                all_files={all_files.clone()}
+                display_files={display_files.clone()}
+                navigation_history={navigation_history.clone()}
+                selected_files={selected_files.clone()}
+                toasts={toasts.clone()}
+                header_ref={header_ref}
+            />
+            <Main
+                display_files={display_files}
+                navigation_history={navigation_history.clone()}
+                selected_files={selected_files}
+                toasts={toasts.clone()}
+            />
+            <Footer
+                navigation_history={navigation_history}
+                footer_ref={footer_ref}
+            />
+            <ToastArea toasts={toasts} />
         </div>
     }
 }

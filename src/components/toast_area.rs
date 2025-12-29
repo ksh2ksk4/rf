@@ -2,7 +2,25 @@ use yew::prelude::*;
 
 use crate::models::*;
 
-pub fn build_div_toast_area(toasts: UseStateHandle<Vec<Toast>>) -> Html {
+#[derive(PartialEq, Properties)]
+pub struct ToastAreaProps {
+    pub toasts: UseStateHandle<Vec<Toast>>,
+}
+
+/// # Summary
+///
+/// トースト表示領域を生成する
+///
+/// # Returns
+///
+/// `Html`: HTML
+#[function_component(ToastArea)]
+pub fn toast_area_component(props: &ToastAreaProps) -> Html {
+    //
+    // アプリ共有のステート
+    //
+    let toasts = &props.toasts;
+
     html! {
         <div class="toast-area">
             {for toasts.iter().map(|t| {

@@ -1,13 +1,12 @@
 mod app;
 mod components;
 mod handlers;
-mod hooks;
 mod macros;
 mod models;
 mod tauri_api;
 mod utils;
 
-use app::App;
+use crate::app::App;
 
 fn main() {
     console_error_panic_hook::set_once();
