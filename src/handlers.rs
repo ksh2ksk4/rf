@@ -375,7 +375,6 @@ pub fn create_file_anchor_double_click_handler(
             v.cancel();
         }
 
-        //note Yew のイベントハンドラはキャプチャリングが有効なので `current_target()` は <a> ではなく <body> になる
         // イベントエレメントから必要なデータを取得
         let Some(element) = downcast::<Element>(&e, &push_toast) else {
             return;

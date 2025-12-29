@@ -51,6 +51,8 @@ pub fn convert_file_size(file_size: u64) -> String {
 /// # Arguments
 ///
 /// - `e`: イベントエレメント
+///   - `Event` のサブクラスの参照を受け取ることができる
+///     - wasm-bindgen/web-sys のバインディングによるもの、らしい
 /// - `push_toast`: エラーメッセージ表示用のトースト
 ///
 /// # Returns
@@ -63,6 +65,8 @@ where
     let type_name_full = std::any::type_name::<T>();
     let type_name_short = type_name_full.rsplit("::").next().unwrap_or(type_name_full);
 
+    //note Yew のイベントハンドラはキャプチャリングが有効なので `current_target()` では <body> が返ってくる
+    //     ここではカレントターゲットを取得するため `target()` を実行
     e.target().and_then(|v| v.dyn_into::<T>().ok()).or_else(|| {
         system_error!(
             format!("Target element is not {type_name_short}"),
