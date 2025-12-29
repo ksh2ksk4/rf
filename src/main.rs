@@ -1,4 +1,5 @@
 mod app;
+mod components;
 mod handlers;
 mod hooks;
 mod macros;
