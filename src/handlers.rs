@@ -19,16 +19,16 @@ use crate::{user_error, user_warning};
 pub fn create_back_button_click_handler(
     display_files: UseStateHandle<Vec<FileInfo>>,
     navigation_history: UseStateHandle<NavigationHistory>,
-    push_toast: Callback<(ToastKind, String)>,
+    toasts: UseStateHandle<Vec<Toast>>,
 ) -> Callback<MouseEvent> {
     Callback::from(move |_| {
         let display_files = display_files.clone();
         let mut nh = (*navigation_history).clone();
         let path = nh.back();
         navigation_history.set(nh);
-        let push_toast = push_toast.clone();
+        let toasts = toasts.clone();
         spawn_local(async move {
-            display_files.set(tc_read_dir(&path, push_toast).await);
+            display_files.set(tc_read_dir(&path, create_push_toast(toasts)).await);
         });
     })
 }
@@ -39,16 +39,16 @@ pub fn create_back_button_click_handler(
 pub fn create_forward_button_click_handler(
     display_files: UseStateHandle<Vec<FileInfo>>,
     navigation_history: UseStateHandle<NavigationHistory>,
-    push_toast: Callback<(ToastKind, String)>,
+    toasts: UseStateHandle<Vec<Toast>>,
 ) -> Callback<MouseEvent> {
     Callback::from(move |_| {
         let display_files = display_files.clone();
         let mut nh = (*navigation_history).clone();
         let path = nh.forward();
         navigation_history.set(nh);
-        let push_toast = push_toast.clone();
+        let toasts = toasts.clone();
         spawn_local(async move {
-            display_files.set(tc_read_dir(&path, push_toast).await);
+            display_files.set(tc_read_dir(&path, create_push_toast(toasts)).await);
         });
     })
 }
@@ -59,13 +59,14 @@ pub fn create_forward_button_click_handler(
 pub fn create_go_to_parent_dir_button_click_handler(
     display_files: UseStateHandle<Vec<FileInfo>>,
     navigation_history: UseStateHandle<NavigationHistory>,
-    push_toast: Callback<(ToastKind, String)>,
+    toasts: UseStateHandle<Vec<Toast>>,
 ) -> Callback<MouseEvent> {
     Callback::from(move |_| {
         let display_files = display_files.clone();
         let navigation_history = navigation_history.clone();
-        let push_toast = push_toast.clone();
+        let toasts = toasts.clone();
         spawn_local(async move {
+            let push_toast = create_push_toast(toasts);
             let path = tc_get_parent_dir(navigation_history.current(), push_toast.clone()).await;
             display_files.set(tc_read_dir(&path, push_toast).await);
             let mut nh = (*navigation_history).clone();
@@ -81,15 +82,15 @@ pub fn create_go_to_parent_dir_button_click_handler(
 pub fn create_select_dir_button_click_handler(
     display_files: UseStateHandle<Vec<FileInfo>>,
     navigation_history: UseStateHandle<NavigationHistory>,
-    push_toast: Callback<(ToastKind, String)>,
+    toasts: UseStateHandle<Vec<Toast>>,
 ) -> Callback<MouseEvent> {
     Callback::from(move |_| {
         let display_files = display_files.clone();
         let navigation_history = navigation_history.clone();
-        let push_toast = push_toast.clone();
+        let toasts = toasts.clone();
         spawn_local(async move {
             let path = tc_select_dir().await;
-            display_files.set(tc_read_dir(&path, push_toast).await);
+            display_files.set(tc_read_dir(&path, create_push_toast(toasts)).await);
             let mut nh = (*navigation_history).clone();
             nh.push(&path);
             navigation_history.set(nh);
@@ -103,15 +104,15 @@ pub fn create_select_dir_button_click_handler(
 pub fn create_reload_button_click_handler(
     display_files: UseStateHandle<Vec<FileInfo>>,
     navigation_history: UseStateHandle<NavigationHistory>,
-    push_toast: Callback<(ToastKind, String)>,
+    toasts: UseStateHandle<Vec<Toast>>,
 ) -> Callback<MouseEvent> {
     Callback::from(move |_| {
         let display_files = display_files.clone();
         let nh = (*navigation_history).clone();
         let current_path = nh.current().to_string();
-        let push_toast = push_toast.clone();
+        let toasts = toasts.clone();
         spawn_local(async move {
-            display_files.set(tc_read_dir(&current_path, push_toast).await);
+            display_files.set(tc_read_dir(&current_path, create_push_toast(toasts)).await);
         });
     })
 }
@@ -135,18 +136,19 @@ pub fn create_paste_button_click_handler(
     copy_files: UseStateHandle<HashSet<String>>,
     display_files: UseStateHandle<Vec<FileInfo>>,
     navigation_history: UseStateHandle<NavigationHistory>,
-    push_toast: Callback<(ToastKind, String)>,
     selected_files: UseStateHandle<HashSet<String>>,
+    toasts: UseStateHandle<Vec<Toast>>,
 ) -> Callback<MouseEvent> {
     Callback::from(move |_| {
         let copy_files = copy_files.clone();
         let display_files = display_files.clone();
         let nh = (*navigation_history).clone();
         let current_path = nh.current().to_string();
-        let push_toast = push_toast.clone();
         let selected_files = selected_files.clone();
         let paths: Vec<String> = (*copy_files).iter().cloned().collect();
+        let toasts = toasts.clone();
         spawn_local(async move {
+            let push_toast = create_push_toast(toasts);
             tc_copy_files(paths, &current_path, push_toast.clone()).await;
             display_files.set(tc_read_dir(&current_path, push_toast).await);
             copy_files.set(Default::default());
@@ -161,17 +163,19 @@ pub fn create_paste_button_click_handler(
 pub fn create_delete_files_button_click_handler(
     display_files: UseStateHandle<Vec<FileInfo>>,
     navigation_history: UseStateHandle<NavigationHistory>,
-    push_toast: Callback<(ToastKind, String)>,
     selected_files: UseStateHandle<HashSet<String>>,
+    toasts: UseStateHandle<Vec<Toast>>,
 ) -> Callback<MouseEvent> {
     Callback::from(move |_| {
         let display_files = display_files.clone();
         let nh = (*navigation_history).clone();
         let current_path = nh.current().to_string();
-        let push_toast = push_toast.clone();
         let selected_files = selected_files.clone();
         let paths: Vec<String> = (*selected_files).iter().cloned().collect();
+        let toasts = toasts.clone();
         spawn_local(async move {
+            let push_toast = create_push_toast(toasts);
+
             if tc_delete_files(paths, push_toast.clone()).await {
                 display_files.set(tc_read_dir(&current_path, push_toast).await);
                 // 選択状態をクリア
@@ -186,10 +190,10 @@ pub fn create_delete_files_button_click_handler(
 /// フィルタテキストボックスの入力イベントハンドラを生成
 pub fn create_filter_textbox_input_handler(
     filter: UseStateHandle<String>,
-    push_toast: Callback<(ToastKind, String)>,
+    toasts: UseStateHandle<Vec<Toast>>,
 ) -> Callback<InputEvent> {
     Callback::from(move |e: InputEvent| {
-        downcast::<HtmlInputElement>(&e, &push_toast).inspect(|v| {
+        downcast::<HtmlInputElement>(&e, &create_push_toast(toasts.clone())).inspect(|v| {
             filter.set(v.value());
         });
     })
@@ -199,12 +203,13 @@ pub fn create_filter_textbox_input_handler(
 ///
 /// ファイルチェックボックスのクリックイベントハンドラを生成
 pub fn create_file_checkbox_click_handler(
-    push_toast: Callback<(ToastKind, String)>,
     selected_files: UseStateHandle<HashSet<String>>,
+    toasts: UseStateHandle<Vec<Toast>>,
 ) -> Callback<Event> {
     Callback::from(move |e: Event| {
         // イベントエレメントから必要なデータを取得
-        let Some(element) = downcast::<HtmlInputElement>(&e, &push_toast) else {
+        let Some(element) = downcast::<HtmlInputElement>(&e, &create_push_toast(toasts.clone()))
+        else {
             return;
         };
         let checked = element.checked();
@@ -226,16 +231,16 @@ pub fn create_file_checkbox_click_handler(
 ///
 /// ファイルのクリックイベントハンドラを生成
 pub fn create_file_anchor_click_handler(
-    click_timeout: Rc<RefCell<Option<Timeout>>>,
-    push_toast: Callback<(ToastKind, String)>,
     renaming_file: UseStateHandle<Option<String>>,
     selected_files: UseStateHandle<HashSet<String>>,
+    toasts: UseStateHandle<Vec<Toast>>,
+    click_timeout: Rc<RefCell<Option<Timeout>>>,
 ) -> Callback<MouseEvent> {
     Callback::from(move |e: MouseEvent| {
         e.prevent_default();
 
         // イベントエレメントから必要なデータを取得
-        let Some(element) = downcast::<Element>(&e, &push_toast) else {
+        let Some(element) = downcast::<Element>(&e, &create_push_toast(toasts.clone())) else {
             return;
         };
         let path = element.get_attribute("data-path").unwrap_or_default();
@@ -268,11 +273,12 @@ pub fn create_file_anchor_click_handler(
 pub fn create_file_textbox_blur_handler(
     display_files: UseStateHandle<Vec<FileInfo>>,
     navigation_history: UseStateHandle<NavigationHistory>,
-    push_toast: Callback<(ToastKind, String)>,
     renaming_file: UseStateHandle<Option<String>>,
     selected_files: UseStateHandle<HashSet<String>>,
+    toasts: UseStateHandle<Vec<Toast>>,
 ) -> Callback<FocusEvent> {
     Callback::from(move |e: FocusEvent| {
+        let push_toast = create_push_toast(toasts.clone());
         let mut current_name: String = Default::default();
 
         if let Some(v) = (*renaming_file).clone() {
@@ -305,7 +311,6 @@ pub fn create_file_textbox_blur_handler(
         let display_files = display_files.clone();
         let nh = (*navigation_history).clone();
         let current_path = nh.current().to_string();
-        let push_toast = push_toast.clone();
         let selected_files = selected_files.clone();
         spawn_local(async move {
             if tc_rename_file(&path, &new_name, push_toast.clone()).await {
@@ -329,8 +334,8 @@ pub fn create_file_textbox_blur_handler(
 ///
 /// ファイル名変更(キー操作)のイベントハンドラを生成
 pub fn create_file_textbox_keypress_handler(
-    push_toast: Callback<(ToastKind, String)>,
     renaming_file: UseStateHandle<Option<String>>,
+    toasts: UseStateHandle<Vec<Toast>>,
 ) -> Callback<KeyboardEvent> {
     Callback::from(move |e: KeyboardEvent| {
         // ファイル名の変更をキャンセル
@@ -339,9 +344,11 @@ pub fn create_file_textbox_keypress_handler(
             return;
         }
 
+        let toasts = toasts.clone();
+
         // handle_file_textbox_blur で処理
         if e.key() == "Enter" {
-            downcast::<HtmlInputElement>(&e, &push_toast).inspect(|v| {
+            downcast::<HtmlInputElement>(&e, &create_push_toast(toasts)).inspect(|v| {
                 let _ = v.blur();
             });
         }
@@ -352,13 +359,16 @@ pub fn create_file_textbox_keypress_handler(
 ///
 /// ファイルのダブルクリックイベントハンドラを生成
 pub fn create_file_anchor_double_click_handler(
-    click_timeout: Rc<RefCell<Option<Timeout>>>,
     display_files: UseStateHandle<Vec<FileInfo>>,
     navigation_history: UseStateHandle<NavigationHistory>,
-    push_toast: Callback<(ToastKind, String)>,
+    toasts: UseStateHandle<Vec<Toast>>,
+    click_timeout: Rc<RefCell<Option<Timeout>>>,
 ) -> Callback<MouseEvent> {
     Callback::from(move |e: MouseEvent| {
         e.prevent_default();
+
+        let toasts = toasts.clone();
+        let push_toast = create_push_toast(toasts);
 
         // 保留しているシングルクリックの処理をキャンセル
         if let Some(v) = click_timeout.borrow_mut().take() {
@@ -378,9 +388,8 @@ pub fn create_file_anchor_double_click_handler(
 
         if !is_dir {
             let path = path.clone();
-            let push_toast = push_toast.clone();
             spawn_local(async move {
-                tc_open_file(path, push_toast).await;
+                tc_open_file(path, push_toast.clone()).await;
             });
             return;
         }
@@ -390,7 +399,6 @@ pub fn create_file_anchor_double_click_handler(
         nh.push(&path);
         navigation_history.set(nh);
         let path = path.clone();
-        let push_toast = push_toast.clone();
         spawn_local(async move {
             display_files.set(tc_read_dir(&path, push_toast).await);
         });

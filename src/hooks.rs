@@ -20,7 +20,7 @@ pub fn use_init(
     all_files: UseStateHandle<Vec<FileInfo>>,
     display_files: UseStateHandle<Vec<FileInfo>>,
     navigation_history: UseStateHandle<NavigationHistory>,
-    push_toast: Callback<(ToastKind, String)>,
+    toasts: UseStateHandle<Vec<Toast>>,
     header_ref: NodeRef,
     footer_ref: NodeRef,
 ) {
@@ -39,7 +39,7 @@ pub fn use_init(
             //let path = navigation_history.paths().first().unwrap();
             let paths = navigation_history.paths();
             let path = paths.first().unwrap();
-            let file_infos = tc_read_dir(path, push_toast).await;
+            let file_infos = tc_read_dir(path, create_push_toast(toasts)).await;
             all_files.set(file_infos.clone());
             display_files.set(file_infos);
         });

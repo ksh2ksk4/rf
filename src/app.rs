@@ -10,7 +10,6 @@ use crate::components::main::*;
 use crate::handlers::*;
 use crate::hooks::*;
 use crate::models::*;
-use crate::utils::*;
 
 /// # Summary
 ///
@@ -47,18 +46,13 @@ pub fn app() -> Html {
     let footer_ref = use_node_ref();
 
     //
-    // コールバック
-    //
-    let push_toast = create_push_toast(toasts.clone());
-
-    //
     // カスタムフック
     //
     use_init(
         all_files.clone(),
         display_files.clone(),
         navigation_history.clone(),
-        push_toast.clone(),
+        toasts.clone(),
         header_ref.clone(),
         footer_ref.clone(),
     );
@@ -80,27 +74,27 @@ pub fn app() -> Html {
     let handle_back_button_click = create_back_button_click_handler(
         display_files.clone(),
         navigation_history.clone(),
-        push_toast.clone(),
+        toasts.clone(),
     );
     let handle_forward_button_click = create_forward_button_click_handler(
         display_files.clone(),
         navigation_history.clone(),
-        push_toast.clone(),
+        toasts.clone(),
     );
     let handle_go_to_parent_dir_button_click = create_go_to_parent_dir_button_click_handler(
         display_files.clone(),
         navigation_history.clone(),
-        push_toast.clone(),
+        toasts.clone(),
     );
     let handle_select_dir_button_click = create_select_dir_button_click_handler(
         display_files.clone(),
         navigation_history.clone(),
-        push_toast.clone(),
+        toasts.clone(),
     );
     let handle_reload_button_click = create_reload_button_click_handler(
         display_files.clone(),
         navigation_history.clone(),
-        push_toast.clone(),
+        toasts.clone(),
     );
     let handle_copy_button_click =
         create_copy_button_click_handler(copy_files.clone(), selected_files.clone());
@@ -108,39 +102,39 @@ pub fn app() -> Html {
         copy_files.clone(),
         display_files.clone(),
         navigation_history.clone(),
-        push_toast.clone(),
         selected_files.clone(),
+        toasts.clone(),
     );
     let handle_delete_files_button_click = create_delete_files_button_click_handler(
         display_files.clone(),
         navigation_history.clone(),
-        push_toast.clone(),
         selected_files.clone(),
+        toasts.clone(),
     );
     let handle_filter_textbox_input =
-        create_filter_textbox_input_handler(filter.clone(), push_toast.clone());
+        create_filter_textbox_input_handler(filter.clone(), toasts.clone());
     let handle_file_checkbox_click =
-        create_file_checkbox_click_handler(push_toast.clone(), selected_files.clone());
+        create_file_checkbox_click_handler(selected_files.clone(), toasts.clone());
     let handle_file_anchor_click = create_file_anchor_click_handler(
-        click_timeout.clone(),
-        push_toast.clone(),
         renaming_file.clone(),
         selected_files.clone(),
+        toasts.clone(),
+        click_timeout.clone(),
     );
     let handle_file_textbox_blur = create_file_textbox_blur_handler(
         display_files.clone(),
         navigation_history.clone(),
-        push_toast.clone(),
         renaming_file.clone(),
         selected_files.clone(),
+        toasts.clone(),
     );
     let handle_file_textbox_keypress =
-        create_file_textbox_keypress_handler(push_toast.clone(), renaming_file.clone());
+        create_file_textbox_keypress_handler(renaming_file.clone(), toasts.clone());
     let handle_file_anchor_double_click = create_file_anchor_double_click_handler(
-        click_timeout.clone(),
         display_files.clone(),
         navigation_history.clone(),
-        push_toast.clone(),
+        toasts.clone(),
+        click_timeout.clone(),
     );
 
     html! {
