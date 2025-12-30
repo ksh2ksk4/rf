@@ -2,9 +2,9 @@ use rf_common::FileInfo;
 use std::collections::HashSet;
 use yew::prelude::*;
 
+use super::handlers::*;
 use crate::debug;
-use crate::handlers::*;
-use crate::models::*;
+use crate::shared::models::*;
 
 #[derive(PartialEq, Properties)]
 pub struct HeaderProps {

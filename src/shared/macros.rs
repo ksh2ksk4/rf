@@ -65,7 +65,7 @@ macro_rules! system_error {
     ($e:expr, $push_toast:expr) => {
         let message = format!("{:?}", &$e);
         ::web_sys::console::error_1(&message.clone().into());
-        (&$push_toast).emit(($crate::models::ToastKind::Error, message));
+        (&$push_toast).emit(($crate::shared::models::ToastKind::Error, message));
     };
 }
 
@@ -86,6 +86,6 @@ macro_rules! user_error {
     ($message:expr, $push_toast:expr) => {
         let message: String = ($message).into();
         ::web_sys::console::error_1(&message.clone().into());
-        (&$push_toast).emit(($crate::models::ToastKind::Error, message));
+        (&$push_toast).emit(($crate::shared::models::ToastKind::Error, message));
     };
 }

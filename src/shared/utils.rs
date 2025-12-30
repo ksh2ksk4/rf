@@ -4,7 +4,7 @@ use wasm_bindgen_futures::spawn_local;
 use web_sys::{Element, HtmlElement};
 use yew::prelude::*;
 
-use crate::models::*;
+use crate::shared::models::*;
 use crate::{debug, system_error};
 
 /// # Summary

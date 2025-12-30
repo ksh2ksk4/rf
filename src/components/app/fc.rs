@@ -5,14 +5,14 @@ use wasm_bindgen_futures::spawn_local;
 use web_sys::window;
 use yew::prelude::*;
 
-use crate::components::footer::*;
-use crate::components::header::*;
-use crate::components::main::*;
-use crate::components::toast_area::*;
+use crate::components::footer::fc::*;
+use crate::components::header::fc::*;
+use crate::components::main::fc::*;
+use crate::components::toast_area::fc::*;
 use crate::debug;
-use crate::models::*;
-use crate::tauri_api::*;
-use crate::utils::*;
+use crate::shared::models::*;
+use crate::shared::tauri_api::*;
+use crate::shared::utils::*;
 
 /// # Summary
 ///
@@ -43,7 +43,7 @@ pub fn app_component() -> Html {
     let footer_ref = use_node_ref();
 
     //
-    // カスタムフック
+    // フック
     //
     {
         let all_files = all_files.clone();

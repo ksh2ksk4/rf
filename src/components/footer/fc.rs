@@ -1,6 +1,6 @@
 use yew::prelude::*;
 
-use crate::models::*;
+use crate::shared::models::*;
 
 #[derive(PartialEq, Properties)]
 pub struct FooterProps {

@@ -7,9 +7,9 @@ use wasm_bindgen_futures::spawn_local;
 use web_sys::{window, HtmlInputElement};
 use yew::prelude::*;
 
-use crate::handlers::*;
-use crate::models::*;
-use crate::utils::*;
+use super::handlers::*;
+use crate::shared::models::*;
+use crate::shared::utils::*;
 
 #[derive(PartialEq, Properties)]
 pub struct MainProps {

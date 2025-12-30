@@ -3,7 +3,7 @@ use rf_common::*;
 use wasm_bindgen::prelude::*;
 use yew::prelude::*;
 
-use crate::models::*;
+use crate::shared::models::*;
 use crate::system_error;
 
 #[wasm_bindgen]
