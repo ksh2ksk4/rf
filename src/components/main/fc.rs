@@ -75,8 +75,11 @@ pub fn main_component(props: &MainProps) -> Html {
     //
     // イベントハンドラ
     //
-    let handle_file_checkbox_click =
-        create_file_checkbox_click_handler(selected_files.clone(), toasts.clone());
+    #[rustfmt::skip]
+    let handle_file_checkbox_click = create_file_checkbox_click_handler(
+        selected_files.clone(),
+        toasts.clone(),
+    );
     let handle_file_anchor_click = create_file_anchor_click_handler(
         renaming_file.clone(),
         selected_files.clone(),
@@ -96,8 +99,11 @@ pub fn main_component(props: &MainProps) -> Html {
         selected_files.clone(),
         toasts.clone(),
     );
-    let handle_file_textbox_keypress =
-        create_file_textbox_keypress_handler(renaming_file.clone(), toasts.clone());
+    #[rustfmt::skip]
+    let handle_file_textbox_keypress = create_file_textbox_keypress_handler(
+        renaming_file.clone(),
+        toasts.clone(),
+    );
 
     html! {
         <main>

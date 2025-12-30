@@ -112,8 +112,11 @@ pub fn header_component(props: &HeaderProps) -> Html {
         navigation_history.clone(),
         toasts.clone(),
     );
-    let handle_copy_button_click =
-        create_copy_button_click_handler(copy_files.clone(), selected_files.clone());
+    #[rustfmt::skip]
+    let handle_copy_button_click = create_copy_button_click_handler(
+        copy_files.clone(),
+        selected_files.clone(),
+    );
     let handle_paste_button_click = create_paste_button_click_handler(
         copy_files.clone(),
         display_files.clone(),
@@ -127,8 +130,11 @@ pub fn header_component(props: &HeaderProps) -> Html {
         selected_files.clone(),
         toasts.clone(),
     );
-    let handle_filter_textbox_input =
-        create_filter_textbox_input_handler(filter.clone(), toasts.clone());
+    #[rustfmt::skip]
+    let handle_filter_textbox_input = create_filter_textbox_input_handler(
+        filter.clone(),
+        toasts.clone(),
+    );
 
     html! {
         <header ref={header_ref}>
