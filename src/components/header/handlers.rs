@@ -64,9 +64,10 @@ pub fn create_go_to_parent_dir_button_click_handler(
     toasts: UseStateHandle<Vec<Toast>>,
 ) -> Callback<MouseEvent> {
     Callback::from(move |_| {
+        let navigation_history = navigation_history.clone();
+
         let all_files = all_files.clone();
         let display_files = display_files.clone();
-        let navigation_history = navigation_history.clone();
         let toasts = toasts.clone();
         spawn_local(async move {
             let path = tc_get_parent_dir(
@@ -93,9 +94,10 @@ pub fn create_select_dir_button_click_handler(
     toasts: UseStateHandle<Vec<Toast>>,
 ) -> Callback<MouseEvent> {
     Callback::from(move |_| {
+        let navigation_history = navigation_history.clone();
+
         let all_files = all_files.clone();
         let display_files = display_files.clone();
-        let navigation_history = navigation_history.clone();
         let toasts = toasts.clone();
         spawn_local(async move {
             let path = tc_select_dir().await;
@@ -118,10 +120,10 @@ pub fn create_reload_button_click_handler(
     toasts: UseStateHandle<Vec<Toast>>,
 ) -> Callback<MouseEvent> {
     Callback::from(move |_| {
+        let path = navigation_history.current().to_string();
+
         let all_files = all_files.clone();
         let display_files = display_files.clone();
-        let nh = (*navigation_history).clone();
-        let path = nh.current().to_string();
         let toasts = toasts.clone();
         spawn_local(async move {
             update_file_list(&path, all_files, display_files, toasts).await;
@@ -153,19 +155,20 @@ pub fn create_paste_button_click_handler(
     toasts: UseStateHandle<Vec<Toast>>,
 ) -> Callback<MouseEvent> {
     Callback::from(move |_| {
-        let nh = (*navigation_history).clone();
-        let current_path = nh.current().to_string();
+        let path = navigation_history.current().to_string();
 
         let copy_files = copy_files.clone();
-        let paths: Vec<String> = (*copy_files).iter().cloned().collect();
+        let copy_file_paths: Vec<String> = (*copy_files).iter().cloned().collect();
+
+        // ペースト後に選択状態をクリアするために渡す
+        let selected_files = selected_files.clone();
 
         let all_files = all_files.clone();
         let display_files = display_files.clone();
-        let selected_files = selected_files.clone();
         let toasts = toasts.clone();
         spawn_local(async move {
-            tc_copy_files(paths, &current_path, create_push_toast(toasts.clone())).await;
-            update_file_list(&current_path, all_files, display_files, toasts).await;
+            tc_copy_files(copy_file_paths, &path, create_push_toast(toasts.clone())).await;
+            update_file_list(&path, all_files, display_files, toasts).await;
             // 選択状態をクリア
             copy_files.set(Default::default());
             selected_files.set(Default::default());
@@ -184,18 +187,17 @@ pub fn create_delete_files_button_click_handler(
     toasts: UseStateHandle<Vec<Toast>>,
 ) -> Callback<MouseEvent> {
     Callback::from(move |_| {
-        let nh = (*navigation_history).clone();
-        let current_path = nh.current().to_string();
+        let path = navigation_history.current().to_string();
 
         let selected_files = selected_files.clone();
-        let paths: Vec<String> = (*selected_files).iter().cloned().collect();
+        let delete_file_paths: Vec<String> = (*selected_files).iter().cloned().collect();
 
         let all_files = all_files.clone();
         let display_files = display_files.clone();
         let toasts = toasts.clone();
         spawn_local(async move {
-            if tc_delete_files(paths, create_push_toast(toasts.clone())).await {
-                update_file_list(&current_path, all_files, display_files, toasts).await;
+            if tc_delete_files(delete_file_paths, create_push_toast(toasts.clone())).await {
+                update_file_list(&path, all_files, display_files, toasts).await;
                 // 選択状態をクリア
                 selected_files.set(HashSet::new());
             }
