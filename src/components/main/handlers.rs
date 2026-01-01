@@ -85,6 +85,7 @@ pub fn create_file_anchor_click_handler(
 ///
 /// ファイルのダブルクリックイベントハンドラを生成
 pub fn create_file_anchor_double_click_handler(
+    all_files: UseStateHandle<Vec<FileInfo>>,
     display_files: UseStateHandle<Vec<FileInfo>>,
     navigation_history: UseStateHandle<NavigationHistory>,
     toasts: UseStateHandle<Vec<Toast>>,
@@ -119,13 +120,16 @@ pub fn create_file_anchor_double_click_handler(
             return;
         }
 
+        let all_files = all_files.clone();
         let display_files = display_files.clone();
         let mut nh = (*navigation_history).clone();
         nh.push(&path);
         navigation_history.set(nh);
         let path = path.clone();
         spawn_local(async move {
-            display_files.set(tc_read_dir(&path, push_toast).await);
+            let file_infos = tc_read_dir(&path, push_toast).await;
+            all_files.set(file_infos.clone());
+            display_files.set(file_infos);
         });
     })
 }
@@ -134,6 +138,7 @@ pub fn create_file_anchor_double_click_handler(
 ///
 /// ファイル名変更(マウス操作)のイベントハンドラを生成
 pub fn create_file_textbox_blur_handler(
+    all_files: UseStateHandle<Vec<FileInfo>>,
     display_files: UseStateHandle<Vec<FileInfo>>,
     navigation_history: UseStateHandle<NavigationHistory>,
     renaming_file: UseStateHandle<Option<String>>,
@@ -171,13 +176,16 @@ pub fn create_file_textbox_blur_handler(
             return;
         }
 
+        let all_files = all_files.clone();
         let display_files = display_files.clone();
         let nh = (*navigation_history).clone();
         let current_path = nh.current().to_string();
         let selected_files = selected_files.clone();
         spawn_local(async move {
             if tc_rename_file(&path, &new_name, push_toast.clone()).await {
-                display_files.set(tc_read_dir(&current_path, push_toast).await);
+                let file_infos = tc_read_dir(&current_path, push_toast).await;
+                all_files.set(file_infos.clone());
+                display_files.set(file_infos);
 
                 let mut new_value = HashSet::<String>::new();
                 new_value.insert(

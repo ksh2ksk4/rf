@@ -89,26 +89,31 @@ pub fn header_component(props: &HeaderProps) -> Html {
     // イベントハンドラ
     //
     let handle_back_button_click = create_back_button_click_handler(
+        all_files.clone(),
         display_files.clone(),
         navigation_history.clone(),
         toasts.clone(),
     );
     let handle_forward_button_click = create_forward_button_click_handler(
+        all_files.clone(),
         display_files.clone(),
         navigation_history.clone(),
         toasts.clone(),
     );
     let handle_go_to_parent_dir_button_click = create_go_to_parent_dir_button_click_handler(
+        all_files.clone(),
         display_files.clone(),
         navigation_history.clone(),
         toasts.clone(),
     );
     let handle_select_dir_button_click = create_select_dir_button_click_handler(
+        all_files.clone(),
         display_files.clone(),
         navigation_history.clone(),
         toasts.clone(),
     );
     let handle_reload_button_click = create_reload_button_click_handler(
+        all_files.clone(),
         display_files.clone(),
         navigation_history.clone(),
         toasts.clone(),
@@ -119,6 +124,7 @@ pub fn header_component(props: &HeaderProps) -> Html {
         selected_files.clone(),
     );
     let handle_paste_button_click = create_paste_button_click_handler(
+        all_files.clone(),
         copy_files.clone(),
         display_files.clone(),
         navigation_history.clone(),
@@ -126,6 +132,7 @@ pub fn header_component(props: &HeaderProps) -> Html {
         toasts.clone(),
     );
     let handle_delete_files_button_click = create_delete_files_button_click_handler(
+        all_files.clone(),
         display_files.clone(),
         navigation_history.clone(),
         selected_files.clone(),

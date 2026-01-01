@@ -14,6 +14,7 @@ use crate::shared::utils::*;
 
 #[derive(PartialEq, Properties)]
 pub struct MainProps {
+    pub all_files: UseStateHandle<Vec<FileInfo>>,
     pub display_files: UseStateHandle<Vec<FileInfo>>,
     pub navigation_history: UseStateHandle<NavigationHistory>,
     pub selected_files: UseStateHandle<HashSet<String>>,
@@ -32,6 +33,7 @@ pub fn main_component(props: &MainProps) -> Html {
     //
     // アプリ共有のステート
     //
+    let all_files = &props.all_files;
     let display_files = &props.display_files;
     let navigation_history = &props.navigation_history;
     let selected_files = &props.selected_files;
@@ -99,12 +101,14 @@ pub fn main_component(props: &MainProps) -> Html {
         click_timeout.clone(),
     );
     let handle_file_anchor_double_click = create_file_anchor_double_click_handler(
+        all_files.clone(),
         display_files.clone(),
         navigation_history.clone(),
         toasts.clone(),
         click_timeout.clone(),
     );
     let handle_file_textbox_blur = create_file_textbox_blur_handler(
+        all_files.clone(),
         display_files.clone(),
         navigation_history.clone(),
         renaming_file.clone(),

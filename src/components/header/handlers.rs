@@ -12,18 +12,22 @@ use crate::shared::utils::*;
 ///
 /// back ボタンのクリックイベントハンドラを生成
 pub fn create_back_button_click_handler(
+    all_files: UseStateHandle<Vec<FileInfo>>,
     display_files: UseStateHandle<Vec<FileInfo>>,
     navigation_history: UseStateHandle<NavigationHistory>,
     toasts: UseStateHandle<Vec<Toast>>,
 ) -> Callback<MouseEvent> {
     Callback::from(move |_| {
+        let all_files = all_files.clone();
         let display_files = display_files.clone();
         let mut nh = (*navigation_history).clone();
         let path = nh.back();
         navigation_history.set(nh);
         let toasts = toasts.clone();
         spawn_local(async move {
-            display_files.set(tc_read_dir(&path, create_push_toast(toasts)).await);
+            let file_infos = tc_read_dir(&path, create_push_toast(toasts)).await;
+            all_files.set(file_infos.clone());
+            display_files.set(file_infos);
         });
     })
 }
@@ -32,18 +36,22 @@ pub fn create_back_button_click_handler(
 ///
 /// forward ボタンのクリックイベントハンドラを生成
 pub fn create_forward_button_click_handler(
+    all_files: UseStateHandle<Vec<FileInfo>>,
     display_files: UseStateHandle<Vec<FileInfo>>,
     navigation_history: UseStateHandle<NavigationHistory>,
     toasts: UseStateHandle<Vec<Toast>>,
 ) -> Callback<MouseEvent> {
     Callback::from(move |_| {
+        let all_files = all_files.clone();
         let display_files = display_files.clone();
         let mut nh = (*navigation_history).clone();
         let path = nh.forward();
         navigation_history.set(nh);
         let toasts = toasts.clone();
         spawn_local(async move {
-            display_files.set(tc_read_dir(&path, create_push_toast(toasts)).await);
+            let file_infos = tc_read_dir(&path, create_push_toast(toasts)).await;
+            all_files.set(file_infos.clone());
+            display_files.set(file_infos);
         });
     })
 }
@@ -52,18 +60,22 @@ pub fn create_forward_button_click_handler(
 ///
 /// "go to parent dir" ボタンのクリックイベントハンドラを生成
 pub fn create_go_to_parent_dir_button_click_handler(
+    all_files: UseStateHandle<Vec<FileInfo>>,
     display_files: UseStateHandle<Vec<FileInfo>>,
     navigation_history: UseStateHandle<NavigationHistory>,
     toasts: UseStateHandle<Vec<Toast>>,
 ) -> Callback<MouseEvent> {
     Callback::from(move |_| {
+        let all_files = all_files.clone();
         let display_files = display_files.clone();
         let navigation_history = navigation_history.clone();
         let toasts = toasts.clone();
         spawn_local(async move {
             let push_toast = create_push_toast(toasts);
             let path = tc_get_parent_dir(navigation_history.current(), push_toast.clone()).await;
-            display_files.set(tc_read_dir(&path, push_toast).await);
+            let file_infos = tc_read_dir(&path, push_toast).await;
+            all_files.set(file_infos.clone());
+            display_files.set(file_infos);
             let mut nh = (*navigation_history).clone();
             nh.push(&path);
             navigation_history.set(nh);
@@ -75,17 +87,21 @@ pub fn create_go_to_parent_dir_button_click_handler(
 ///
 /// "select dir" ボタンのクリックイベントハンドラを生成
 pub fn create_select_dir_button_click_handler(
+    all_files: UseStateHandle<Vec<FileInfo>>,
     display_files: UseStateHandle<Vec<FileInfo>>,
     navigation_history: UseStateHandle<NavigationHistory>,
     toasts: UseStateHandle<Vec<Toast>>,
 ) -> Callback<MouseEvent> {
     Callback::from(move |_| {
+        let all_files = all_files.clone();
         let display_files = display_files.clone();
         let navigation_history = navigation_history.clone();
         let toasts = toasts.clone();
         spawn_local(async move {
             let path = tc_select_dir().await;
-            display_files.set(tc_read_dir(&path, create_push_toast(toasts)).await);
+            let file_infos = tc_read_dir(&path, create_push_toast(toasts)).await;
+            all_files.set(file_infos.clone());
+            display_files.set(file_infos);
             let mut nh = (*navigation_history).clone();
             nh.push(&path);
             navigation_history.set(nh);
@@ -97,17 +113,21 @@ pub fn create_select_dir_button_click_handler(
 ///
 /// reload ボタンのクリックイベントハンドラを生成
 pub fn create_reload_button_click_handler(
+    all_files: UseStateHandle<Vec<FileInfo>>,
     display_files: UseStateHandle<Vec<FileInfo>>,
     navigation_history: UseStateHandle<NavigationHistory>,
     toasts: UseStateHandle<Vec<Toast>>,
 ) -> Callback<MouseEvent> {
     Callback::from(move |_| {
+        let all_files = all_files.clone();
         let display_files = display_files.clone();
         let nh = (*navigation_history).clone();
         let current_path = nh.current().to_string();
         let toasts = toasts.clone();
         spawn_local(async move {
-            display_files.set(tc_read_dir(&current_path, create_push_toast(toasts)).await);
+            let file_infos = tc_read_dir(&current_path, create_push_toast(toasts)).await;
+            all_files.set(file_infos.clone());
+            display_files.set(file_infos);
         });
     })
 }
@@ -128,6 +148,7 @@ pub fn create_copy_button_click_handler(
 ///
 /// paste ボタンのクリックイベントハンドラを生成
 pub fn create_paste_button_click_handler(
+    all_files: UseStateHandle<Vec<FileInfo>>,
     copy_files: UseStateHandle<HashSet<String>>,
     display_files: UseStateHandle<Vec<FileInfo>>,
     navigation_history: UseStateHandle<NavigationHistory>,
@@ -135,6 +156,7 @@ pub fn create_paste_button_click_handler(
     toasts: UseStateHandle<Vec<Toast>>,
 ) -> Callback<MouseEvent> {
     Callback::from(move |_| {
+        let all_files = all_files.clone();
         let copy_files = copy_files.clone();
         let display_files = display_files.clone();
         let nh = (*navigation_history).clone();
@@ -145,7 +167,9 @@ pub fn create_paste_button_click_handler(
         spawn_local(async move {
             let push_toast = create_push_toast(toasts);
             tc_copy_files(paths, &current_path, push_toast.clone()).await;
-            display_files.set(tc_read_dir(&current_path, push_toast).await);
+            let file_infos = tc_read_dir(&current_path, push_toast).await;
+            all_files.set(file_infos.clone());
+            display_files.set(file_infos);
             copy_files.set(Default::default());
             selected_files.set(Default::default());
         });
@@ -156,12 +180,14 @@ pub fn create_paste_button_click_handler(
 ///
 /// "delete files" ボタンのクリックイベントハンドラを生成
 pub fn create_delete_files_button_click_handler(
+    all_files: UseStateHandle<Vec<FileInfo>>,
     display_files: UseStateHandle<Vec<FileInfo>>,
     navigation_history: UseStateHandle<NavigationHistory>,
     selected_files: UseStateHandle<HashSet<String>>,
     toasts: UseStateHandle<Vec<Toast>>,
 ) -> Callback<MouseEvent> {
     Callback::from(move |_| {
+        let all_files = all_files.clone();
         let display_files = display_files.clone();
         let nh = (*navigation_history).clone();
         let current_path = nh.current().to_string();
@@ -172,7 +198,9 @@ pub fn create_delete_files_button_click_handler(
             let push_toast = create_push_toast(toasts);
 
             if tc_delete_files(paths, push_toast.clone()).await {
-                display_files.set(tc_read_dir(&current_path, push_toast).await);
+                let file_infos = tc_read_dir(&current_path, push_toast).await;
+                all_files.set(file_infos.clone());
+                display_files.set(file_infos);
                 // 選択状態をクリア
                 selected_files.set(HashSet::new());
             }

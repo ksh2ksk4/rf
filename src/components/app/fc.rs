@@ -118,6 +118,7 @@ pub fn app_component() -> Html {
                 header_ref={header_ref}
             />
             <Main
+                all_files={all_files.clone()}
                 display_files={display_files}
                 navigation_history={navigation_history.clone()}
                 selected_files={selected_files}
