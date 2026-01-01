@@ -8,6 +8,7 @@ use web_sys::{window, HtmlInputElement};
 use yew::prelude::*;
 
 use super::handlers::*;
+use crate::debug;
 use crate::shared::models::*;
 use crate::shared::utils::*;
 
@@ -48,6 +49,17 @@ pub fn main_component(props: &MainProps) -> Html {
     //
     // フック
     //
+    #[cfg(debug_assertions)]
+    {
+        let renaming_file = renaming_file.clone();
+        // ステート更新時にログを出力(デバッグ用)
+        #[allow(unused_variables)]
+        use_effect_with(renaming_file, move |renaming_file| {
+            debug!(renaming_file);
+
+            || {}
+        });
+    }
     {
         let renaming_file = renaming_file.clone();
         // ファイル名変更時にテキストボックスを focus & select

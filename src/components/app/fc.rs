@@ -45,6 +45,7 @@ pub fn app_component() -> Html {
     //
     // フック
     //
+    #[cfg(debug_assertions)]
     {
         let all_files = all_files.clone();
         let display_files = display_files.clone();

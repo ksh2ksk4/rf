@@ -48,6 +48,7 @@ pub fn header_component(props: &HeaderProps) -> Html {
     //
     // フック
     //
+    #[cfg(debug_assertions)]
     {
         let copy_files = copy_files.clone();
         let filter = filter.clone();
