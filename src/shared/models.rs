@@ -21,20 +21,6 @@ impl NavigationHistory {
 
     /// # Summary
     ///
-    /// インスタンスを生成
-    ///
-    /// # Returns
-    ///
-    /// - `Self`: インスタンス
-    pub fn new() -> Self {
-        Self {
-            index: Default::default(),
-            paths: vec![Self::INIT_PATH.to_string()],
-        }
-    }
-
-    /// # Summary
-    ///
     /// 表示履歴のパスのリストを返す
     ///
     /// - 内部の `Vec<String>` をクローンして返すため、コピーコストがある
@@ -125,6 +111,27 @@ impl NavigationHistory {
 
         self.paths.push(path.to_string());
         self.index = self.paths.len() - 1;
+    }
+
+    /// # Summary
+    ///
+    /// インスタンスを生成
+    ///
+    /// # Returns
+    ///
+    /// - `Self`: インスタンス
+    fn new() -> Self {
+        Self {
+            index: Default::default(),
+            paths: vec![Self::INIT_PATH.to_string()],
+        }
+    }
+}
+
+// Default トレイトを実装
+impl Default for NavigationHistory {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

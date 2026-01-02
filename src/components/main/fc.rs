@@ -43,10 +43,10 @@ pub fn main_component(props: &MainProps) -> Html {
     // Main 固有のステート
     //
     // 名称変更中のファイル
-    let renaming_file = use_state(|| Option::<String>::None);
+    let renaming_file = use_state(|| Option::<String>::default());
 
     // シングルクリック処理用のキャンセラブルタイマー
-    let click_timeout = use_mut_ref(|| None::<Timeout>);
+    let click_timeout = use_mut_ref(|| Option::<Timeout>::default());
 
     //
     // フック

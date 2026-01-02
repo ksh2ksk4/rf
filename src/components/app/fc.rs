@@ -27,15 +27,15 @@ pub fn app_component() -> Html {
     // アプリ共有のステート
     //
     // カレントディレクトリのすべてのファイル
-    let all_files = use_state(|| Vec::<FileInfo>::new());
+    let all_files = use_state(|| Vec::<FileInfo>::default());
     // ファイルリストに表示するファイル(カレントディレクトリのファイルをフィルタリングしたもの)
-    let display_files = use_state(|| Vec::<FileInfo>::new());
+    let display_files = use_state(|| Vec::<FileInfo>::default());
     // ディレクトリの移動履歴
-    let navigation_history = use_state(|| NavigationHistory::new());
+    let navigation_history = use_state(|| NavigationHistory::default());
     // 選択されたファイル
-    let selected_files = use_state(|| HashSet::<String>::new());
+    let selected_files = use_state(|| HashSet::<String>::default());
     // 表示待ちのトースト
-    let toasts = use_state(|| Vec::<Toast>::new());
+    let toasts = use_state(|| Vec::<Toast>::default());
 
     // <header> を参照する NodeRef
     let header_ref = use_node_ref();

@@ -41,9 +41,9 @@ pub fn header_component(props: &HeaderProps) -> Html {
     // Header 固有のステート
     //
     // コピー対象のファイル
-    let copy_files = use_state(|| HashSet::<String>::new());
+    let copy_files = use_state(|| HashSet::<String>::default());
     // ファイル名に対するフィルタ
-    let filter = use_state(|| String::new());
+    let filter = use_state(|| String::default());
 
     //
     // フック
