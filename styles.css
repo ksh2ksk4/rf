@@ -309,6 +309,12 @@
       opacity: 50%;
     }
   }
+  div#app {
+    display: flex;
+    min-height: 100vh;
+    min-width: 100vw;
+    flex-direction: column;
+  }
   div.filter {
     margin-left: auto;
     display: flex;

@@ -146,6 +146,9 @@
     @apply flex items-center justify-center
            disabled:cursor-not-allowed disabled:opacity-50;
   }
+  div#app {
+    @apply flex flex-col min-h-screen min-w-screen;
+  }
   div.filter {
     @apply flex items-center ml-auto;
   }
