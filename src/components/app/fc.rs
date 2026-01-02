@@ -1,8 +1,9 @@
 use gloo::events::EventListener;
 use rf_common::FileInfo;
 use std::collections::HashSet;
+use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::spawn_local;
-use web_sys::window;
+use web_sys::{window, KeyboardEvent};
 use yew::prelude::*;
 
 use crate::components::footer::fc::*;
@@ -34,6 +35,8 @@ pub fn app_component() -> Html {
     let navigation_history = use_state(|| NavigationHistory::default());
     // 選択されたファイル
     let selected_files = use_state(|| HashSet::<String>::default());
+    // Shift キーの押下状態
+    let shift_key_pressed = use_state(|| bool::default());
     // 表示待ちのトースト
     let toasts = use_state(|| Vec::<Toast>::default());
 
@@ -51,6 +54,7 @@ pub fn app_component() -> Html {
         let display_files = display_files.clone();
         let navigation_history = navigation_history.clone();
         let selected_files = selected_files.clone();
+        let shift_key_pressed = shift_key_pressed.clone();
         let toasts = toasts.clone();
         // ステート更新時にログを出力(デバッグ用)
         #[allow(unused_variables)]
@@ -60,13 +64,22 @@ pub fn app_component() -> Html {
                 display_files,
                 navigation_history,
                 selected_files,
+                shift_key_pressed,
                 toasts,
             ),
-            move |(all_files, display_files, navigation_history, selected_files, toasts)| {
+            move |(
+                all_files,
+                display_files,
+                navigation_history,
+                selected_files,
+                shift_key_pressed,
+                toasts,
+            )| {
                 debug!(all_files);
                 debug!(display_files);
                 debug!(navigation_history);
                 debug!(selected_files);
+                debug!(shift_key_pressed);
                 debug!(toasts);
 
                 || {}
@@ -77,6 +90,7 @@ pub fn app_component() -> Html {
         let all_files = all_files.clone();
         let display_files = display_files.clone();
         let navigation_history = navigation_history.clone();
+        let shift_key_pressed = shift_key_pressed.clone();
         let toasts = toasts.clone();
         let header_ref = header_ref.clone();
         let footer_ref = footer_ref.clone();
@@ -89,6 +103,30 @@ pub fn app_component() -> Html {
             let resize = EventListener::new(&window, "resize", move |_| {
                 set_content_height(&header_ref, &footer_ref);
             });
+
+            //
+            // Shift キーの押下状態を監視
+            //
+            let keydown = {
+                let shift_key_pressed = shift_key_pressed.clone();
+                EventListener::new(&window, "keydown", move |e| {
+                    if let Some(v) = e.dyn_ref::<KeyboardEvent>() {
+                        if v.key() == "Shift" {
+                            shift_key_pressed.set(true);
+                        }
+                    }
+                })
+            };
+            let keyup = {
+                let shift_key_pressed = shift_key_pressed.clone();
+                EventListener::new(&window, "keyup", move |e| {
+                    if let Some(v) = e.dyn_ref::<KeyboardEvent>() {
+                        if v.key() == "Shift" {
+                            shift_key_pressed.set(false);
+                        }
+                    }
+                })
+            };
 
             // ファイルリストを初期表示
             spawn_local(async move {
@@ -103,6 +141,8 @@ pub fn app_component() -> Html {
 
             move || {
                 drop(resize);
+                drop(keydown);
+                drop(keyup);
             }
         });
     }
@@ -114,6 +154,7 @@ pub fn app_component() -> Html {
                 display_files={display_files.clone()}
                 navigation_history={navigation_history.clone()}
                 selected_files={selected_files.clone()}
+                shift_key_pressed={shift_key_pressed.clone()}
                 toasts={toasts.clone()}
                 header_ref={header_ref}
             />

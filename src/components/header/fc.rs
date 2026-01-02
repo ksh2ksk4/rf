@@ -12,6 +12,7 @@ pub struct HeaderProps {
     pub display_files: UseStateHandle<Vec<FileInfo>>,
     pub navigation_history: UseStateHandle<NavigationHistory>,
     pub selected_files: UseStateHandle<HashSet<String>>,
+    pub shift_key_pressed: UseStateHandle<bool>,
     pub toasts: UseStateHandle<Vec<Toast>>,
     pub header_ref: NodeRef,
 }
@@ -32,6 +33,7 @@ pub fn header_component(props: &HeaderProps) -> Html {
     let display_files = &props.display_files;
     let navigation_history = &props.navigation_history;
     let selected_files = &props.selected_files;
+    let shift_key_pressed = &props.shift_key_pressed;
     let toasts = &props.toasts;
 
     // <header> を参照する NodeRef
@@ -122,6 +124,14 @@ pub fn header_component(props: &HeaderProps) -> Html {
     let handle_copy_button_click = create_copy_button_click_handler(
         copy_files.clone(),
         selected_files.clone(),
+    );
+    let handle_move_button_click = create_move_button_click_handler(
+        all_files.clone(),
+        copy_files.clone(),
+        display_files.clone(),
+        navigation_history.clone(),
+        selected_files.clone(),
+        toasts.clone(),
     );
     let handle_paste_button_click = create_paste_button_click_handler(
         all_files.clone(),
@@ -216,18 +226,37 @@ pub fn header_component(props: &HeaderProps) -> Html {
                         aria-hidden="true"
                     />
                 </button>
-                <button
-                    class="icon"
-                    title="paste"
-                    aria-label="paste"
-                    onclick={handle_paste_button_click}
-                    disabled={copy_files.is_empty()}
-                >
-                    <i
-                        class="nf nf-fa-paste"
-                        aria-hidden="true"
-                    />
-                </button>
+                {if **shift_key_pressed {
+                    html! {
+                        <button
+                            class="icon"
+                            title="move"
+                            aria-label="move"
+                            onclick={handle_move_button_click}
+                            disabled={copy_files.is_empty()}
+                        >
+                            <i
+                                class="nf nf-md-file_move"
+                                aria-hidden="true"
+                            />
+                        </button>
+                    }
+                } else {
+                    html! {
+                        <button
+                            class="icon"
+                            title="paste"
+                            aria-label="paste"
+                            onclick={handle_paste_button_click}
+                            disabled={copy_files.is_empty()}
+                        >
+                            <i
+                                class="nf nf-fa-paste"
+                                aria-hidden="true"
+                            />
+                        </button>
+                    }
+                }}
                 <button
                     class="icon"
                     title="delete files"
