@@ -199,23 +199,11 @@
   .ml-3 {
     margin-left: calc(var(--spacing) * 3);
   }
-  .flex {
-    display: flex;
-  }
-  .min-h-screen {
-    min-height: 100vh;
-  }
-  .min-w-screen {
-    min-width: 100vw;
-  }
   .flex-1 {
     flex: 1;
   }
   .resize {
     resize: both;
-  }
-  .flex-col {
-    flex-direction: column;
   }
   .border {
     border-style: var(--tw-border-style);
