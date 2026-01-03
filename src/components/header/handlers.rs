@@ -143,17 +143,17 @@ pub fn create_copy_button_click_handler(
     })
 }
 
-//fixme paste の処理と共通化
 /// # Summary
 ///
-/// move ボタンのクリックイベントハンドラを生成
-pub fn create_move_button_click_handler(
+/// paste ボタン(move ボタン)のクリックイベントハンドラを生成
+pub fn create_paste_or_move_onclick_handler(
     all_files: UseStateHandle<Vec<FileInfo>>,
     copy_files: UseStateHandle<HashSet<String>>,
     display_files: UseStateHandle<Vec<FileInfo>>,
     navigation_history: UseStateHandle<NavigationHistory>,
     selected_files: UseStateHandle<HashSet<String>>,
     toasts: UseStateHandle<Vec<Toast>>,
+    should_move: bool,
 ) -> Callback<MouseEvent> {
     Callback::from(move |_| {
         let path = navigation_history.current().to_string();
@@ -174,40 +174,11 @@ pub fn create_move_button_click_handler(
                 create_push_toast(toasts.clone()),
             )
             .await;
-            tc_delete_files(copy_file_paths, create_push_toast(toasts.clone())).await;
-            update_file_list(&path, all_files, display_files, toasts).await;
-            // 選択状態をクリア
-            copy_files.set(Default::default());
-            selected_files.set(Default::default());
-        });
-    })
-}
 
-/// # Summary
-///
-/// paste ボタンのクリックイベントハンドラを生成
-pub fn create_paste_button_click_handler(
-    all_files: UseStateHandle<Vec<FileInfo>>,
-    copy_files: UseStateHandle<HashSet<String>>,
-    display_files: UseStateHandle<Vec<FileInfo>>,
-    navigation_history: UseStateHandle<NavigationHistory>,
-    selected_files: UseStateHandle<HashSet<String>>,
-    toasts: UseStateHandle<Vec<Toast>>,
-) -> Callback<MouseEvent> {
-    Callback::from(move |_| {
-        let path = navigation_history.current().to_string();
+            if should_move {
+                tc_delete_files(copy_file_paths, create_push_toast(toasts.clone())).await;
+            }
 
-        let copy_files = copy_files.clone();
-        let copy_file_paths: Vec<String> = (*copy_files).iter().cloned().collect();
-
-        // ペースト後に選択状態をクリアするために渡す
-        let selected_files = selected_files.clone();
-
-        let all_files = all_files.clone();
-        let display_files = display_files.clone();
-        let toasts = toasts.clone();
-        spawn_local(async move {
-            tc_copy_files(copy_file_paths, &path, create_push_toast(toasts.clone())).await;
             update_file_list(&path, all_files, display_files, toasts).await;
             // 選択状態をクリア
             copy_files.set(Default::default());
