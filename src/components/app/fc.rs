@@ -6,6 +6,8 @@ use wasm_bindgen_futures::spawn_local;
 use web_sys::{window, KeyboardEvent};
 use yew::prelude::*;
 
+use super::handlers::*;
+use crate::components::context_menu::fc::*;
 use crate::components::footer::fc::*;
 use crate::components::header::fc::*;
 use crate::components::main::fc::*;
@@ -37,6 +39,9 @@ pub fn app_component() -> Html {
     let selected_files = use_state(|| HashSet::<String>::default());
     // Shift キーの押下状態
     let shift_key_pressed = use_state(|| bool::default());
+    // コンテキストメニュー(ファイルを右クリックしたときに表示するメニュー)のデータ
+    // メニュー非表示対応のため <main> ではなく <app> で定義
+    let context_menu_data = use_state(|| Option::<ContextMenuData>::default());
     // 表示待ちのトースト
     let toasts = use_state(|| Vec::<Toast>::default());
 
@@ -55,6 +60,7 @@ pub fn app_component() -> Html {
         let navigation_history = navigation_history.clone();
         let selected_files = selected_files.clone();
         let shift_key_pressed = shift_key_pressed.clone();
+        let context_menu_data = context_menu_data.clone();
         let toasts = toasts.clone();
         // ステート更新時にログを出力(デバッグ用)
         #[allow(unused_variables)]
@@ -65,6 +71,7 @@ pub fn app_component() -> Html {
                 navigation_history,
                 selected_files,
                 shift_key_pressed,
+                context_menu_data,
                 toasts,
             ),
             move |(
@@ -73,6 +80,7 @@ pub fn app_component() -> Html {
                 navigation_history,
                 selected_files,
                 shift_key_pressed,
+                context_menu_data,
                 toasts,
             )| {
                 debug!(all_files);
@@ -80,6 +88,7 @@ pub fn app_component() -> Html {
                 debug!(navigation_history);
                 debug!(selected_files);
                 debug!(shift_key_pressed);
+                debug!(context_menu_data);
                 debug!(toasts);
 
                 || {}
@@ -147,8 +156,19 @@ pub fn app_component() -> Html {
         });
     }
 
+    //
+    // イベントハンドラ
+    //
+    #[rustfmt::skip]
+    let handle_app_click = create_app_click_handler(
+        context_menu_data.clone(),
+    );
+
     html! {
-        <div id="app">
+        <div
+            id="app"
+            onclick={handle_app_click}
+        >
             <Header
                 all_files={all_files.clone()}
                 display_files={display_files.clone()}
@@ -163,6 +183,7 @@ pub fn app_component() -> Html {
                 display_files={display_files}
                 navigation_history={navigation_history.clone()}
                 selected_files={selected_files}
+                context_menu_data={context_menu_data}
                 toasts={toasts.clone()}
             />
             <Footer

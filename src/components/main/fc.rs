@@ -8,6 +8,7 @@ use web_sys::{window, HtmlInputElement};
 use yew::prelude::*;
 
 use super::handlers::*;
+use crate::components::context_menu::fc::*;
 use crate::debug;
 use crate::shared::models::*;
 use crate::shared::utils::*;
@@ -18,6 +19,7 @@ pub struct MainProps {
     pub display_files: UseStateHandle<Vec<FileInfo>>,
     pub navigation_history: UseStateHandle<NavigationHistory>,
     pub selected_files: UseStateHandle<HashSet<String>>,
+    pub context_menu_data: UseStateHandle<Option<ContextMenuData>>,
     pub toasts: UseStateHandle<Vec<Toast>>,
 }
 
@@ -37,6 +39,7 @@ pub fn main_component(props: &MainProps) -> Html {
     let display_files = &props.display_files;
     let navigation_history = &props.navigation_history;
     let selected_files = &props.selected_files;
+    let context_menu_data = &props.context_menu_data;
     let toasts = &props.toasts;
 
     //
@@ -99,6 +102,11 @@ pub fn main_component(props: &MainProps) -> Html {
         selected_files.clone(),
         toasts.clone(),
         click_timeout.clone(),
+    );
+    #[rustfmt::skip]
+    let handle_file_anchor_context_menu = create_file_anchor_context_menu_handler(
+        context_menu_data.clone(),
+        toasts.clone()
     );
     let handle_file_anchor_double_click = create_file_anchor_double_click_handler(
         all_files.clone(),
@@ -175,6 +183,7 @@ pub fn main_component(props: &MainProps) -> Html {
                                             <a
                                                 href="#"
                                                 onclick={handle_file_anchor_click.clone()}
+                                                oncontextmenu={handle_file_anchor_context_menu.clone()}
                                                 ondblclick={handle_file_anchor_double_click.clone()}
                                                 data-is-dir={f.is_dir().to_string()}
                                                 data-path={f.path().clone()}
@@ -193,6 +202,7 @@ pub fn main_component(props: &MainProps) -> Html {
                     })}
                 </tbody>
             </table>
+            <ContextMenu context_menu_data={context_menu_data.clone()} />
         </main>
     }
 }

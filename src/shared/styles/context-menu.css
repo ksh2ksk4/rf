@@ -1,0 +1,102 @@
+/* Finder風コンテキストメニュー */
+.context-menu {
+  min-width: 200px;
+  max-width: 320px;
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 10px;
+  padding: 6px 6px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18), 0 2px 6px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    sans-serif;
+  color: #111;
+  z-index: 10000;
+  user-select: none;
+  overflow: hidden;
+}
+
+/* リスト本体 */
+.context-menu ul {
+  list-style: none;
+  margin: 0;
+  padding: 6px 0;
+}
+
+/* メニュー項目 */
+.context-menu li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  font-size: 13px;
+  line-height: 1;
+  border-radius: 6px;
+  cursor: default;
+  white-space: nowrap;
+}
+
+/* ホバー（Finderの淡い青ハイライト） */
+.context-menu li:hover {
+  background: rgba(0, 122, 255, 0.12);
+  color: #007aff;
+}
+
+/* 無効状態 */
+.context-menu li.disabled {
+  opacity: 0.48;
+  pointer-events: none;
+}
+
+/* 区切り線 */
+.context-menu li.separator {
+  height: 1px;
+  margin: 6px 0;
+  padding: 0;
+  background: rgba(0, 0, 0, 0.06);
+}
+
+/* 右寄せショートカット表示（例: Cmd+C） */
+.context-menu li .shortcut {
+  margin-left: auto;
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 12px;
+}
+
+/* チェックやアイコン領域（必要なら要素を入れる） */
+.context-menu li .icon {
+  width: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+/* ダークモード対応 */
+@media (prefers-color-scheme: dark) {
+  .context-menu {
+    background: rgba(28, 28, 30, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    color: #ececec;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 2px 6px rgba(0, 0, 0, 0.3);
+  }
+  .context-menu li.separator {
+    background: rgba(255, 255, 255, 0.04);
+  }
+  .context-menu li:hover {
+    background: rgba(10, 132, 255, 0.14);
+    color: #0a84ff;
+  }
+  .context-menu li .shortcut {
+    color: rgba(255, 255, 255, 0.55);
+  }
+}
+
+/* 小さい画面やはみ出し時の対策（オプション） */
+.context-menu.right-align {
+  transform-origin: top right;
+}
+.context-menu.left-align {
+  transform-origin: top left;
+}

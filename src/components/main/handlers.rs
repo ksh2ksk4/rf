@@ -8,6 +8,7 @@ use wasm_bindgen_futures::spawn_local;
 use web_sys::{Element, Event, HtmlInputElement};
 use yew::prelude::*;
 
+use crate::components::context_menu::fc::*;
 use crate::shared::models::*;
 use crate::shared::tauri_api::*;
 use crate::shared::utils::*;
@@ -78,6 +79,28 @@ pub fn create_file_anchor_click_handler(
 
             selected_files.set(new_value);
         }));
+    })
+}
+
+/// # Summary
+///
+/// ファイルの右クリックイベントハンドラを生成
+pub fn create_file_anchor_context_menu_handler(
+    context_menu_data: UseStateHandle<Option<ContextMenuData>>,
+    toasts: UseStateHandle<Vec<Toast>>,
+) -> Callback<MouseEvent> {
+    Callback::from(move |e: MouseEvent| {
+        e.prevent_default();
+
+        // イベントエレメントから必要なデータを取得
+        let x = e.client_x();
+        let y = e.client_y();
+        let Some(element) = downcast::<Element>(&e, &create_push_toast(toasts.clone())) else {
+            return;
+        };
+        let path = element.get_attribute("data-path").unwrap_or_default();
+
+        context_menu_data.set(Some(ContextMenuData::new(Coordinate::new(x, y), path)));
     })
 }
 
