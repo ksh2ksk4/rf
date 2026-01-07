@@ -158,9 +158,9 @@ pub fn header_component(props: &HeaderProps) -> Html {
 
     let (paste_or_move_title, paste_or_move_onclick_handler, paste_or_move_class) =
         if !**shift_key_pressed {
-            ("paste", &handle_paste_button_click, "nf nf-fa-paste")
+            ("paste", &handle_paste_button_click, "fa-solid fa-paste")
         } else {
-            ("move", &handle_move_button_click, "nf nf-md-file_move")
+            ("move", &handle_move_button_click, "fa-solid fa-file-export")
         };
 
     html! {
@@ -174,7 +174,7 @@ pub fn header_component(props: &HeaderProps) -> Html {
                     disabled={!navigation_history.can_back()}
                 >
                     <i
-                        class="nf nf-fa-circle_left"
+                        class="fa-regular fa-circle-left"
                         aria-hidden="true"
                     />
                 </button>
@@ -186,7 +186,7 @@ pub fn header_component(props: &HeaderProps) -> Html {
                     disabled={!navigation_history.can_forward()}
                 >
                     <i
-                        class="nf nf-fa-circle_right"
+                        class="fa-regular fa-circle-right"
                         aria-hidden="true"
                     />
                 </button>
@@ -197,7 +197,7 @@ pub fn header_component(props: &HeaderProps) -> Html {
                     onclick={handle_go_to_parent_dir_button_click}
                 >
                     <i
-                        class="nf nf-fa-circle_up"
+                        class="fa-regular fa-circle-up"
                         aria-hidden="true"
                     />
                 </button>
@@ -208,7 +208,7 @@ pub fn header_component(props: &HeaderProps) -> Html {
                     onclick={handle_select_dir_button_click}
                 >
                     <i
-                        class="nf nf-fa-folder_open"
+                        class="fa-solid fa-folder-open"
                         aria-hidden="true"
                     />
                 </button>
@@ -219,7 +219,7 @@ pub fn header_component(props: &HeaderProps) -> Html {
                     onclick={handle_reload_button_click}
                 >
                     <i
-                        class="nf nf-md-reload"
+                        class="fa-solid fa-arrow-rotate-right"
                         aria-hidden="true"
                     />
                 </button>
@@ -231,7 +231,7 @@ pub fn header_component(props: &HeaderProps) -> Html {
                     disabled={selected_files.is_empty()}
                 >
                     <i
-                        class="nf nf-fa-copy"
+                        class="fa-solid fa-copy"
                         aria-hidden="true"
                     />
                 </button>
@@ -255,13 +255,13 @@ pub fn header_component(props: &HeaderProps) -> Html {
                     disabled={selected_files.is_empty()}
                 >
                     <i
-                        class="nf nf-fa-trash"
+                        class="fa-solid fa-trash"
                         aria-hidden="true"
                     />
                 </button>
                 <div class="filter">
                     <i
-                        class="nf nf-fa-filter"
+                        class="fa-solid fa-filter"
                         aria-hidden="true"
                     />
                     <input
@@ -274,7 +274,7 @@ pub fn header_component(props: &HeaderProps) -> Html {
                 </div>
                 <div class="search">
                     <i
-                        class="nf nf-fa-search"
+                        class="fa-solid fa-magnifying-glass"
                         aria-hidden="true"
                     />
                     <input

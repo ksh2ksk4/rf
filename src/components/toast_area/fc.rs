@@ -61,7 +61,7 @@ pub fn toast_area_component(props: &ToastAreaProps) -> Html {
                             onclick={handle_close_click}
                             aria-label="dismiss"
                         >
-                            <i class="nf nf-fa-window_close" />
+                            <i class="fa-solid fa-circle-xmark" />
                         </button>
                     </div>
                 }
