@@ -31,6 +31,8 @@ pub fn app_component() -> Html {
     //
     // カレントディレクトリのすべてのファイル
     let all_files = use_state(|| Vec::<FileInfo>::default());
+    // コピー対象のファイル
+    let copy_files = use_state(|| HashSet::<String>::default());
     // ファイルリストに表示するファイル(カレントディレクトリのファイルをフィルタリングしたもの)
     let display_files = use_state(|| Vec::<FileInfo>::default());
     // ディレクトリの移動履歴
@@ -56,6 +58,7 @@ pub fn app_component() -> Html {
     #[cfg(debug_assertions)]
     {
         let all_files = all_files.clone();
+        let copy_files = copy_files.clone();
         let display_files = display_files.clone();
         let navigation_history = navigation_history.clone();
         let selected_files = selected_files.clone();
@@ -67,6 +70,7 @@ pub fn app_component() -> Html {
         use_effect_with(
             (
                 all_files,
+                copy_files,
                 display_files,
                 navigation_history,
                 selected_files,
@@ -76,6 +80,7 @@ pub fn app_component() -> Html {
             ),
             move |(
                 all_files,
+                copy_files,
                 display_files,
                 navigation_history,
                 selected_files,
@@ -84,6 +89,7 @@ pub fn app_component() -> Html {
                 toasts,
             )| {
                 debug!(all_files);
+                debug!(copy_files);
                 debug!(display_files);
                 debug!(navigation_history);
                 debug!(selected_files);
@@ -171,6 +177,7 @@ pub fn app_component() -> Html {
         >
             <Header
                 all_files={all_files.clone()}
+                copy_files={copy_files.clone()}
                 display_files={display_files.clone()}
                 navigation_history={navigation_history.clone()}
                 selected_files={selected_files.clone()}
@@ -180,6 +187,7 @@ pub fn app_component() -> Html {
             />
             <Main
                 all_files={all_files.clone()}
+                copy_files={copy_files.clone()}
                 display_files={display_files}
                 navigation_history={navigation_history.clone()}
                 selected_files={selected_files}

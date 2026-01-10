@@ -1,8 +1,10 @@
 use rf_common::FileInfo;
+use std::collections::HashSet;
 use wasm_bindgen_futures::spawn_local;
 use web_sys::Element;
 use yew::prelude::*;
 
+use crate::components::header::handlers::*;
 use crate::shared::models::*;
 use crate::shared::tauri_api::*;
 use crate::shared::utils::*;
@@ -53,4 +55,14 @@ pub fn create_open_click_handler(
             display_files.set(file_infos);
         });
     })
+}
+
+/// # Summary
+///
+/// Copy のクリックイベントハンドラを生成
+pub fn create_copy_click_handler(
+    copy_files: UseStateHandle<HashSet<String>>,
+    selected_files: UseStateHandle<HashSet<String>>,
+) -> Callback<MouseEvent> {
+    create_copy_button_click_handler(copy_files, selected_files)
 }

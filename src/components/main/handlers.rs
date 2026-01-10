@@ -86,6 +86,8 @@ pub fn create_file_anchor_click_handler(
 ///
 /// ファイルの右クリックイベントハンドラを生成
 pub fn create_file_anchor_context_menu_handler(
+    copy_files: UseStateHandle<HashSet<String>>,
+    selected_files: UseStateHandle<HashSet<String>>,
     context_menu_data: UseStateHandle<Option<ContextMenuData>>,
     toasts: UseStateHandle<Vec<Toast>>,
 ) -> Callback<MouseEvent> {
@@ -103,6 +105,13 @@ pub fn create_file_anchor_context_menu_handler(
             .map(|v| v == "true")
             .unwrap_or(false);
         let path = element.get_attribute("data-path").unwrap_or_default();
+
+        // ファイルを右クリックすることにより処理対象がこのファイルに限定されるため、
+        // copy_files をクリアして selected_files にこのファイルをセット
+        copy_files.set(Default::default());
+        let mut new_value = HashSet::<String>::default();
+        new_value.insert(path.clone());
+        selected_files.set(new_value);
 
         context_menu_data.set(Some(ContextMenuData::new(
             Coordinate::new(x, y),

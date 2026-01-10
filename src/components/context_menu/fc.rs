@@ -1,4 +1,5 @@
 use rf_common::FileInfo;
+use std::collections::HashSet;
 use yew::prelude::*;
 
 use super::handlers::*;
@@ -68,8 +69,10 @@ impl ContextMenuData {
 #[derive(PartialEq, Properties)]
 pub struct ContextMenuProps {
     pub all_files: UseStateHandle<Vec<FileInfo>>,
+    pub copy_files: UseStateHandle<HashSet<String>>,
     pub display_files: UseStateHandle<Vec<FileInfo>>,
     pub navigation_history: UseStateHandle<NavigationHistory>,
+    pub selected_files: UseStateHandle<HashSet<String>>,
     pub context_menu_data: UseStateHandle<Option<ContextMenuData>>,
     pub toasts: UseStateHandle<Vec<Toast>>,
 }
@@ -87,8 +90,10 @@ pub fn context_menu_component(props: &ContextMenuProps) -> Html {
     // アプリ共有のステート
     //
     let all_files = &props.all_files;
+    let copy_files = &props.copy_files;
     let display_files = &props.display_files;
     let navigation_history = &props.navigation_history;
+    let selected_files = &props.selected_files;
     let context_menu_data = &props.context_menu_data;
     let toasts = &props.toasts;
 
@@ -100,6 +105,11 @@ pub fn context_menu_component(props: &ContextMenuProps) -> Html {
         display_files.clone(),
         navigation_history.clone(),
         toasts.clone(),
+    );
+    #[rustfmt::skip]
+    let handle_copy_click = create_copy_click_handler(
+        copy_files.clone(),
+        selected_files.clone(),
     );
 
     if let Some(v) = context_menu_data.as_ref() {
@@ -136,7 +146,11 @@ pub fn context_menu_component(props: &ContextMenuProps) -> Html {
                         />
                         {v.item_3}
                     </li>
-                    <li>
+                    <li
+                        onclick={handle_copy_click}
+                        data-is-dir={v.is_dir.to_string()}
+                        data-path={v.path.clone()}
+                    >
                         <i
                             class="fa-solid fa-copy"
                             aria-hidden="true"

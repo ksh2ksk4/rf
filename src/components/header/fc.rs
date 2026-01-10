@@ -9,6 +9,7 @@ use crate::shared::models::*;
 #[derive(PartialEq, Properties)]
 pub struct HeaderProps {
     pub all_files: UseStateHandle<Vec<FileInfo>>,
+    pub copy_files: UseStateHandle<HashSet<String>>,
     pub display_files: UseStateHandle<Vec<FileInfo>>,
     pub navigation_history: UseStateHandle<NavigationHistory>,
     pub selected_files: UseStateHandle<HashSet<String>>,
@@ -30,6 +31,7 @@ pub fn header_component(props: &HeaderProps) -> Html {
     // アプリ共有のステート
     //
     let all_files = &props.all_files;
+    let copy_files = &props.copy_files;
     let display_files = &props.display_files;
     let navigation_history = &props.navigation_history;
     let selected_files = &props.selected_files;
@@ -42,8 +44,6 @@ pub fn header_component(props: &HeaderProps) -> Html {
     //
     // Header 固有のステート
     //
-    // コピー対象のファイル
-    let copy_files = use_state(|| HashSet::<String>::default());
     // ファイル名に対するフィルタ
     let filter = use_state(|| String::default());
 
@@ -52,12 +52,10 @@ pub fn header_component(props: &HeaderProps) -> Html {
     //
     #[cfg(debug_assertions)]
     {
-        let copy_files = copy_files.clone();
         let filter = filter.clone();
         // ステート更新時にログを出力(デバッグ用)
         #[allow(unused_variables)]
-        use_effect_with((copy_files, filter), move |(copy_files, filter)| {
-            debug!(copy_files);
+        use_effect_with(filter, move |filter| {
             debug!(filter);
 
             || {}

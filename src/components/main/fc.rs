@@ -16,6 +16,7 @@ use crate::shared::utils::*;
 #[derive(PartialEq, Properties)]
 pub struct MainProps {
     pub all_files: UseStateHandle<Vec<FileInfo>>,
+    pub copy_files: UseStateHandle<HashSet<String>>,
     pub display_files: UseStateHandle<Vec<FileInfo>>,
     pub navigation_history: UseStateHandle<NavigationHistory>,
     pub selected_files: UseStateHandle<HashSet<String>>,
@@ -36,6 +37,7 @@ pub fn main_component(props: &MainProps) -> Html {
     // アプリ共有のステート
     //
     let all_files = &props.all_files;
+    let copy_files = &props.copy_files;
     let display_files = &props.display_files;
     let navigation_history = &props.navigation_history;
     let selected_files = &props.selected_files;
@@ -103,10 +105,11 @@ pub fn main_component(props: &MainProps) -> Html {
         toasts.clone(),
         click_timeout.clone(),
     );
-    #[rustfmt::skip]
     let handle_file_anchor_context_menu = create_file_anchor_context_menu_handler(
+        copy_files.clone(),
+        selected_files.clone(),
         context_menu_data.clone(),
-        toasts.clone()
+        toasts.clone(),
     );
     let handle_file_anchor_double_click = create_file_anchor_double_click_handler(
         all_files.clone(),
@@ -204,8 +207,10 @@ pub fn main_component(props: &MainProps) -> Html {
             </table>
             <ContextMenu
                 all_files={all_files.clone()}
+                copy_files={copy_files.clone()}
                 display_files={display_files.clone()}
                 navigation_history={navigation_history.clone()}
+                selected_files={selected_files.clone()}
                 context_menu_data={context_menu_data.clone()}
                 toasts={toasts.clone()}
             />
