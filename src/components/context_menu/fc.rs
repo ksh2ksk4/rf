@@ -1,4 +1,8 @@
+use rf_common::FileInfo;
 use yew::prelude::*;
+
+use super::handlers::*;
+use crate::shared::models::*;
 
 #[derive(Debug, PartialEq)]
 pub struct Coordinate {
@@ -22,6 +26,7 @@ impl Coordinate {
 #[derive(Debug, PartialEq)]
 pub struct ContextMenuData {
     pub coordinate: Coordinate,
+    pub is_dir: bool,
     pub path: String,
     pub item_1: &'static str,
     pub item_2: &'static str,
@@ -42,9 +47,10 @@ impl ContextMenuData {
     /// # Returns
     ///
     /// - `Self`: インスタンス
-    pub fn new(coordinate: Coordinate, path: impl Into<String>) -> Self {
+    pub fn new(coordinate: Coordinate, is_dir: bool, path: impl Into<String>) -> Self {
         Self {
             coordinate,
+            is_dir,
             path: path.into(),
             item_1: "Open",
             item_2: "Open with",
@@ -61,7 +67,11 @@ impl ContextMenuData {
 
 #[derive(PartialEq, Properties)]
 pub struct ContextMenuProps {
+    pub all_files: UseStateHandle<Vec<FileInfo>>,
+    pub display_files: UseStateHandle<Vec<FileInfo>>,
+    pub navigation_history: UseStateHandle<NavigationHistory>,
     pub context_menu_data: UseStateHandle<Option<ContextMenuData>>,
+    pub toasts: UseStateHandle<Vec<Toast>>,
 }
 
 /// # Summary
@@ -76,7 +86,21 @@ pub fn context_menu_component(props: &ContextMenuProps) -> Html {
     //
     // アプリ共有のステート
     //
+    let all_files = &props.all_files;
+    let display_files = &props.display_files;
+    let navigation_history = &props.navigation_history;
     let context_menu_data = &props.context_menu_data;
+    let toasts = &props.toasts;
+
+    //
+    // イベントハンドラ
+    //
+    let handle_open_click = create_open_click_handler(
+        all_files.clone(),
+        display_files.clone(),
+        navigation_history.clone(),
+        toasts.clone(),
+    );
 
     if let Some(v) = context_menu_data.as_ref() {
         let x = v.coordinate.x;
@@ -84,15 +108,14 @@ pub fn context_menu_component(props: &ContextMenuProps) -> Html {
         html! {
             <div
                 class="context-menu"
-                onclick={
-                    // コンテキストメニュー内部のクリックではイベントを伝播させず、
-                    // <main> の onclick で処理されないようにする
-                    Callback::from(|e: MouseEvent| e.stop_propagation())
-                }
                 style={format!("position: absolute; left: {x}px; top: {y}px; z-index: 100;")}
             >
                 <ul>
-                    <li>
+                    <li
+                        onclick={handle_open_click}
+                        data-is-dir={v.is_dir.to_string()}
+                        data-path={v.path.clone()}
+                    >
                         <i
                             class="fa-solid fa-circle-play"
                             aria-hidden="true"

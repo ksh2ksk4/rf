@@ -98,9 +98,17 @@ pub fn create_file_anchor_context_menu_handler(
         let Some(element) = downcast::<Element>(&e, &create_push_toast(toasts.clone())) else {
             return;
         };
+        let is_dir = element
+            .get_attribute("data-is-dir")
+            .map(|v| v == "true")
+            .unwrap_or(false);
         let path = element.get_attribute("data-path").unwrap_or_default();
 
-        context_menu_data.set(Some(ContextMenuData::new(Coordinate::new(x, y), path)));
+        context_menu_data.set(Some(ContextMenuData::new(
+            Coordinate::new(x, y),
+            is_dir,
+            path,
+        )));
     })
 }
 

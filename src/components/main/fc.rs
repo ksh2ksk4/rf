@@ -202,7 +202,13 @@ pub fn main_component(props: &MainProps) -> Html {
                     })}
                 </tbody>
             </table>
-            <ContextMenu context_menu_data={context_menu_data.clone()} />
+            <ContextMenu
+                all_files={all_files.clone()}
+                display_files={display_files.clone()}
+                navigation_history={navigation_history.clone()}
+                context_menu_data={context_menu_data.clone()}
+                toasts={toasts.clone()}
+            />
         </main>
     }
 }
