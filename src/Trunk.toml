@@ -1,0 +1,13 @@
+[build]
+dist = "../dist"
+target = "index.html"
+
+[watch]
+ignore = ["../src-tauri"]
+
+[serve]
+open = false
+port = 1420
+
+[clean]
+dist = "../dist"
