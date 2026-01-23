@@ -4,8 +4,8 @@
   "version": "0.1.0",
   "identifier": "com.ksh2ksk4.rf",
   "build": {
-    "beforeBuildCommand": "trunk build --config src/Trunk.toml",
-    "beforeDevCommand": "trunk serve --config src/Trunk.toml",
+    "beforeBuildCommand": "trunk build --config frontend/Trunk.toml",
+    "beforeDevCommand": "trunk serve --config frontend/Trunk.toml",
     "devUrl": "http://localhost:1420",
     "frontendDist": "../dist"
   },
