@@ -3,7 +3,7 @@ dist = "../dist"
 target = "index.html"
 
 [watch]
-ignore = ["../src-tauri"]
+ignore = ["../backend"]
 
 [serve]
 open = false

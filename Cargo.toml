@@ -28,4 +28,4 @@ web-sys = { version = "0.3", features = [
 yew = { version = "0.21", features = ["csr"] }
 
 [workspace]
-members = ["rf-common","src-tauri"]
+members = ["rf-common","backend"]
