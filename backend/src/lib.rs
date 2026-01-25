@@ -18,6 +18,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             copy_files,
             delete_files,
+            get_init_path,
             get_parent_dir,
             open_file,
             read_dir,
@@ -137,6 +138,47 @@ fn copy_dir_all(from: &Path, to: &Path) -> Result<(), String> {
 fn delete_files(paths: Vec<String>) -> Result<(), String> {
     trash::delete_all(&paths).map_err(|e| e.to_string())?;
     Ok(())
+}
+
+/// # Summary
+///
+/// アプリ起動時に表示するディレクトリのパスを返す
+///
+/// パスは以下の順で最初に見つかったものを返す
+///
+/// - 設定ファイルの `general` セクションの `init_path`
+///   - 未設定の場合は以下にフォールバック
+/// - ユーザのホームディレクトリ
+/// - ルートディレクトリ
+///
+/// # Returns
+///
+/// - `String`: パス
+#[tauri::command(rename_all = "snake_case")]
+fn get_init_path() -> String {
+    let fallback = dirs::home_dir()
+        .map(|v| v.to_string_lossy().into_owned())
+        .unwrap_or("/".to_string());
+
+    let contents = match fs::read_to_string("rf.toml") {
+        Ok(v) => v,
+        Err(_) => return fallback,
+    };
+
+    let toml_data = match toml::from_str::<toml::Value>(&contents) {
+        Ok(v) => v,
+        Err(_) => return fallback,
+    };
+
+    if let Some(v) = toml_data
+        .get("general")
+        .and_then(|v| v.get("init_path"))
+        .and_then(|v| v.as_str())
+    {
+        return v.into();
+    }
+
+    fallback
 }
 
 /// # Summary

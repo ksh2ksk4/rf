@@ -5,8 +5,6 @@ edition = "2021"
 name = "rf"
 version = "0.1.0"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [lib]
 # The `_lib` suffix may seem redundant but it is necessary
 # to make the lib name unique and wouldn't conflict with the bin name.
@@ -19,10 +17,12 @@ tauri-build = { version = "2", features = [] }
 
 [dependencies]
 chrono = "0.4.42"
+dirs = "6"
 rf-common = { path = "../rf-common" }
 rfd = "0.15.4"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1.0.145"
 tauri = { version = "2", features = [] }
 tauri-plugin-opener = "2"
+toml = "0.9.11"
 trash = "5.2.5"

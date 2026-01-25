@@ -16,9 +16,6 @@ pub struct NavigationHistory {
 }
 
 impl NavigationHistory {
-    // 初期表示パス
-    const INIT_PATH: &str = "/Users/ksh2ksk4/Downloads";
-
     /// # Summary
     ///
     /// 表示履歴のパスのリストを返す
@@ -117,21 +114,18 @@ impl NavigationHistory {
     ///
     /// インスタンスを生成
     ///
+    /// # Arguments
+    ///
+    /// - `init_path`: 初期表示パス
+    ///
     /// # Returns
     ///
     /// - `Self`: インスタンス
-    fn new() -> Self {
+    pub fn new<T: Into<String>>(init_path: T) -> Self {
         Self {
             index: Default::default(),
-            paths: vec![Self::INIT_PATH.to_string()],
+            paths: vec![init_path.into()],
         }
-    }
-}
-
-// Default トレイトを実装
-impl Default for NavigationHistory {
-    fn default() -> Self {
-        Self::new()
     }
 }
 

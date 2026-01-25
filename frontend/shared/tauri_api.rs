@@ -92,6 +92,20 @@ pub async fn tc_delete_files(
 
 /// # Summary
 ///
+/// アプリ起動時に表示するディレクトリのパスを返す
+///
+/// # Returns
+///
+/// - `String`: パス
+pub async fn tc_get_init_path() -> String {
+    invoke_no_args(TAURI_COMMAND_GET_INIT_PATH)
+        .await
+        .as_string()
+        .unwrap()
+}
+
+/// # Summary
+///
 /// 指定したディレクトリの親ディレクトリのパスを取得する
 ///
 /// # Arguments

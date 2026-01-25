@@ -2,8 +2,13 @@ mod components;
 mod shared;
 
 use crate::components::app::fc::*;
+use crate::shared::tauri_api::*;
+use wasm_bindgen_futures::spawn_local;
 
 fn main() {
     console_error_panic_hook::set_once();
-    yew::Renderer::<App>::new().render();
+    spawn_local(async {
+        let init_path = tc_get_init_path().await;
+        yew::Renderer::<App>::with_props(AppProps { init_path }).render();
+    });
 }

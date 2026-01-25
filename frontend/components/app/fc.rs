@@ -17,6 +17,11 @@ use crate::shared::models::*;
 use crate::shared::tauri_api::*;
 use crate::shared::utils::*;
 
+#[derive(PartialEq, Properties)]
+pub struct AppProps {
+    pub init_path: String,
+}
+
 /// # Summary
 ///
 /// メインコンテンツを生成する
@@ -25,7 +30,7 @@ use crate::shared::utils::*;
 ///
 /// `Html`: HTML
 #[function_component(App)]
-pub fn app_component() -> Html {
+pub fn app_component(props: &AppProps) -> Html {
     //
     // アプリ共有のステート
     //
@@ -36,7 +41,7 @@ pub fn app_component() -> Html {
     // ファイルリストに表示するファイル(カレントディレクトリのファイルをフィルタリングしたもの)
     let display_files = use_state(|| Vec::<FileInfo>::default());
     // ディレクトリの移動履歴
-    let navigation_history = use_state(|| NavigationHistory::default());
+    let navigation_history = use_state(|| NavigationHistory::new(props.init_path.clone()));
     // 選択されたファイル
     let selected_files = use_state(|| HashSet::<String>::default());
     // Shift キーの押下状態
