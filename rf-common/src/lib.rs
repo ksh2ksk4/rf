@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 pub const TAURI_COMMAND_COPY_FILES: &str = "copy_files";
 pub const TAURI_COMMAND_DELETE_FILES: &str = "delete_files";
 pub const TAURI_COMMAND_GET_INIT_PATH: &str = "get_init_path";
-pub const TAURI_COMMAND_GET_PARENT_DIR: &str = "get_parent_dir";
+pub const TAURI_COMMAND_GET_PARENT_PATH: &str = "get_parent_path";
 pub const TAURI_COMMAND_OPEN_FILE: &str = "open_file";
 pub const TAURI_COMMAND_READ_DIR: &str = "read_dir";
 pub const TAURI_COMMAND_RENAME_FILE: &str = "rename_file";

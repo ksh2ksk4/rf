@@ -116,7 +116,7 @@ pub async fn tc_get_init_path() -> String {
 /// # Returns
 ///
 /// - `String`: 親ディレクトリのパス(エラーの場合は空文字)
-pub async fn tc_get_parent_dir(path: &str, push_toast: Callback<(ToastKind, String)>) -> String {
+pub async fn tc_get_parent_path(path: &str, push_toast: Callback<(ToastKind, String)>) -> String {
     let args = match JsValue::from_serde(&serde_json::json!({"path": path})) {
         Ok(v) => v,
         Err(e) => {
@@ -124,7 +124,7 @@ pub async fn tc_get_parent_dir(path: &str, push_toast: Callback<(ToastKind, Stri
             return String::new();
         }
     };
-    invoke(TAURI_COMMAND_GET_PARENT_DIR, args)
+    invoke(TAURI_COMMAND_GET_PARENT_PATH, args)
         .await
         .as_string()
         .unwrap()

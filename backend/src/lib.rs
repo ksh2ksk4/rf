@@ -19,7 +19,7 @@ pub fn run() {
             copy_files,
             delete_files,
             get_init_path,
-            get_parent_dir,
+            get_parent_path,
             open_file,
             read_dir,
             rename_file,
@@ -69,7 +69,7 @@ fn copy_files(paths: Vec<String>, to: String) -> Result<(), String> {
         }
 
         if source.is_dir() {
-            copy_dir_all(source, &destination)?;
+            copy_dir(source, &destination)?;
         } else if source.is_file() {
             fs::copy(source, &destination).map_err(|e| e.to_string())?;
         } else {
@@ -93,7 +93,7 @@ fn copy_files(paths: Vec<String>, to: String) -> Result<(), String> {
 ///
 /// - `Ok(())`: `()`
 /// - `Err(String)`: エラーメッセージ
-fn copy_dir_all(from: &Path, to: &Path) -> Result<(), String> {
+fn copy_dir(from: &Path, to: &Path) -> Result<(), String> {
     fs::create_dir_all(to).map_err(|e| e.to_string())?;
 
     for v in fs::read_dir(from).map_err(|e| e.to_string())? {
@@ -112,7 +112,7 @@ fn copy_dir_all(from: &Path, to: &Path) -> Result<(), String> {
         let path = entry.path();
 
         if file_type.is_dir() {
-            copy_dir_all(&path, &destination)?;
+            copy_dir(&path, &destination)?;
         } else {
             fs::copy(&path, &destination).map_err(|e| e.to_string())?;
         }
@@ -194,7 +194,7 @@ fn get_init_path() -> String {
 ///
 /// - `String`: 親ディレクトリのパス
 #[tauri::command(rename_all = "snake_case")]
-fn get_parent_dir(path: String) -> String {
+fn get_parent_path(path: String) -> String {
     match Path::new(&path).parent() {
         Some(p) => p.to_string_lossy().to_string(),
         None => path,

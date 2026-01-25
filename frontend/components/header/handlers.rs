@@ -70,7 +70,7 @@ pub fn create_go_to_parent_dir_button_click_handler(
         let display_files = display_files.clone();
         let toasts = toasts.clone();
         spawn_local(async move {
-            let path = tc_get_parent_dir(
+            let path = tc_get_parent_path(
                 navigation_history.current(),
                 create_push_toast(toasts.clone()),
             )
