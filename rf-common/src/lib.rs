@@ -1,6 +1,11 @@
+//! rf-common crate
+//!
+//! フロントエンド(WASM)とバックエンド(TAURI)で共用する構造体や定数を定義する
 use serde::{Deserialize, Serialize};
 
+//
 // TAURI コマンド
+//
 pub const TAURI_COMMAND_COPY_FILES: &str = "copy_files";
 pub const TAURI_COMMAND_DELETE_FILES: &str = "delete_files";
 pub const TAURI_COMMAND_GET_INIT_PATH: &str = "get_init_path";
@@ -10,8 +15,6 @@ pub const TAURI_COMMAND_READ_DIR: &str = "read_dir";
 pub const TAURI_COMMAND_RENAME_FILE: &str = "rename_file";
 pub const TAURI_COMMAND_SELECT_DIR: &str = "select_dir";
 
-/// # Summary
-///
 /// FileInfo 構造体のビルダー
 #[derive(Default)]
 pub struct FileInfoBuilder {
@@ -108,13 +111,7 @@ impl FileInfoBuilder {
         self
     }
 
-    /// # Summary
-    ///
     /// FileInfo インスタンスを生成
-    ///
-    /// # Returns
-    ///
-    /// - `FileInfo`: インスタンス
     pub fn build(self) -> FileInfo {
         FileInfo {
             name: self.name.unwrap_or_default(),
@@ -136,142 +133,75 @@ impl FileInfoBuilder {
     }
 }
 
-/// # Summary
-///
 /// ファイルに関するデータ
-///
-/// # Fields
-///
-/// - `name`: 名前
-/// - `path`: パス(フルパス)
-/// - `is_dir`: ディレクトリかどうかを表すフラグ
-/// - `is_file`: ファイルかどうかを表すフラグ
-/// - `is_symlink`: シンボリックリンクかどうかを表すフラグ
-/// - `is_block_device`: ブロックデバイスかどうかを表すフラグ(UNIX only)
-/// - `is_char_device`: キャラクタデバイスかどうかを表すフラグ(UNIX only)
-/// - `is_fifo`: FIFO かどうかを表すフラグ(UNIX only)
-/// - `is_socket`: ソケットかどうかを表すフラグ(UNIX only)
-/// - `size`: サイズ
-/// - `readonly`: 読取専用かどうかを表すフラグ
-/// - `mode`: モード(UNIX only)
-/// - `accessed`: アクセス日時
-/// - `created`: 作成日時
-/// - `modified`: 更新日時
 #[derive(Clone, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct FileInfo {
+    /// 名称
     name: String,
+    /// パス(フルパス)
     path: String,
+    /// ディレクトリかどうかを表すフラグ
     is_dir: bool,
+    /// ファイルかどうかを表すフラグ
     is_file: bool,
+    /// シンボリックリンクかどうかを表すフラグ
     is_symlink: bool,
+    /// ブロックデバイスかどうかを表すフラグ(UNIX only)
     is_block_device: bool,
+    /// キャラクタデバイスかどうかを表すフラグ(UNIX only)
     is_char_device: bool,
+    /// FIFO かどうかを表すフラグ(UNIX only)
     is_fifo: bool,
+    /// ソケットかどうかを表すフラグ(UNIX only)
     is_socket: bool,
+    /// サイズ
     size: u64,
+    /// 読取専用かどうかを表すフラグ
     readonly: bool,
+    /// モード(UNIX only)
     mode: u32,
+    /// アクセス日時
     accessed: String,
+    /// 作成日時
     created: String,
+    /// 更新日時
     modified: String,
 }
 
 impl FileInfo {
-    /// # Summary
-    ///
     /// 空のビルダーインスタンスを生成
-    ///
-    /// # Returns
-    ///
-    /// - `FileInfoBuilder`: インスタンス
     pub fn builder() -> FileInfoBuilder {
         FileInfoBuilder::default()
     }
 
-    /// # Summary
-    ///
-    ///
-    ///
-    /// # Returns
-    ///
-    ///
     pub fn name(&self) -> String {
         self.name.clone()
     }
 
-    /// # Summary
-    ///
-    ///
-    ///
-    /// # Returns
-    ///
-    ///
     pub fn path(&self) -> String {
         self.path.clone()
     }
 
-    /// # Summary
-    ///
-    ///
-    ///
-    /// # Returns
-    ///
-    ///
     pub fn is_dir(&self) -> bool {
         self.is_dir
     }
 
-    /// # Summary
-    ///
-    ///
-    ///
-    /// # Returns
-    ///
-    ///
     pub fn is_file(&self) -> bool {
         self.is_file
     }
 
-    /// # Summary
-    ///
-    ///
-    ///
-    /// # Returns
-    ///
-    ///
     pub fn size(&self) -> u64 {
         self.size
     }
 
-    /// # Summary
-    ///
-    ///
-    ///
-    /// # Returns
-    ///
-    ///
     pub fn accessed(&self) -> String {
         self.accessed.clone()
     }
 
-    /// # Summary
-    ///
-    ///
-    ///
-    /// # Returns
-    ///
-    ///
     pub fn created(&self) -> String {
         self.created.clone()
     }
 
-    /// # Summary
-    ///
-    ///
-    ///
-    /// # Returns
-    ///
-    ///
     pub fn modified(&self) -> String {
         self.modified.clone()
     }
