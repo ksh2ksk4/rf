@@ -416,6 +416,16 @@ mod tests {
     }
 
     impl TestEnvGuard {
+        fn test_cwd() -> PathBuf {
+            env::temp_dir().join(format!(
+                "rf_lib_{}",
+                SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap()
+                    .as_nanos()
+            ))
+        }
+
         fn test_home_dir() -> String {
             env::temp_dir()
                 .join("rf_lib_test_home")
@@ -437,13 +447,7 @@ mod tests {
             let home_dir = env::var_os(ENV_HOME);
             dbg!(&home_dir);
 
-            let test_cwd = env::temp_dir().join(format!(
-                "rf_lib_{}",
-                SystemTime::now()
-                    .duration_since(std::time::UNIX_EPOCH)
-                    .unwrap()
-                    .as_nanos()
-            ));
+            let test_cwd = Self::test_cwd();
             dbg!(&test_cwd);
             let _ = fs::create_dir_all(&test_cwd);
             let _ = env::set_current_dir(&test_cwd);
@@ -546,6 +550,38 @@ mod tests {
             let init_dir = get_init_dir();
             dbg!(&init_dir);
             assert_eq!(init_dir, *guard.get_test_home_dir());
+        }
+    }
+
+    mod get_parent_dir_tests {
+        use std::path::MAIN_SEPARATOR;
+
+        use super::*;
+
+        /// - 親ディレクトリあり
+        ///   - 親ディレクトリを返す
+        #[test]
+        fn test_get_parent_dir_case_01() {
+            let guard = TestEnvGuard::new();
+
+            let parent_dir = get_parent_dir(guard.get_test_home_dir().clone());
+            dbg!(&parent_dir);
+            assert_eq!(
+                parent_dir,
+                env::temp_dir()
+                    .to_string_lossy()
+                    .trim_end_matches(MAIN_SEPARATOR)
+                    .to_owned()
+            );
+        }
+
+        /// - 親ディレクトリなし
+        ///   - 指定したディレクトリを返す
+        #[test]
+        fn test_get_parent_dir_case_02() {
+            let parent_dir = get_parent_dir("/".into());
+            dbg!(&parent_dir);
+            assert_eq!(parent_dir, "/");
         }
     }
 }
