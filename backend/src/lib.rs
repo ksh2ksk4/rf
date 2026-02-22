@@ -19,7 +19,7 @@ pub fn run() {
             copy_files,
             delete_files,
             get_init_dir,
-            get_parent_path,
+            get_parent_dir,
             open_file,
             read_dir,
             rename_file,
@@ -180,23 +180,24 @@ fn get_init_dir() -> String {
     fallback
 }
 
-/// # Summary
+/// 指定したディレクトリの親ディレクトリを取得する
 ///
-/// 指定したディレクトリの親ディレクトリのパスを取得する
-/// 親ディレクトリが存在しない場合、指定したディレクトリのパスを返す
+/// 親ディレクトリが存在しない場合、指定したディレクトリを返す
 ///
-/// # Arguments
+/// 引数
 ///
-/// - `path`: 対象ディレクトリのパス
+/// - `dir`
+///   - 対象ディレクトリのフルパス
 ///
-/// # Returns
+/// 返却値
 ///
-/// - `String`: 親ディレクトリのパス
+/// - `String`
+///   - 親ディレクトリのフルパス
 #[tauri::command(rename_all = "snake_case")]
-fn get_parent_path(path: String) -> String {
-    match Path::new(&path).parent() {
-        Some(p) => p.to_string_lossy().to_string(),
-        None => path,
+fn get_parent_dir(dir: String) -> String {
+    match Path::new(&dir).parent() {
+        Some(p) => p.to_string_lossy().into_owned(),
+        None => dir,
     }
 }
 

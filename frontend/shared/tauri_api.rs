@@ -103,27 +103,32 @@ pub async fn tc_get_init_dir() -> String {
         .unwrap()
 }
 
-/// # Summary
+/// 指定したディレクトリの親ディレクトリを取得する
 ///
-/// 指定したディレクトリの親ディレクトリのパスを取得する
+/// 親ディレクトリが存在しない場合、指定したディレクトリを返す
 ///
-/// # Arguments
+/// 引数
 ///
-/// - `path`: 対象ディレクトリのパス
-/// - `push_toast`: エラーメッセージ表示用のトースト
+/// - `dir`
+///   - 対象ディレクトリのフルパス
+/// - `toaster`
+///   - トーストを表示するコールバック関数
+///     - エラーメッセージ表示用
 ///
-/// # Returns
+/// 返却値
 ///
-/// - `String`: 親ディレクトリのパス(エラーの場合は空文字)
-pub async fn tc_get_parent_path(path: &str, push_toast: Callback<(ToastKind, String)>) -> String {
-    let args = match JsValue::from_serde(&serde_json::json!({"path": path})) {
+/// - `String`
+///   - 親ディレクトリのフルパス
+///   - エラー発生時は空文字
+pub async fn tc_get_parent_dir(dir: &str, toaster: Callback<(ToastKind, String)>) -> String {
+    let args = match JsValue::from_serde(&serde_json::json!({"dir": dir})) {
         Ok(v) => v,
         Err(e) => {
-            system_error!(e, &push_toast);
-            return String::new();
+            system_error!(e, &toaster);
+            return String::default();
         }
     };
-    invoke(TAURI_COMMAND_GET_PARENT_PATH, args)
+    invoke(TAURI_COMMAND_GET_PARENT_DIR, args)
         .await
         .as_string()
         .unwrap()
