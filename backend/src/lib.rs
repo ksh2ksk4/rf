@@ -390,3 +390,163 @@ fn select_dir() -> String {
         .pick_folder()
         .map_or("".to_string(), |v| v.to_string_lossy().to_string())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use indoc::indoc;
+    use std::ffi::OsString;
+    use std::path::PathBuf;
+    use std::time::SystemTime;
+    use std::{env, fs};
+
+    const CONFIG_FILE: &str = "rf.toml";
+    const ENV_HOME: &str = "HOME";
+
+    struct TestEnvGuard {
+        // テスト開始前のカレントディレクトリ
+        cwd: PathBuf,
+        // テスト開始前のホームディレクトリ
+        home_dir: Option<OsString>,
+        // テスト実行中のカレントディレクトリ
+        test_cwd: PathBuf,
+        // テスト実行中のホームディレクトリ
+        test_home_dir: String,
+        // テスト実行中の初期設定ディレクトリ
+        test_init_dir: String,
+    }
+
+    impl TestEnvGuard {
+        fn test_home_dir() -> String {
+            env::temp_dir()
+                .join("rf_lib_test_home")
+                .to_string_lossy()
+                .into_owned()
+        }
+
+        fn test_init_dir() -> String {
+            env::temp_dir()
+                .join("rf_lib_test_init")
+                .to_string_lossy()
+                .into_owned()
+        }
+
+        fn new() -> Self {
+            let cwd = env::current_dir().unwrap();
+            dbg!(&cwd);
+
+            let home_dir = env::var_os(ENV_HOME);
+            dbg!(&home_dir);
+
+            let test_cwd = env::temp_dir().join(format!(
+                "rf_lib_{}",
+                SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap()
+                    .as_nanos()
+            ));
+            dbg!(&test_cwd);
+            let _ = fs::create_dir_all(&test_cwd);
+            let _ = env::set_current_dir(&test_cwd);
+
+            let test_home_dir = Self::test_home_dir();
+            dbg!(&test_home_dir);
+            env::set_var(ENV_HOME, &test_home_dir);
+
+            let test_init_dir = Self::test_init_dir();
+            dbg!(&test_init_dir);
+
+            Self {
+                cwd,
+                home_dir,
+                test_cwd,
+                test_home_dir,
+                test_init_dir,
+            }
+        }
+
+        fn write_test_config_file(&self) {
+            let test_config_file = self.test_cwd.join(CONFIG_FILE);
+            let contents = format!(
+                indoc! { r##"
+                    [general]
+                    init_path = "{}"
+                "##},
+                self.test_init_dir
+            );
+            let _ = fs::write(&test_config_file, contents);
+        }
+
+        fn write_test_config_file_without_init_dir(&self) {
+            let test_config_file = self.test_cwd.join(CONFIG_FILE);
+            let contents = format!(indoc! { r##"
+                    [general]
+                "##});
+            let _ = fs::write(&test_config_file, contents);
+        }
+
+        fn get_test_home_dir(&self) -> &String {
+            &self.test_home_dir
+        }
+
+        fn get_test_init_dir(&self) -> &String {
+            &self.test_init_dir
+        }
+    }
+
+    impl Drop for TestEnvGuard {
+        fn drop(&mut self) {
+            if let Some(v) = &self.home_dir {
+                env::set_var(ENV_HOME, v);
+            } else {
+                env::remove_var(ENV_HOME);
+            }
+            let _ = env::set_current_dir(&self.cwd);
+            let _ = fs::remove_dir_all(&self.test_cwd);
+        }
+    }
+
+    /// get_init_path() のユニットテスト
+    ///
+    /// ルートディレクトリへのフォールバックはテスト対象外とする
+    mod get_init_path_tests {
+        use super::*;
+
+        /// - 設定ファイルあり
+        ///   - 設定あり
+        ///     - その設定値を返す
+        #[test]
+        fn test_get_init_path_case_01() {
+            let guard = TestEnvGuard::new();
+            guard.write_test_config_file();
+
+            let path = get_init_path();
+            dbg!(&path);
+            assert_eq!(path, *guard.get_test_init_dir());
+        }
+
+        // - 設定ファイルあり
+        //   - 設定なし
+        //     - ユーザのホームディレクトリを返す
+        #[test]
+        fn test_get_init_path_case_02() {
+            let guard = TestEnvGuard::new();
+            guard.write_test_config_file_without_init_dir();
+
+            let path = get_init_path();
+            dbg!(&path);
+            assert_eq!(path, *guard.get_test_home_dir());
+        }
+
+        /// - 設定ファイルなし
+        ///   - ユーザのホームディレクトリを返す
+        #[test]
+        fn test_get_init_path_case_03() {
+            let guard = TestEnvGuard::new();
+
+            let path = get_init_path();
+            dbg!(&path);
+            assert_eq!(path, *guard.get_test_home_dir());
+        }
+    }
+}

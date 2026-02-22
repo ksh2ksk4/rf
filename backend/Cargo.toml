@@ -18,6 +18,7 @@ tauri-build = { version = "2", features = [] }
 [dependencies]
 chrono = "0.4.42"
 dirs = "6"
+indoc = "2.0.7"
 rf-common = { path = "../rf-common" }
 rfd = "0.15.4"
 serde = { version = "1", features = ["derive"] }
