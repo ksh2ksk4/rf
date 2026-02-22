@@ -19,7 +19,7 @@ use crate::shared::utils::*;
 
 #[derive(PartialEq, Properties)]
 pub struct AppProps {
-    pub init_path: String,
+    pub init_dir: String,
 }
 
 /// # Summary
@@ -41,7 +41,7 @@ pub fn app_component(props: &AppProps) -> Html {
     // ファイルリストに表示するファイル(カレントディレクトリのファイルをフィルタリングしたもの)
     let display_files = use_state(|| Vec::<FileInfo>::default());
     // ディレクトリの移動履歴
-    let navigation_history = use_state(|| NavigationHistory::new(props.init_path.clone()));
+    let navigation_history = use_state(|| NavigationHistory::new(props.init_dir.clone()));
     // 選択されたファイル
     let selected_files = use_state(|| HashSet::<String>::default());
     // Shift キーの押下状態

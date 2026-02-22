@@ -18,7 +18,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             copy_files,
             delete_files,
-            get_init_path,
+            get_init_dir,
             get_parent_path,
             open_file,
             read_dir,
@@ -140,22 +140,21 @@ fn delete_files(paths: Vec<String>) -> Result<(), String> {
     Ok(())
 }
 
-/// # Summary
+/// アプリ起動時に表示するディレクトリを取得する
 ///
-/// アプリ起動時に表示するディレクトリのパスを返す
+/// 以下の順で最初に見つかったディレクトリを返す
 ///
-/// パスは以下の順で最初に見つかったものを返す
-///
-/// - 設定ファイルの `general` セクションの `init_path`
+/// - 設定ファイルの `general` セクションの `init_dir`
 ///   - 未設定の場合は以下にフォールバック
 /// - ユーザのホームディレクトリ
 /// - ルートディレクトリ
 ///
-/// # Returns
+/// 返却値
 ///
-/// - `String`: パス
+/// - `String`
+///   - ディレクトリのフルパス
 #[tauri::command(rename_all = "snake_case")]
-fn get_init_path() -> String {
+fn get_init_dir() -> String {
     let fallback = dirs::home_dir()
         .map(|v| v.to_string_lossy().into_owned())
         .unwrap_or("/".to_string());
@@ -506,47 +505,47 @@ mod tests {
         }
     }
 
-    /// get_init_path() のユニットテスト
+    /// get_init_dir() のユニットテスト
     ///
     /// ルートディレクトリへのフォールバックはテスト対象外とする
-    mod get_init_path_tests {
+    mod get_init_dir_tests {
         use super::*;
 
         /// - 設定ファイルあり
         ///   - 設定あり
         ///     - その設定値を返す
         #[test]
-        fn test_get_init_path_case_01() {
+        fn test_get_init_dir_case_01() {
             let guard = TestEnvGuard::new();
             guard.write_test_config_file();
 
-            let path = get_init_path();
-            dbg!(&path);
-            assert_eq!(path, *guard.get_test_init_dir());
+            let init_dir = get_init_dir();
+            dbg!(&init_dir);
+            assert_eq!(init_dir, *guard.get_test_init_dir());
         }
 
         // - 設定ファイルあり
         //   - 設定なし
         //     - ユーザのホームディレクトリを返す
         #[test]
-        fn test_get_init_path_case_02() {
+        fn test_get_init_dir_case_02() {
             let guard = TestEnvGuard::new();
             guard.write_test_config_file_without_init_dir();
 
-            let path = get_init_path();
-            dbg!(&path);
-            assert_eq!(path, *guard.get_test_home_dir());
+            let init_dir = get_init_dir();
+            dbg!(&init_dir);
+            assert_eq!(init_dir, *guard.get_test_home_dir());
         }
 
         /// - 設定ファイルなし
         ///   - ユーザのホームディレクトリを返す
         #[test]
-        fn test_get_init_path_case_03() {
+        fn test_get_init_dir_case_03() {
             let guard = TestEnvGuard::new();
 
-            let path = get_init_path();
-            dbg!(&path);
-            assert_eq!(path, *guard.get_test_home_dir());
+            let init_dir = get_init_dir();
+            dbg!(&init_dir);
+            assert_eq!(init_dir, *guard.get_test_home_dir());
         }
     }
 }
