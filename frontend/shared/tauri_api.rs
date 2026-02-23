@@ -134,26 +134,27 @@ pub async fn tc_get_parent_dir(dir: &str, toaster: Callback<(ToastKind, String)>
         .unwrap()
 }
 
-/// # Summary
-///
 /// 指定したファイルをデフォルトアプリでオープンする
 ///
-/// # Arguments
+/// 引数
 ///
-/// - `path`: 対象ファイルのパス
-/// - `push_toast`: エラーメッセージ表示用のトースト
-pub async fn tc_open_file(path: String, push_toast: Callback<(ToastKind, String)>) {
-    let args = match JsValue::from_serde(&serde_json::json!({"path": path})) {
+/// - `file`
+///   - 対象ファイルのフルパス
+/// - `toaster`
+///   - トーストを表示するコールバック関数
+///     - エラーメッセージ表示用
+pub async fn tc_open_file(file: String, toaster: Callback<(ToastKind, String)>) {
+    let args = match JsValue::from_serde(&serde_json::json!({"file": file})) {
         Ok(v) => v,
         Err(e) => {
-            system_error!(e, &push_toast);
+            system_error!(e, &toaster);
             return;
         }
     };
     let _ = invoke_r(TAURI_COMMAND_OPEN_FILE, args)
         .await
         .inspect_err(|e| {
-            system_error!(e, &push_toast);
+            system_error!(e, &toaster);
         });
 }
 

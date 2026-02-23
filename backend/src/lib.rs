@@ -201,44 +201,41 @@ fn get_parent_dir(dir: String) -> String {
     }
 }
 
-/// # Summary
+/// open_with_default_app() のラッパー
 ///
-/// 指定したファイルをオープンする
+/// 引数
 ///
-/// # Arguments
+/// - `file`
+///   - 対象ファイルのフルパス
 ///
-/// - `path`: 対象ファイルのパス
+/// 返却値
 ///
-/// # Returns
-///
-/// - `Ok(())`: `()`
-/// - `Err(String)`: エラーメッセージ
+/// - `Ok(())`
+///   - `()`
+/// - `Err(String)`
+///   - エラーメッセージ
 #[tauri::command(rename_all = "snake_case")]
-fn open_file(path: String) -> Result<(), String> {
-    open_with_default(&path)
+fn open_file(file: String) -> Result<(), String> {
+    open_with_default_app(&file)
 }
 
-#[cfg(target_os = "linux")]
-fn open_with_default(path: &str) -> std::io::Result<()> {
-    Command::new("xdg-open").arg(path).spawn().map(|_| ())
-}
-
-/// # Summary
-///
 /// 指定したファイルをデフォルトアプリでオープンする
 ///
-/// # Arguments
+/// 引数
 ///
-/// - `path`: 対象ファイルのパス
+/// - `file`
+///   - 対象ファイルのフルパス
 ///
-/// # Returns
+/// 返却値
 ///
-/// - `Ok(())`: `()`
-/// - `Err(String)`: エラーメッセージ
+/// - `Ok(())`
+///   - `()`
+/// - `Err(String)`
+///   - エラーメッセージ
 #[cfg(target_os = "macos")]
-fn open_with_default(path: &str) -> Result<(), String> {
+fn open_with_default_app(file: &str) -> Result<(), String> {
     let output = Command::new("open")
-        .arg(path)
+        .arg(file)
         .output()
         .map_err(|e| e.to_string())?;
 
@@ -256,12 +253,12 @@ fn open_with_default(path: &str) -> Result<(), String> {
     };
     let stderr = String::from_utf8_lossy(&output.stderr);
     Err(format!(
-        "open_with_default() - detail: {detail}, stderr: {stderr:?}"
+        "open_with_default_app() - detail: {detail}, stderr: {stderr:?}"
     ))
 }
 
 #[cfg(target_os = "windows")]
-fn open_with_default(path: &str) -> std::io::Result<()> {
+fn open_with_default_app(path: &str) -> std::io::Result<()> {
     // start はシェル経由で実行する必要があるので cmd を使う
     Command::new("cmd")
         .args(&["/C", "start", "", path])
@@ -269,8 +266,11 @@ fn open_with_default(path: &str) -> std::io::Result<()> {
         .map(|_| ())
 }
 
-/// # Summary
-///
+#[cfg(target_os = "linux")]
+fn open_with_default_app(path: &str) -> std::io::Result<()> {
+    Command::new("xdg-open").arg(path).spawn().map(|_| ())
+}
+
 /// 指定したディレクトリのファイルリストを取得する
 ///
 /// # Arguments
@@ -554,6 +554,7 @@ mod tests {
         }
     }
 
+    /// get_parent_dir() のユニットテスト
     mod get_parent_dir_tests {
         use std::path::MAIN_SEPARATOR;
 
@@ -585,4 +586,14 @@ mod tests {
             assert_eq!(parent_dir, "/");
         }
     }
+
+    /// open_file() のユニットテスト
+    ///
+    /// ユニットテストの実装が難しいためパス
+    mod open_file_tests {}
+
+    /// open_with_default_app() のユニットテスト
+    ///
+    /// ユニットテストの実装が難しいためパス
+    mod open_with_default_app_tests {}
 }
