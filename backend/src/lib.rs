@@ -92,8 +92,7 @@ fn copy_files(paths: Vec<String>, to: String) -> Result<(), String> {
 /// 引数
 ///
 /// - `from`
-///   - コピー元ディレクトリのパス
-///   - フルパス
+///   - コピー元ディレクトリのフルパス
 /// - `to`
 ///   - コピー先ディレクトリのパス
 ///   - カレントディレクトリを起点とした相対パス
@@ -101,9 +100,9 @@ fn copy_files(paths: Vec<String>, to: String) -> Result<(), String> {
 /// 返却値
 ///
 /// - `Ok(())`
-///   - コピーが成功した場合
+///   - ()
 /// - `Err(String)`
-///   - エラーが発生した場合
+///   - エラーメッセージ
 fn copy_dir(from: &Path, to: &Path) -> Result<(), String> {
     fs::create_dir_all(to).map_err(|e| e.to_string())?;
 
