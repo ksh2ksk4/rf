@@ -138,19 +138,18 @@ fn copy_dir(from: &Path, to: &Path) -> Result<(), String> {
 ///
 /// 引数
 ///
-/// - `paths`
-///   - 対象ファイルのパス
-///   - フルパス
+/// - `files`
+///   - 対象ファイルのフルパス
 ///
 /// 返却値
 ///
 /// - `Ok(())`
-///   - 削除が成功した場合
+///   - ()
 /// - `Err(String)`
-///   - エラーが発生した場合
+///   - エラーメッセージ
 #[tauri::command(rename_all = "snake_case")]
-fn delete_files(paths: Vec<String>) -> Result<(), String> {
-    trash::delete_all(&paths).map_err(|e| e.to_string())?;
+fn delete_files(files: Vec<String>) -> Result<(), String> {
+    trash::delete_all(&files).map_err(|e| e.to_string())?;
     Ok(())
 }
 
@@ -528,6 +527,11 @@ mod tests {
             let _ = fs::remove_dir_all(&self.test_cwd);
         }
     }
+
+    /// delete_files() のユニットテスト
+    ///
+    /// trash::delete_all() を実行しているのみのためテスト対象外とする
+    mod delete_files_tests {}
 
     /// get_init_dir() のユニットテスト
     ///
