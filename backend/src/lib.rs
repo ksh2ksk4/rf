@@ -1,3 +1,6 @@
+//! rf_lib crate
+//!
+//! バックエンド(TAURI)の機能(主に TAURI コマンド)を定義する
 use chrono::{DateTime, Local};
 use rf_common::FileInfo;
 use std::ffi::OsString;
@@ -8,8 +11,6 @@ use std::path::Path;
 use std::process::Command;
 use trash;
 
-/// # Summary
-///
 /// Tauri アプリのエントリポイント
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -29,19 +30,23 @@ pub fn run() {
         .expect("error while running tauri application");
 }
 
-/// # Summary
+/// 指定したファイルを指定のディレクトリにコピーする
 ///
-/// 指定したファイルを指定したディレクトリにコピーする
+/// 引数
 ///
-/// # Arguments
+/// - `paths`
+///   - コピー元ファイルのパス
+///   - フルパス
+/// - `to`
+///   - コピー先ディレクトリ名称
+///   - カレントディレクトリを起点とした相対パス
 ///
-/// - `paths`: 対象ファイルのパス
-/// - `to`: 対象ディレクトリ
+/// 返却値
 ///
-/// # Returns
-///
-/// - `Ok(())`: `()`
-/// - `Err(String)`: エラーメッセージ
+/// - `Ok(())`
+///   - すべてのコピーが成功した場合
+/// - `Err(String)`
+///   - エラーが発生した場合
 #[tauri::command(rename_all = "snake_case")]
 fn copy_files(paths: Vec<String>, to: String) -> Result<(), String> {
     let to_path = Path::new(&to);
@@ -80,19 +85,25 @@ fn copy_files(paths: Vec<String>, to: String) -> Result<(), String> {
     Ok(())
 }
 
-/// # Summary
+/// 指定したディレクトリを指定のディレクトリにコピーする
 ///
-/// 指定したディレクトリを指定したディレクトリにコピーする
+/// TAURI コマンドとして公開しない内部処理用の関数
 ///
-/// # Arguments
+/// 引数
 ///
-/// - `from`: 対象ディレクトリのパス
-/// - `to`: 対象ディレクトリ
+/// - `from`
+///   - コピー元ディレクトリのパス
+///   - フルパス
+/// - `to`
+///   - コピー先ディレクトリのパス
+///   - カレントディレクトリを起点とした相対パス
 ///
-/// # Returns
+/// 返却値
 ///
-/// - `Ok(())`: `()`
-/// - `Err(String)`: エラーメッセージ
+/// - `Ok(())`
+///   - コピーが成功した場合
+/// - `Err(String)`
+///   - エラーが発生した場合
 fn copy_dir(from: &Path, to: &Path) -> Result<(), String> {
     fs::create_dir_all(to).map_err(|e| e.to_string())?;
 
@@ -121,19 +132,22 @@ fn copy_dir(from: &Path, to: &Path) -> Result<(), String> {
     Ok(())
 }
 
-/// # Summary
-///
 /// 指定したファイルを削除する
-/// (物理削除ではなくゴミ箱へ移動する)
 ///
-/// # Arguments
+/// 物理削除ではなくゴミ箱へファイルを移動する
 ///
-/// - `paths`: 対象ファイルのパス
+/// 引数
 ///
-/// # Returns
+/// - `paths`
+///   - 対象ファイルのパス
+///   - フルパス
 ///
-/// - `Ok(())`: `()`
-/// - `Err(String)`: エラーメッセージ
+/// 返却値
+///
+/// - `Ok(())`
+///   - 削除が成功した場合
+/// - `Err(String)`
+///   - エラーが発生した場合
 #[tauri::command(rename_all = "snake_case")]
 fn delete_files(paths: Vec<String>) -> Result<(), String> {
     trash::delete_all(&paths).map_err(|e| e.to_string())?;
@@ -273,14 +287,17 @@ fn open_with_default_app(path: &str) -> std::io::Result<()> {
 
 /// 指定したディレクトリのファイルリストを取得する
 ///
-/// # Arguments
+/// 引数
 ///
-/// - `path`: 対象ディレクトリのパス
+/// - `path`
+///   - 対象ディレクトリのパス
 ///
-/// # Returns
+/// 返却値
 ///
-/// - `Ok(Vec<FileInfo>)`: ファイルリスト
-/// - `Err(String)`: エラーメッセージ
+/// - `Ok(Vec<FileInfo>)`
+///   - ファイルリスト
+/// - `Err(String)`
+///   - エラーメッセージ
 #[tauri::command(rename_all = "snake_case")]
 fn read_dir(path: String) -> Result<Vec<FileInfo>, String> {
     let mut entries = Vec::<FileInfo>::new();
@@ -347,19 +364,21 @@ fn read_dir(path: String) -> Result<Vec<FileInfo>, String> {
     Ok(entries)
 }
 
-/// # Summary
-///
 /// 指定したファイルをリネームする
 ///
-/// # Arguments
+/// 引数
 ///
-/// - `path`: 対象ファイルのパス
-/// - `new_name`: 変更後のファイル名
+/// - `path`
+///   - 対象ファイルのパス
+/// - `new_name`
+///   - 変更後のファイル名
 ///
-/// # Returns
+/// 返却値
 ///
-/// - `Ok(())`: `()`
-/// - `Err(String)`: エラーメッセージ
+/// - `Ok(())`
+///   - `()`
+/// - `Err(String)`
+///   - エラーメッセージ
 #[tauri::command(rename_all = "snake_case")]
 fn rename_file(path: String, new_name: String) -> Result<(), String> {
     let from = Path::new(&path);
@@ -377,13 +396,12 @@ fn rename_file(path: String, new_name: String) -> Result<(), String> {
     Ok(())
 }
 
-/// # Summary
-///
 /// ファイル選択ダイアログを表示してディレクトリを選択させる
 ///
-/// # Returns
+/// 返却値
 ///
-/// - `String`: 選択したディレクトリのパス
+/// - `String`
+///   - 選択したディレクトリのパス
 #[tauri::command(rename_all = "snake_case")]
 fn select_dir() -> String {
     rfd::FileDialog::new()
@@ -391,6 +409,7 @@ fn select_dir() -> String {
         .map_or("".to_string(), |v| v.to_string_lossy().to_string())
 }
 
+/// ユニットテスト
 #[cfg(test)]
 mod tests {
     use super::*;

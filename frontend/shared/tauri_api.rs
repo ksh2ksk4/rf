@@ -1,3 +1,6 @@
+//! rf-ui crate
+//!
+//! フロントエンド(WASM)から TAURI コマンドを実行するための非同期ラッパーを定義する
 use gloo_utils::format::JsValueSerdeExt;
 use rf_common::*;
 use wasm_bindgen::prelude::*;
@@ -8,35 +11,37 @@ use crate::system_error;
 
 #[wasm_bindgen]
 extern "C" {
-    /**
-     * エラーが発生しない TAURI コマンドを実行する場合
-     */
+    /// エラーが発生せず、引数を取る TAURI コマンドを実行する
     #[wasm_bindgen(js_namespace = ["window", "__TAURI__", "core"])]
     async fn invoke(cmd: &str, args: JsValue) -> JsValue;
+    /// エラーが発生せず、引数を取らない TAURI コマンドを実行する
     #[wasm_bindgen(js_name = invoke, js_namespace = ["window", "__TAURI__", "core"])]
     async fn invoke_no_args(cmd: &str) -> JsValue;
-    /**
-     * エラーが発生する可能性のある TAURI コマンドを実行する場合
-     */
+    /// エラーが発生する可能性があり、引数を取る TAURI コマンドを実行する
     #[wasm_bindgen(catch, js_name = invoke, js_namespace = ["window", "__TAURI__", "core"])]
     async fn invoke_r(cmd: &str, args: JsValue) -> Result<JsValue, JsValue>;
+    /// エラーが発生する可能性があり、引数を取らない TAURI コマンドを実行する
     #[wasm_bindgen(catch, js_name = invoke, js_namespace = ["window", "__TAURI__", "core"])]
     async fn invoke_r_no_args(cmd: &str) -> Result<JsValue, JsValue>;
 }
 
-/// # Summary
+/// 指定したファイルを指定のディレクトリにコピーする
 ///
-/// 指定したファイルを指定したディレクトリにコピーする
+/// 引数
 ///
-/// # Arguments
+/// - `paths`
+///   - コピー元ファイルのパス
+///   - フルパス
+/// - `to`
+///   - コピー先ディレクトリ名称
+///   - カレントディレクトリを起点した相対パス
+/// - `push_toast`
+///   - エラーメッセージ表示用トーストのコールバック
 ///
-/// - `paths`: 対象ファイルのパス
-/// - `to`: 対象ディレクトリ
-/// - `push_toast`: エラーメッセージ表示用のトースト
+/// 返却値
 ///
-/// # Returns
-///
-/// - `bool`: 正常にコピーしたかどうか
+/// - `bool`
+///   - 処理結果
 pub async fn tc_copy_files(
     paths: Vec<String>,
     to: &String,
@@ -58,18 +63,22 @@ pub async fn tc_copy_files(
         })
 }
 
-/// # Summary
-///
 /// 指定したファイルを削除する
 ///
-/// # Arguments
+/// 物理削除ではなくゴミ箱へファイルを移動する
 ///
-/// - `paths`: 対象ファイルのパス
-/// - `push_toast`: エラーメッセージ表示用のトースト
+/// 引数
 ///
-/// # Returns
+/// - `paths`
+///   - 対象ファイルのパス
+///   - フルパス
+/// - `push_toast`
+///   - エラーメッセージ表示用トーストのコールバック
 ///
-/// - `bool`: 正常に削除したかどうか
+/// 返却値
+///
+/// - `bool`
+///   - 処理結果
 pub async fn tc_delete_files(
     paths: Vec<String>,
     push_toast: Callback<(ToastKind, String)>,
@@ -158,18 +167,19 @@ pub async fn tc_open_file(file: String, toaster: Callback<(ToastKind, String)>) 
         });
 }
 
-/// # Summary
-///
 /// 指定したディレクトリのファイルリストを取得する
 ///
-/// # Arguments
+/// 引数
 ///
-/// - `path`: 対象ディレクトリのパス
-/// - `push_toast`: エラーメッセージ表示用のトースト
+/// - `path`
+///   - 対象ディレクトリのパス
+/// - `push_toast`
+///   - エラーメッセージ表示用のトースト
 ///
-/// # Returns
+/// 返却値
 ///
-/// - `Vec<FileInfo>`: ファイルリスト(エラーの場合は空のリスト)
+/// - `Vec<FileInfo>`
+///   - ファイルリスト(エラーの場合は空のリスト)
 pub async fn tc_read_dir(
     path: &String,
     push_toast: Callback<(ToastKind, String)>,
@@ -196,19 +206,21 @@ pub async fn tc_read_dir(
     }
 }
 
-/// # Summary
-///
 /// 指定したファイルをリネームする
 ///
-/// # Arguments
+/// 引数
 ///
-/// - `path`: 対象ファイルのパス
-/// - `new_name`: 変更後のファイル名
-/// - `push_toast`: エラーメッセージ表示用のトースト
+/// - `path`
+///   - 対象ファイルのパス
+/// - `new_name`
+///   - 変更後のファイル名
+/// - `push_toast`
+///   - エラーメッセージ表示用のトースト
 ///
-/// # Returns
+/// 返却値
 ///
-/// - `bool`: リネームできたかどうか
+/// - `bool`
+///   - リネームできたかどうか
 pub async fn tc_rename_file(
     path: &String,
     new_name: &String,
@@ -230,13 +242,12 @@ pub async fn tc_rename_file(
     }
 }
 
-/// # Summary
-///
 /// ファイル選択ダイアログを表示してディレクトリを選択する
 ///
-/// # Returns
+/// 返却値
 ///
-/// - `String`: 選択したディレクトリのパス
+/// - `String`
+///   - 選択したディレクトリのパス
 pub async fn tc_select_dir() -> String {
     invoke_no_args(TAURI_COMMAND_SELECT_DIR)
         .await
