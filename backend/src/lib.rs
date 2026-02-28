@@ -435,7 +435,7 @@ mod tests {
 
     impl TestEnvGuard {
         /// テスト実行中のカレントワーキングディレクトリのフルパスを返す
-        fn test_cwd() -> PathBuf {
+        fn get_test_cwd() -> PathBuf {
             env::temp_dir().join(format!(
                 "rf_lib_{}",
                 SystemTime::now()
@@ -446,7 +446,7 @@ mod tests {
         }
 
         /// テスト実行中のホームディレクトリのフルパスを返す
-        fn test_home_dir() -> String {
+        fn get_test_home_dir() -> String {
             env::temp_dir()
                 .join("rf_lib_test_home")
                 .to_string_lossy()
@@ -454,7 +454,7 @@ mod tests {
         }
 
         /// テスト実行中の初期設定ディレクトリのフルパスを返す
-        fn test_init_dir() -> String {
+        fn get_test_init_dir() -> String {
             env::temp_dir()
                 .join("rf_lib_test_init")
                 .to_string_lossy()
@@ -472,16 +472,16 @@ mod tests {
             let home_dir = env::var_os(ENV_HOME);
             dbg!(&home_dir);
 
-            let test_cwd = Self::test_cwd();
+            let test_cwd = Self::get_test_cwd();
             dbg!(&test_cwd);
             let _ = fs::create_dir_all(&test_cwd);
             let _ = env::set_current_dir(&test_cwd);
 
-            let test_home_dir = Self::test_home_dir();
+            let test_home_dir = Self::get_test_home_dir();
             dbg!(&test_home_dir);
             env::set_var(ENV_HOME, &test_home_dir);
 
-            let test_init_dir = Self::test_init_dir();
+            let test_init_dir = Self::get_test_init_dir();
             dbg!(&test_init_dir);
 
             Self {
@@ -491,6 +491,16 @@ mod tests {
                 test_home_dir,
                 test_init_dir,
             }
+        }
+
+        // テスト実行中のホームディレクトリのフルパスを返す
+        fn get_test_home_dir(&self) -> &String {
+            &self.test_home_dir
+        }
+
+        /// テスト用の初期設定ディレクトリのフルパスを返す
+        fn get_test_init_dir(&self) -> &String {
+            &self.test_init_dir
         }
 
         /// テスト用の設定ファイルを作成する
@@ -517,16 +527,6 @@ mod tests {
                     [general]
                 "##});
             let _ = fs::write(&test_config_file, contents);
-        }
-
-        // テスト実行中のホームディレクトリのフルパスを返す
-        fn get_test_home_dir(&self) -> &String {
-            &self.test_home_dir
-        }
-
-        /// テスト用の初期設定ディレクトリのフルパスを返す
-        fn get_test_init_dir(&self) -> &String {
-            &self.test_init_dir
         }
     }
 
