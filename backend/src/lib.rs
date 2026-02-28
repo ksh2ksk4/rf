@@ -425,80 +425,86 @@ mod tests {
         cwd: PathBuf,
         // テスト開始前のホームディレクトリ
         home_dir: Option<OsString>,
-        // テスト実行中のカレントワーキングディレクトリ
+        // テスト用のカレントワーキングディレクトリ
         test_cwd: PathBuf,
-        // テスト実行中のホームディレクトリ
+        // テスト用のホームディレクトリ
         test_home_dir: String,
         // テスト用の初期設定ディレクトリ
         test_init_dir: String,
     }
 
     impl TestEnvGuard {
-        /// テスト実行中のカレントワーキングディレクトリのフルパスを返す
-        fn get_test_cwd() -> PathBuf {
-            env::temp_dir().join(format!(
+        /// テスト用のカレントワーキングディレクトリを準備し、そのフルパスを返す
+        fn setup_test_cwd() -> PathBuf {
+            let test_cwd = env::temp_dir().join(format!(
                 "rf_lib_{}",
                 SystemTime::now()
                     .duration_since(std::time::UNIX_EPOCH)
                     .unwrap()
                     .as_nanos()
-            ))
+            ));
+            dbg!(&test_cwd);
+
+            let _ = fs::create_dir_all(&test_cwd);
+            let _ = env::set_current_dir(&test_cwd);
+
+            test_cwd
         }
 
-        /// テスト実行中のホームディレクトリのフルパスを返す
-        fn get_test_home_dir() -> String {
-            env::temp_dir()
+        /// テスト用のホームディレクトリを準備し、そのフルパスを返す
+        fn setup_test_home_dir() -> String {
+            let test_home_dir = env::temp_dir()
                 .join("rf_lib_test_home")
                 .to_string_lossy()
-                .into_owned()
+                .into_owned();
+            dbg!(&test_home_dir);
+
+            env::set_var(ENV_HOME, &test_home_dir);
+
+            test_home_dir
         }
 
-        /// テスト実行中の初期設定ディレクトリのフルパスを返す
-        fn get_test_init_dir() -> String {
-            env::temp_dir()
+        /// テスト用の初期設定ディレクトリのフルパスを返す
+        fn setup_test_init_dir() -> String {
+            let test_init_dir = env::temp_dir()
                 .join("rf_lib_test_init")
                 .to_string_lossy()
-                .into_owned()
+                .into_owned();
+            dbg!(&test_init_dir);
+
+            test_init_dir
         }
 
         /// テスト環境を準備する
         ///
+        /// - テスト実行前の設定を退避
         /// - テスト用のカレントワーキングディレクトリに移動
         /// - 環境変数 `HOME` にテスト用のホームディレクトリを設定
         fn new() -> Self {
             let cwd = env::current_dir().unwrap();
             dbg!(&cwd);
-
             let home_dir = env::var_os(ENV_HOME);
             dbg!(&home_dir);
-
-            let test_cwd = Self::get_test_cwd();
-            dbg!(&test_cwd);
-            let _ = fs::create_dir_all(&test_cwd);
-            let _ = env::set_current_dir(&test_cwd);
-
-            let test_home_dir = Self::get_test_home_dir();
-            dbg!(&test_home_dir);
-            env::set_var(ENV_HOME, &test_home_dir);
-
-            let test_init_dir = Self::get_test_init_dir();
-            dbg!(&test_init_dir);
 
             Self {
                 cwd,
                 home_dir,
-                test_cwd,
-                test_home_dir,
-                test_init_dir,
+                test_cwd: Self::setup_test_cwd(),
+                test_home_dir: Self::setup_test_home_dir(),
+                test_init_dir: Self::setup_test_init_dir(),
             }
         }
 
-        // テスト実行中のホームディレクトリのフルパスを返す
+        /// テスト用のホームディレクトリのフルパスを返す
+        ///
+        /// e.g. /var/folders/yh/jldgtx9d1rq8yyc22jyk_kb40000gn/T/rf_lib_test_home
         fn get_test_home_dir(&self) -> &String {
             &self.test_home_dir
         }
 
         /// テスト用の初期設定ディレクトリのフルパスを返す
+        ///
+        /// e.g. /var/folders/yh/jldgtx9d1rq8yyc22jyk_kb40000gn/T/rf_lib_test_init
         fn get_test_init_dir(&self) -> &String {
             &self.test_init_dir
         }
