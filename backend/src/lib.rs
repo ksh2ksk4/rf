@@ -421,19 +421,20 @@ mod tests {
     const ENV_HOME: &str = "HOME";
 
     struct TestEnvGuard {
-        // テスト開始前のカレントディレクトリ
+        // テスト開始前のカレントワーキングディレクトリ
         cwd: PathBuf,
         // テスト開始前のホームディレクトリ
         home_dir: Option<OsString>,
-        // テスト実行中のカレントディレクトリ
+        // テスト実行中のカレントワーキングディレクトリ
         test_cwd: PathBuf,
         // テスト実行中のホームディレクトリ
         test_home_dir: String,
-        // テスト実行中の初期設定ディレクトリ
+        // テスト用の初期設定ディレクトリ
         test_init_dir: String,
     }
 
     impl TestEnvGuard {
+        /// テスト実行中のカレントワーキングディレクトリのフルパスを返す
         fn test_cwd() -> PathBuf {
             env::temp_dir().join(format!(
                 "rf_lib_{}",
@@ -444,6 +445,7 @@ mod tests {
             ))
         }
 
+        /// テスト実行中のホームディレクトリのフルパスを返す
         fn test_home_dir() -> String {
             env::temp_dir()
                 .join("rf_lib_test_home")
@@ -451,6 +453,7 @@ mod tests {
                 .into_owned()
         }
 
+        /// テスト実行中の初期設定ディレクトリのフルパスを返す
         fn test_init_dir() -> String {
             env::temp_dir()
                 .join("rf_lib_test_init")
@@ -458,6 +461,10 @@ mod tests {
                 .into_owned()
         }
 
+        /// テスト環境を準備する
+        ///
+        /// - テスト用のカレントワーキングディレクトリに移動
+        /// - 環境変数 `HOME` にテスト用のホームディレクトリを設定
         fn new() -> Self {
             let cwd = env::current_dir().unwrap();
             dbg!(&cwd);
@@ -486,6 +493,9 @@ mod tests {
             }
         }
 
+        /// テスト用の設定ファイルを作成する
+        ///
+        /// 初期設定ディレクトリの設定あり
         fn write_test_config_file(&self) {
             let test_config_file = self.test_cwd.join(CONFIG_FILE);
             let contents = format!(
@@ -498,6 +508,9 @@ mod tests {
             let _ = fs::write(&test_config_file, contents);
         }
 
+        /// テスト用の設定ファイルを作成する
+        ///
+        /// 初期設定ディレクトリの設定なし
         fn write_test_config_file_without_init_dir(&self) {
             let test_config_file = self.test_cwd.join(CONFIG_FILE);
             let contents = format!(indoc! { r##"
@@ -506,16 +519,19 @@ mod tests {
             let _ = fs::write(&test_config_file, contents);
         }
 
+        // テスト実行中のホームディレクトリのフルパスを返す
         fn get_test_home_dir(&self) -> &String {
             &self.test_home_dir
         }
 
+        /// テスト用の初期設定ディレクトリのフルパスを返す
         fn get_test_init_dir(&self) -> &String {
             &self.test_init_dir
         }
     }
 
     impl Drop for TestEnvGuard {
+        /// テスト環境を破棄する
         fn drop(&mut self) {
             if let Some(v) = &self.home_dir {
                 env::set_var(ENV_HOME, v);
