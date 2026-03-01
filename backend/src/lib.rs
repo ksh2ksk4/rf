@@ -12,6 +12,12 @@ use std::process::Command;
 use trash;
 
 /// Tauri アプリのエントリポイント
+///
+/// 注意事項
+///
+/// - tauri::generate_handler!()
+///   - Tauri コマンド関数の引数に具象型(具体的にシリアライズ、デシリアライズする方法が明確な型)を期待する
+///   - `impl AsRef<Path>` のような抽象型のトレイト境界はマクロで扱えず、マクロ展開時にエラーになる
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
