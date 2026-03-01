@@ -431,6 +431,7 @@ mod tests {
                 .into_owned();
             dbg!(&test_home_dir);
 
+            let _ = fs::create_dir_all(&test_home_dir);
             env::set_var(ENV_HOME, &test_home_dir);
 
             test_home_dir
@@ -450,7 +451,8 @@ mod tests {
         /// テスト環境を準備する
         ///
         /// - テスト実行前の設定を退避
-        /// - テスト用のカレントワーキングディレクトリに移動
+        /// - テスト用のカレントワーキングディレクトリを作成して移動
+        /// - テスト用のホームディレクトリを作成
         /// - 環境変数 `HOME` にテスト用のホームディレクトリを設定
         fn new() -> Self {
             let cwd = env::current_dir().unwrap();
@@ -506,6 +508,17 @@ mod tests {
                 "##});
             let _ = fs::write(&test_config_file, contents);
         }
+
+        /// テスト用のホームディレクトリにテストファイルを作成する
+        fn write_test_file(&self) {
+            let test_file = format!("{}/{}", self.test_home_dir, "foo.txt");
+            let _ = fs::write(&test_file, "");
+        }
+
+        /// テスト用のカレントワーキングディレクトリにテストディレクトリを作成する
+        fn create_test_dir(&self) {
+            let _ = fs::create_dir_all(&self.test_cwd.join("to"));
+        }
     }
 
     impl Drop for TestEnvGuard {
@@ -516,8 +529,30 @@ mod tests {
             } else {
                 env::remove_var(ENV_HOME);
             }
+            let _ = fs::remove_dir_all(&self.test_home_dir);
             let _ = env::set_current_dir(&self.cwd);
             let _ = fs::remove_dir_all(&self.test_cwd);
+        }
+    }
+
+    /// copy_files() のユニットテスト
+    mod copy_files_tests {
+        use super::*;
+
+        /// - コピーエラーなし
+        ///   - `Ok(())` を返す
+        #[test]
+        fn test_copy_files_case_01() {
+            let guard = TestEnvGuard::new();
+            // コピーテスト用にテストファイルを作成
+            guard.write_test_file();
+            // コピーテスト用に `to` ディレクトリを作成
+            guard.create_test_dir();
+
+            // テスト用のホームディレクトリをテスト用のカレントワーキングディレクトリ直下の `to` ディレクトリにコピー
+            let result = copy_files(vec![guard.get_test_home_dir().clone()], "to".into());
+            assert!(result.is_ok());
+            assert!(Path::new("to/rf_lib_test_home/foo.txt").exists());
         }
     }
 
