@@ -54,6 +54,55 @@ pub fn run() {
 ///   - エラーメッセージ
 #[tauri::command(rename_all = "snake_case")]
 fn copy_files(files: Vec<String>, to: String) -> Result<(), String> {
+    /// 指定したディレクトリを指定のディレクトリにコピーする
+    ///
+    /// TAURI コマンドとして公開しない内部処理用の関数
+    ///
+    /// 引数
+    ///
+    /// - `from`
+    ///   - コピー元ディレクトリのフルパス
+    /// - `to`
+    ///   - コピー先ディレクトリのパス
+    ///   - カレントディレクトリを起点とした相対パス
+    ///
+    /// 返却値
+    ///
+    /// - `Ok(())`
+    ///   - ()
+    /// - `Err(String)`
+    ///   - エラーメッセージ
+    fn copy_dir(from: impl AsRef<Path>, to: impl AsRef<Path>) -> Result<(), String> {
+        let from = from.as_ref();
+        let to = to.as_ref();
+
+        fs::create_dir_all(to).map_err(|e| e.to_string())?;
+
+        for v in fs::read_dir(from).map_err(|e| e.to_string())? {
+            let entry = v.map_err(|e| e.to_string())?;
+            let file_type = entry.file_type().map_err(|e| e.to_string())?;
+            let file_name = entry.file_name();
+            let mut destination = to.join(&file_name);
+
+            if destination.exists() {
+                // コピー先に同名のファイル・ディレクトリが存在する場合、プレフィックスを付与してコピー
+                let mut new_file_name = OsString::from("_copied_");
+                new_file_name.push(&file_name);
+                destination = to.join(&new_file_name);
+            }
+
+            let path = entry.path();
+
+            if file_type.is_dir() {
+                copy_dir(&path, &destination)?;
+            } else {
+                fs::copy(&path, &destination).map_err(|e| e.to_string())?;
+            }
+        }
+
+        Ok(())
+    }
+
     let to_path = Path::new(&to);
 
     if !to_path.exists() {
@@ -84,56 +133,6 @@ fn copy_files(files: Vec<String>, to: String) -> Result<(), String> {
             fs::copy(source, &destination).map_err(|e| e.to_string())?;
         } else {
             return Err(format!("Unsupported source file: {p}"));
-        }
-    }
-
-    Ok(())
-}
-
-//todo 内部関数化
-/// 指定したディレクトリを指定のディレクトリにコピーする
-///
-/// TAURI コマンドとして公開しない内部処理用の関数
-///
-/// 引数
-///
-/// - `from`
-///   - コピー元ディレクトリのフルパス
-/// - `to`
-///   - コピー先ディレクトリのパス
-///   - カレントディレクトリを起点とした相対パス
-///
-/// 返却値
-///
-/// - `Ok(())`
-///   - ()
-/// - `Err(String)`
-///   - エラーメッセージ
-fn copy_dir(from: impl AsRef<Path>, to: impl AsRef<Path>) -> Result<(), String> {
-    let from = from.as_ref();
-    let to = to.as_ref();
-
-    fs::create_dir_all(to).map_err(|e| e.to_string())?;
-
-    for v in fs::read_dir(from).map_err(|e| e.to_string())? {
-        let entry = v.map_err(|e| e.to_string())?;
-        let file_type = entry.file_type().map_err(|e| e.to_string())?;
-        let file_name = entry.file_name();
-        let mut destination = to.join(&file_name);
-
-        if destination.exists() {
-            // コピー先に同名のファイル・ディレクトリが存在する場合、プレフィックスを付与してコピー
-            let mut new_file_name = OsString::from("_copied_");
-            new_file_name.push(&file_name);
-            destination = to.join(&new_file_name);
-        }
-
-        let path = entry.path();
-
-        if file_type.is_dir() {
-            copy_dir(&path, &destination)?;
-        } else {
-            fs::copy(&path, &destination).map_err(|e| e.to_string())?;
         }
     }
 
@@ -239,59 +238,59 @@ fn get_parent_dir(dir: String) -> String {
 ///   - エラーメッセージ
 #[tauri::command(rename_all = "snake_case")]
 fn open_file(file: String) -> Result<(), String> {
-    open_with_default_app(&file)
-}
+    /// 指定したファイルをデフォルトアプリでオープンする
+    ///
+    /// 引数
+    ///
+    /// - `file`
+    ///   - 対象ファイルのフルパス
+    ///
+    /// 返却値
+    ///
+    /// - `Ok(())`
+    ///   - `()`
+    /// - `Err(String)`
+    ///   - エラーメッセージ
+    #[cfg(target_os = "macos")]
+    fn open_with_default_app(file: &str) -> Result<(), String> {
+        let output = Command::new("open")
+            .arg(file)
+            .output()
+            .map_err(|e| e.to_string())?;
 
-/// 指定したファイルをデフォルトアプリでオープンする
-///
-/// 引数
-///
-/// - `file`
-///   - 対象ファイルのフルパス
-///
-/// 返却値
-///
-/// - `Ok(())`
-///   - `()`
-/// - `Err(String)`
-///   - エラーメッセージ
-#[cfg(target_os = "macos")]
-fn open_with_default_app(file: &str) -> Result<(), String> {
-    let output = Command::new("open")
-        .arg(file)
-        .output()
-        .map_err(|e| e.to_string())?;
+        if output.status.success() {
+            return Ok(());
+        }
 
-    if output.status.success() {
-        return Ok(());
+        let detail = match (output.status.code(), output.status.signal()) {
+            // 子プロセスの終了コードが 0 以外の場合
+            (Some(c), _) => format!("exit code: {c:?}"),
+            // 子プロセスがシグナルで終了した場合
+            (None, Some(s)) => format!("terminated by signal {s:?}"),
+            // 上記以外
+            _ => "failed".to_string(),
+        };
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        Err(format!(
+            "open_with_default_app() - detail: {detail}, stderr: {stderr:?}"
+        ))
     }
 
-    let detail = match (output.status.code(), output.status.signal()) {
-        // 子プロセスの終了コードが 0 以外の場合
-        (Some(c), _) => format!("exit code: {c:?}"),
-        // 子プロセスがシグナルで終了した場合
-        (None, Some(s)) => format!("terminated by signal {s:?}"),
-        // 上記以外
-        _ => "failed".to_string(),
-    };
-    let stderr = String::from_utf8_lossy(&output.stderr);
-    Err(format!(
-        "open_with_default_app() - detail: {detail}, stderr: {stderr:?}"
-    ))
-}
+    #[cfg(target_os = "windows")]
+    fn open_with_default_app(path: &str) -> std::io::Result<()> {
+        // start はシェル経由で実行する必要があるので cmd を使う
+        Command::new("cmd")
+            .args(&["/C", "start", "", path])
+            .spawn()
+            .map(|_| ())
+    }
 
-#[cfg(target_os = "windows")]
-fn open_with_default_app(path: &str) -> std::io::Result<()> {
-    // start はシェル経由で実行する必要があるので cmd を使う
-    Command::new("cmd")
-        .args(&["/C", "start", "", path])
-        .spawn()
-        .map(|_| ())
-}
+    #[cfg(target_os = "linux")]
+    fn open_with_default_app(path: &str) -> std::io::Result<()> {
+        Command::new("xdg-open").arg(path).spawn().map(|_| ())
+    }
 
-#[cfg(target_os = "linux")]
-fn open_with_default_app(path: &str) -> std::io::Result<()> {
-    Command::new("xdg-open").arg(path).spawn().map(|_| ())
+    open_with_default_app(&file)
 }
 
 /// 指定したディレクトリのファイルリストを取得する
@@ -645,10 +644,10 @@ mod tests {
     /// open_file() のユニットテスト
     ///
     /// ユニットテストの実装が難しいためパス
-    mod open_file_tests {}
-
-    /// open_with_default_app() のユニットテスト
-    ///
-    /// ユニットテストの実装が難しいためパス
-    mod open_with_default_app_tests {}
+    mod open_file_tests {
+        /// open_with_default_app() のユニットテスト
+        ///
+        /// ユニットテストの実装が難しいためパス
+        mod open_with_default_app_tests {}
+    }
 }
