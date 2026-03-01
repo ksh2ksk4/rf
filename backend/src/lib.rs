@@ -34,9 +34,8 @@ pub fn run() {
 ///
 /// 引数
 ///
-/// - `paths`
-///   - コピー元ファイルのパス
-///   - フルパス
+/// - `files`
+///   - コピー元ファイルのフルパス
 /// - `to`
 ///   - コピー先ディレクトリ名称
 ///   - カレントディレクトリを起点とした相対パス
@@ -44,11 +43,11 @@ pub fn run() {
 /// 返却値
 ///
 /// - `Ok(())`
-///   - すべてのコピーが成功した場合
+///   - `()`
 /// - `Err(String)`
-///   - エラーが発生した場合
+///   - エラーメッセージ
 #[tauri::command(rename_all = "snake_case")]
-fn copy_files(paths: Vec<String>, to: String) -> Result<(), String> {
+fn copy_files(files: Vec<String>, to: String) -> Result<(), String> {
     let to_path = Path::new(&to);
 
     if !to_path.exists() {
@@ -59,7 +58,7 @@ fn copy_files(paths: Vec<String>, to: String) -> Result<(), String> {
         return Err(format!("Destination does not a directory: {to}"));
     }
 
-    for p in paths {
+    for p in files {
         let source = Path::new(&p);
         let file_name = source
             .file_name()
@@ -85,6 +84,7 @@ fn copy_files(paths: Vec<String>, to: String) -> Result<(), String> {
     Ok(())
 }
 
+//todo 内部関数化
 /// 指定したディレクトリを指定のディレクトリにコピーする
 ///
 /// TAURI コマンドとして公開しない内部処理用の関数
@@ -103,7 +103,10 @@ fn copy_files(paths: Vec<String>, to: String) -> Result<(), String> {
 ///   - ()
 /// - `Err(String)`
 ///   - エラーメッセージ
-fn copy_dir(from: &Path, to: &Path) -> Result<(), String> {
+fn copy_dir(from: impl AsRef<Path>, to: impl AsRef<Path>) -> Result<(), String> {
+    let from = from.as_ref();
+    let to = to.as_ref();
+
     fs::create_dir_all(to).map_err(|e| e.to_string())?;
 
     for v in fs::read_dir(from).map_err(|e| e.to_string())? {
@@ -213,6 +216,8 @@ fn get_parent_dir(dir: String) -> String {
     }
 }
 
+/// 指定したファイルをデフォルトアプリでオープンする
+///
 /// open_with_default_app() のラッパー
 ///
 /// 引数
@@ -287,8 +292,8 @@ fn open_with_default_app(path: &str) -> std::io::Result<()> {
 ///
 /// 引数
 ///
-/// - `path`
-///   - 対象ディレクトリのパス
+/// - `dir`
+///   - 対象ディレクトリのフルパス
 ///
 /// 返却値
 ///
@@ -297,10 +302,10 @@ fn open_with_default_app(path: &str) -> std::io::Result<()> {
 /// - `Err(String)`
 ///   - エラーメッセージ
 #[tauri::command(rename_all = "snake_case")]
-fn read_dir(path: String) -> Result<Vec<FileInfo>, String> {
+fn read_dir(dir: String) -> Result<Vec<FileInfo>, String> {
     let mut entries = Vec::<FileInfo>::new();
 
-    for result in fs::read_dir(&path).map_err(|e| e.to_string())? {
+    for result in fs::read_dir(&dir).map_err(|e| e.to_string())? {
         let dir_entry = result.map_err(|e| e.to_string())?;
         let metadata = dir_entry.metadata().map_err(|e| e.to_string())?;
         let file_type = metadata.file_type();
@@ -366,8 +371,8 @@ fn read_dir(path: String) -> Result<Vec<FileInfo>, String> {
 ///
 /// 引数
 ///
-/// - `path`
-///   - 対象ファイルのパス
+/// - `file`
+///   - 対象ファイルのフルパス
 /// - `new_name`
 ///   - 変更後のファイル名
 ///
@@ -378,8 +383,8 @@ fn read_dir(path: String) -> Result<Vec<FileInfo>, String> {
 /// - `Err(String)`
 ///   - エラーメッセージ
 #[tauri::command(rename_all = "snake_case")]
-fn rename_file(path: String, new_name: String) -> Result<(), String> {
-    let from = Path::new(&path);
+fn rename_file(file: String, new_name: String) -> Result<(), String> {
+    let from = Path::new(&file);
     let parent = from
         .parent()
         .ok_or_else(|| "Invalid source path".to_string())?;
@@ -399,7 +404,7 @@ fn rename_file(path: String, new_name: String) -> Result<(), String> {
 /// 返却値
 ///
 /// - `String`
-///   - 選択したディレクトリのパス
+///   - 選択したディレクトリのフルパス
 #[tauri::command(rename_all = "snake_case")]
 fn select_dir() -> String {
     rfd::FileDialog::new()

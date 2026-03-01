@@ -29,28 +29,28 @@ extern "C" {
 ///
 /// 引数
 ///
-/// - `paths`
-///   - コピー元ファイルのパス
-///   - フルパス
+/// - `files`
+///   - コピー元ファイルのフルパス
 /// - `to`
 ///   - コピー先ディレクトリ名称
 ///   - カレントディレクトリを起点した相対パス
-/// - `push_toast`
-///   - エラーメッセージ表示用トーストのコールバック
+/// - `toaster`
+///   - トーストを表示するコールバック関数
+///     - エラーメッセージ表示用
 ///
 /// 返却値
 ///
 /// - `bool`
 ///   - 処理結果
 pub async fn tc_copy_files(
-    paths: Vec<String>,
+    files: Vec<String>,
     to: &String,
-    push_toast: Callback<(ToastKind, String)>,
+    toaster: Callback<(ToastKind, String)>,
 ) -> bool {
-    let args = match JsValue::from_serde(&serde_json::json!({"paths": paths, "to": to})) {
+    let args = match JsValue::from_serde(&serde_json::json!({"files": files, "to": to})) {
         Ok(v) => v,
         Err(e) => {
-            system_error!(e, &push_toast);
+            system_error!(e, &toaster);
             return false;
         }
     };
@@ -58,7 +58,7 @@ pub async fn tc_copy_files(
         .await
         .map(|_| true)
         .unwrap_or_else(|e| {
-            system_error!(e, &push_toast);
+            system_error!(e, &toaster);
             false
         })
 }
@@ -69,37 +69,41 @@ pub async fn tc_copy_files(
 ///
 /// 引数
 ///
-/// - `paths`
-///   - 対象ファイルのパス
-///   - フルパス
-/// - `push_toast`
-///   - エラーメッセージ表示用トーストのコールバック
+/// - `files`
+///   - 対象ファイルのフルパス
+/// - `toaster`
+///   - トーストを表示するコールバック関数
+///     - エラーメッセージ表示用
 ///
 /// 返却値
 ///
 /// - `bool`
 ///   - 処理結果
-pub async fn tc_delete_files(
-    paths: Vec<String>,
-    push_toast: Callback<(ToastKind, String)>,
-) -> bool {
-    let args = match JsValue::from_serde(&serde_json::json!({"paths": paths})) {
+pub async fn tc_delete_files(files: Vec<String>, toaster: Callback<(ToastKind, String)>) -> bool {
+    let args = match JsValue::from_serde(&serde_json::json!({"files": files})) {
         Ok(v) => v,
         Err(e) => {
-            system_error!(e, &push_toast);
+            system_error!(e, &toaster);
             return false;
         }
     };
     match invoke_r(TAURI_COMMAND_DELETE_FILES, args).await {
         Ok(_) => true,
         Err(e) => {
-            system_error!(e, &push_toast);
+            system_error!(e, &toaster);
             false
         }
     }
 }
 
 /// アプリ起動時に表示するディレクトリを取得する
+///
+/// 以下の順で最初に見つかったディレクトリを返す
+///
+/// - 設定ファイルの `general` セクションの `init_dir`
+///   - 未設定の場合は以下にフォールバック
+/// - ユーザのホームディレクトリ
+/// - ルートディレクトリ
 ///
 /// 返却値
 ///
@@ -143,6 +147,7 @@ pub async fn tc_get_parent_dir(dir: &str, toaster: Callback<(ToastKind, String)>
         .unwrap()
 }
 
+//todo return bool
 /// 指定したファイルをデフォルトアプリでオープンする
 ///
 /// 引数
@@ -171,23 +176,22 @@ pub async fn tc_open_file(file: String, toaster: Callback<(ToastKind, String)>) 
 ///
 /// 引数
 ///
-/// - `path`
-///   - 対象ディレクトリのパス
-/// - `push_toast`
-///   - エラーメッセージ表示用のトースト
+/// - `dir`
+///   - 対象ディレクトリのフルパス
+/// - `toaster`
+///   - トーストを表示するコールバック関数
+///     - エラーメッセージ表示用
 ///
 /// 返却値
 ///
 /// - `Vec<FileInfo>`
-///   - ファイルリスト(エラーの場合は空のリスト)
-pub async fn tc_read_dir(
-    path: &String,
-    push_toast: Callback<(ToastKind, String)>,
-) -> Vec<FileInfo> {
-    let args = match JsValue::from_serde(&serde_json::json!({"path": path})) {
+///   - ファイルリスト
+///   - エラーの場合は空のリスト
+pub async fn tc_read_dir(dir: &String, toaster: Callback<(ToastKind, String)>) -> Vec<FileInfo> {
+    let args = match JsValue::from_serde(&serde_json::json!({"dir": dir})) {
         Ok(v) => v,
         Err(e) => {
-            system_error!(e, &push_toast);
+            system_error!(e, &toaster);
             return vec![];
         }
     };
@@ -195,12 +199,12 @@ pub async fn tc_read_dir(
         Ok(v) => match v.into_serde::<Vec<FileInfo>>() {
             Ok(v) => v,
             Err(e) => {
-                system_error!(e, &push_toast);
+                system_error!(e, &toaster);
                 vec![]
             }
         },
         Err(e) => {
-            system_error!(e, &push_toast);
+            system_error!(e, &toaster);
             vec![]
         }
     }
@@ -210,33 +214,34 @@ pub async fn tc_read_dir(
 ///
 /// 引数
 ///
-/// - `path`
-///   - 対象ファイルのパス
+/// - `file`
+///   - 対象ファイルのフルパス
 /// - `new_name`
 ///   - 変更後のファイル名
-/// - `push_toast`
-///   - エラーメッセージ表示用のトースト
+/// - `toaster`
+///   - トーストを表示するコールバック関数
+///     - エラーメッセージ表示用
 ///
 /// 返却値
 ///
 /// - `bool`
-///   - リネームできたかどうか
+///   - 処理結果
 pub async fn tc_rename_file(
-    path: &String,
+    file: &String,
     new_name: &String,
-    push_toast: Callback<(ToastKind, String)>,
+    toaster: Callback<(ToastKind, String)>,
 ) -> bool {
-    let args = match JsValue::from_serde(&serde_json::json!({"path": path, "new_name": new_name})) {
+    let args = match JsValue::from_serde(&serde_json::json!({"file": file, "new_name": new_name})) {
         Ok(v) => v,
         Err(e) => {
-            system_error!(e, &push_toast);
+            system_error!(e, &toaster);
             return false;
         }
     };
     match invoke_r(TAURI_COMMAND_RENAME_FILE, args).await {
         Ok(_) => true,
         Err(e) => {
-            system_error!(e, &push_toast);
+            system_error!(e, &toaster);
             false
         }
     }
@@ -247,7 +252,7 @@ pub async fn tc_rename_file(
 /// 返却値
 ///
 /// - `String`
-///   - 選択したディレクトリのパス
+///   - 選択したディレクトリのフルパス
 pub async fn tc_select_dir() -> String {
     invoke_no_args(TAURI_COMMAND_SELECT_DIR)
         .await
