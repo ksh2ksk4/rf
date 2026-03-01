@@ -54,55 +54,6 @@ pub fn run() {
 ///   - エラーメッセージ
 #[tauri::command(rename_all = "snake_case")]
 fn copy_files(files: Vec<String>, to: String) -> Result<(), String> {
-    /// 指定したディレクトリを指定のディレクトリにコピーする
-    ///
-    /// TAURI コマンドとして公開しない内部処理用の関数
-    ///
-    /// 引数
-    ///
-    /// - `from`
-    ///   - コピー元ディレクトリのフルパス
-    /// - `to`
-    ///   - コピー先ディレクトリのパス
-    ///   - カレントディレクトリを起点とした相対パス
-    ///
-    /// 返却値
-    ///
-    /// - `Ok(())`
-    ///   - ()
-    /// - `Err(String)`
-    ///   - エラーメッセージ
-    fn copy_dir(from: impl AsRef<Path>, to: impl AsRef<Path>) -> Result<(), String> {
-        let from = from.as_ref();
-        let to = to.as_ref();
-
-        fs::create_dir_all(to).map_err(|e| e.to_string())?;
-
-        for v in fs::read_dir(from).map_err(|e| e.to_string())? {
-            let entry = v.map_err(|e| e.to_string())?;
-            let file_type = entry.file_type().map_err(|e| e.to_string())?;
-            let file_name = entry.file_name();
-            let mut destination = to.join(&file_name);
-
-            if destination.exists() {
-                // コピー先に同名のファイル・ディレクトリが存在する場合、プレフィックスを付与してコピー
-                let mut new_file_name = OsString::from("_copied_");
-                new_file_name.push(&file_name);
-                destination = to.join(&new_file_name);
-            }
-
-            let path = entry.path();
-
-            if file_type.is_dir() {
-                copy_dir(&path, &destination)?;
-            } else {
-                fs::copy(&path, &destination).map_err(|e| e.to_string())?;
-            }
-        }
-
-        Ok(())
-    }
-
     let to_path = Path::new(&to);
 
     if !to_path.exists() {
@@ -113,11 +64,11 @@ fn copy_files(files: Vec<String>, to: String) -> Result<(), String> {
         return Err(format!("Destination does not a directory: {to}"));
     }
 
-    for p in files {
-        let source = Path::new(&p);
-        let file_name = source
+    for f in files {
+        let from = Path::new(&f);
+        let file_name = from
             .file_name()
-            .ok_or_else(|| format!("Source path is invalid: {p}"))?;
+            .ok_or_else(|| format!("Source path is invalid: {f}"))?;
         let mut destination = to_path.join(file_name);
 
         if destination.exists() {
@@ -127,12 +78,23 @@ fn copy_files(files: Vec<String>, to: String) -> Result<(), String> {
             destination = to_path.join(&new_file_name);
         }
 
-        if source.is_dir() {
-            copy_dir(source, &destination)?;
-        } else if source.is_file() {
-            fs::copy(source, &destination).map_err(|e| e.to_string())?;
+        if from.is_dir() {
+            // コピー先ディレクトリを作成して、コピー元ディレクトリ直下のファイルを再帰処理
+            fs::create_dir_all(&destination).map_err(|e| e.to_string())?;
+            copy_files(
+                fs::read_dir(from)
+                    .map_err(|e| e.to_string())?
+                    .map(|v| {
+                        v.map(|de| de.path().to_string_lossy().into_owned())
+                            .map_err(|e| e.to_string())
+                    })
+                    .collect::<Result<Vec<String>, _>>()?,
+                destination.to_string_lossy().into_owned(),
+            )?;
+        } else if from.is_file() {
+            fs::copy(from, &destination).map_err(|e| e.to_string())?;
         } else {
-            return Err(format!("Unsupported source file: {p}"));
+            return Err(format!("Unsupported source file: {f}"));
         }
     }
 
