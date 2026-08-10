@@ -160,6 +160,44 @@ pub fn create_reload_button_click_handler(
 
 /// # Summary
 ///
+/// create dir ボタンのクリックイベントハンドラを生成
+pub fn create_new_dir_button_click_handler(
+    all_files: UseStateHandle<Vec<FileInfo>>,
+    display_files: UseStateHandle<Vec<FileInfo>>,
+    navigation_history: UseStateHandle<NavigationHistory>,
+    toasts: UseStateHandle<Vec<Toast>>,
+) -> Callback<MouseEvent> {
+    Callback::from(move |_| {
+        let path = navigation_history.current().to_string();
+
+        let all_files = all_files.clone();
+        let display_files = display_files.clone();
+        let toasts = toasts.clone();
+        spawn_local(async move {
+            let dir_name = web_sys::window()
+                .and_then(|window| {
+                    window
+                        .prompt_with_message_and_default("Create directory name", "")
+                        .ok()
+                        .flatten()
+                })
+                .unwrap_or_default()
+                .trim()
+                .to_string();
+
+            if dir_name.is_empty() {
+                return;
+            }
+
+            if tc_create_dir(path.clone(), dir_name, create_push_toast(toasts.clone())).await {
+                update_file_list(&path, all_files, display_files, toasts).await;
+            }
+        });
+    })
+}
+
+/// # Summary
+///
 /// copy ボタンのクリックイベントハンドラを生成
 pub fn create_copy_button_click_handler(
     copy_files: UseStateHandle<HashSet<String>>,

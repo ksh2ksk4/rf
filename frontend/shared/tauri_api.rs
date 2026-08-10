@@ -63,6 +63,45 @@ pub async fn tc_copy_files(
         })
 }
 
+/// 指定したディレクトリを作成する
+///
+/// 引数
+///
+/// - `parent_dir`
+///   - 作成するディレクトリの親ディレクトリ
+/// - `dir_name`
+///   - 作成するディレクトリ名
+/// - `toaster`
+///   - トーストを表示するコールバック関数
+///     - エラーメッセージ表示用
+///
+/// 返却値
+///
+/// - `bool`
+///   - 処理結果
+pub async fn tc_create_dir(
+    parent_dir: String,
+    dir_name: String,
+    toaster: Callback<(ToastKind, String)>,
+) -> bool {
+    let args = match JsValue::from_serde(
+        &serde_json::json!({"parent_dir": parent_dir, "dir_name": dir_name}),
+    ) {
+        Ok(v) => v,
+        Err(e) => {
+            system_error!(e, &toaster);
+            return false;
+        }
+    };
+    match invoke_r(TAURI_COMMAND_CREATE_DIR, args).await {
+        Ok(_) => true,
+        Err(e) => {
+            system_error!(e, &toaster);
+            false
+        }
+    }
+}
+
 /// 指定したファイルを削除する
 ///
 /// 物理削除ではなくゴミ箱へファイルを移動する

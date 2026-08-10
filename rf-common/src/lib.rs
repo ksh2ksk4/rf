@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 // TAURI コマンド
 //
 pub const TAURI_COMMAND_COPY_FILES: &str = "copy_files";
+pub const TAURI_COMMAND_CREATE_DIR: &str = "create_dir";
 pub const TAURI_COMMAND_DELETE_FILES: &str = "delete_files";
 pub const TAURI_COMMAND_GET_INIT_DIR: &str = "get_init_dir";
 pub const TAURI_COMMAND_GET_PARENT_DIR: &str = "get_parent_dir";

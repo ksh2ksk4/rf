@@ -24,6 +24,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
             copy_files,
+            create_dir,
             delete_files,
             get_init_dir,
             get_parent_dir,
@@ -98,6 +99,45 @@ fn copy_files(files: Vec<String>, to: String) -> Result<(), String> {
         }
     }
 
+    Ok(())
+}
+
+/// 指定したディレクトリを作成する
+///
+/// 引数
+///
+/// - `parent_dir`
+///   - 作成するディレクトリの親ディレクトリ
+/// - `dir_name`
+///   - 作成するディレクトリ名
+///
+/// 返却値
+///
+/// - `Ok(())`
+///   - `()`
+/// - `Err(String)`
+///   - エラーメッセージ
+#[tauri::command(rename_all = "snake_case")]
+fn create_dir(parent_dir: String, dir_name: String) -> Result<(), String> {
+    let dir_name = dir_name.trim();
+
+    if dir_name.is_empty() {
+        return Err("Directory name is empty".to_string());
+    }
+
+    let path = Path::new(&dir_name);
+
+    if path.components().count() != 1 || path.file_name().is_none() {
+        return Err("Directory name contains invalid path components".to_string());
+    }
+
+    let target = Path::new(&parent_dir).join(dir_name);
+
+    if target.exists() {
+        return Err(format!("Directory already exists: {}", target.display()));
+    }
+
+    fs::create_dir(&target).map_err(|e| e.to_string())?;
     Ok(())
 }
 
@@ -555,6 +595,21 @@ mod tests {
             let result = copy_files(vec![guard.get_test_home_dir().clone()], "to".into());
             assert!(result.is_ok());
             assert!(Path::new("to/rf_lib_test_home/foo.txt").exists());
+        }
+    }
+
+    /// create_dir() のユニットテスト
+    mod create_dir_tests {
+        use super::*;
+
+        #[test]
+        fn test_create_dir_case_01() {
+            let guard = TestEnvGuard::new();
+            let parent_dir = guard.get_test_cwd().to_string_lossy().into_owned();
+
+            let result = create_dir(parent_dir.clone(), "new_dir".to_string());
+            assert!(result.is_ok());
+            assert!(Path::new(&parent_dir).join("new_dir").is_dir());
         }
     }
 

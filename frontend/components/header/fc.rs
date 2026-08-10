@@ -126,6 +126,12 @@ pub fn header_component(props: &HeaderProps) -> Html {
         navigation_history.clone(),
         toasts.clone(),
     );
+    let handle_create_dir_button_click = create_new_dir_button_click_handler(
+        all_files.clone(),
+        display_files.clone(),
+        navigation_history.clone(),
+        toasts.clone(),
+    );
     #[rustfmt::skip]
     let handle_copy_button_click = create_copy_button_click_handler(
         copy_files.clone(),
@@ -238,6 +244,17 @@ pub fn header_component(props: &HeaderProps) -> Html {
                 >
                     <i
                         class="fa-solid fa-arrow-rotate-right"
+                        aria-hidden="true"
+                    />
+                </button>
+                <button
+                    class="icon"
+                    title="create dir"
+                    aria-label="create dir"
+                    onclick={handle_create_dir_button_click}
+                >
+                    <i
+                        class="fa-solid fa-folder-plus"
                         aria-hidden="true"
                     />
                 </button>
