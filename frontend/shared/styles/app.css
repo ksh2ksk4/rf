@@ -98,13 +98,16 @@
   --color-dark-neutral-950: #0f0f0e;
 }
 
+/* prettier-ignore */
 :root {
-  font-family: /* macOS */ -apple-system, BlinkMacSystemFont,
-    "Hiragino Kaku Gothic", "Yu Gothic", "Apple Color Emoji",
-    /* Windows */ "Segoe UI Variable", "Segoe UI", "Yu Gothic", "Meiryo",
-    "Noto Sans JP", "Segoe UI Emoji", "Noto Color Emoji",
-    /* fallback */ sans-serif;
-  font-size: 20px;
+  font-family:
+    /* macOS */
+    -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic", "Yu Gothic", "Apple Color Emoji",
+    /* Windows */
+    "Segoe UI Variable", "Segoe UI", "Yu Gothic", "Meiryo", "Noto Sans JP", "Segoe UI Emoji", "Noto Color Emoji",
+    /* fallback */
+    sans-serif;
+  font-size: 24px;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 }
@@ -121,6 +124,22 @@
     background-color: var(--color-dark-base-950);
     color: var(--color-dark-neutral-50);
   }
+}
+
+body.theme-high-contrast-dark {
+  --color-dark-base-600: #2d3748;
+  --color-dark-base-950: #000000;
+  --color-dark-neutral-50: #ffffff;
+  --color-dark-neutral-300: #e2e8f0;
+  --color-dark-neutral-700: #4a5568;
+  --color-dark-neutral-800: #2d3748;
+  --color-dark-neutral-900: #1a202c;
+  --color-dark-neutral-950: #000000;
+  --color-dark-accent-400: #fbbf24;
+  --color-dark-accent-500: #f59e0b;
+  --color-dark-accent-600: #d97706;
+  background-color: var(--color-dark-base-950);
+  color: var(--color-dark-neutral-50);
 }
 
 @layer components {
