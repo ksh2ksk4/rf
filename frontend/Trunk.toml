@@ -3,7 +3,7 @@ dist = "../dist"
 target = "index.html"
 
 [watch]
-ignore = ["../backend"]
+ignore = ["../backend", "assets/styles/app.css"]
 
 [serve]
 open = false
