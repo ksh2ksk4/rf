@@ -370,13 +370,15 @@ fn rename_file(file: String, new_name: String) -> Result<(), String> {
 ///
 /// 返却値
 ///
-/// - `String`
+/// - `Some(String)`
 ///   - 選択したディレクトリのフルパス
+/// - `None`
+///   - ディレクトリの選択をキャンセルした場合
 #[tauri::command(rename_all = "snake_case")]
-fn select_dir() -> String {
+fn select_dir() -> Option<String> {
     rfd::FileDialog::new()
         .pick_folder()
-        .map_or("".to_string(), |v| v.to_string_lossy().to_string())
+        .map(|v| v.to_string_lossy().to_string())
 }
 
 /// ユニットテスト

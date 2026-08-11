@@ -251,11 +251,10 @@ pub async fn tc_rename_file(
 ///
 /// 返却値
 ///
-/// - `String`
+/// - `Some(String)`
 ///   - 選択したディレクトリのフルパス
-pub async fn tc_select_dir() -> String {
-    invoke_no_args(TAURI_COMMAND_SELECT_DIR)
-        .await
-        .as_string()
-        .unwrap()
+/// - `None`
+///   - ディレクトリの選択をキャンセルした場合
+pub async fn tc_select_dir() -> Option<String> {
+    invoke_no_args(TAURI_COMMAND_SELECT_DIR).await.as_string()
 }

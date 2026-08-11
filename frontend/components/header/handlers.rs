@@ -100,12 +100,13 @@ pub fn create_select_dir_button_click_handler(
         let display_files = display_files.clone();
         let toasts = toasts.clone();
         spawn_local(async move {
-            let path = tc_select_dir().await;
-            update_file_list(&path, all_files, display_files, toasts).await;
+            if let Some(path) = tc_select_dir().await {
+                update_file_list(&path, all_files, display_files, toasts).await;
 
-            let mut nh = (*navigation_history).clone();
-            nh.push(&path);
-            navigation_history.set(nh);
+                let mut nh = (*navigation_history).clone();
+                nh.push(&path);
+                navigation_history.set(nh);
+            }
         });
     })
 }
