@@ -16,6 +16,7 @@ pub struct HeaderProps {
     pub shift_key_pressed: UseStateHandle<bool>,
     pub toasts: UseStateHandle<Vec<Toast>>,
     pub header_ref: NodeRef,
+    pub init_dir: String,
 }
 
 /// # Summary
@@ -88,6 +89,13 @@ pub fn header_component(props: &HeaderProps) -> Html {
     //
     // イベントハンドラ
     //
+    let handle_home_button_click = create_home_button_click_handler(
+        all_files.clone(),
+        display_files.clone(),
+        navigation_history.clone(),
+        toasts.clone(),
+        &props.init_dir,
+    );
     let handle_back_button_click = create_back_button_click_handler(
         all_files.clone(),
         display_files.clone(),
@@ -164,6 +172,18 @@ pub fn header_component(props: &HeaderProps) -> Html {
     html! {
         <header ref={header_ref}>
             <div class="toolbar">
+                <button
+                    class="icon"
+                    title="home"
+                    aria-label="home"
+                    onclick={handle_home_button_click}
+                    disabled={!navigation_history.can_back()}
+                >
+                    <i
+                        class="fa-regular fa-house"
+                        aria-hidden="true"
+                    />
+                </button>
                 <button
                     class="icon"
                     title="back"

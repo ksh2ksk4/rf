@@ -189,6 +189,7 @@ pub fn app_component(props: &AppProps) -> Html {
                 shift_key_pressed={shift_key_pressed.clone()}
                 toasts={toasts.clone()}
                 header_ref={header_ref}
+                init_dir={props.init_dir.clone()}
             />
             <Main
                 all_files={all_files.clone()}

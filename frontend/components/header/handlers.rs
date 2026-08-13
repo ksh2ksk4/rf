@@ -10,6 +10,32 @@ use crate::shared::utils::*;
 
 /// # Summary
 ///
+/// home ボタンのクリックイベントハンドラを生成
+pub fn create_home_button_click_handler(
+    all_files: UseStateHandle<Vec<FileInfo>>,
+    display_files: UseStateHandle<Vec<FileInfo>>,
+    navigation_history: UseStateHandle<NavigationHistory>,
+    toasts: UseStateHandle<Vec<Toast>>,
+    path: &str,
+) -> Callback<MouseEvent> {
+    let path = path.to_string();
+    Callback::from(move |_| {
+        let path = path.clone();
+        let mut nh = (*navigation_history).clone();
+        nh.push(&path);
+        navigation_history.set(nh);
+
+        let all_files = all_files.clone();
+        let display_files = display_files.clone();
+        let toasts = toasts.clone();
+        spawn_local(async move {
+            update_file_list(&path, all_files, display_files, toasts).await;
+        });
+    })
+}
+
+/// # Summary
+///
 /// back ボタンのクリックイベントハンドラを生成
 pub fn create_back_button_click_handler(
     all_files: UseStateHandle<Vec<FileInfo>>,
